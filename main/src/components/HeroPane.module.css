@@ -1,0 +1,166 @@
+.heroPane {
+  position: relative;
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Text at the bottom */
+  min-height: 520px;
+  overflow: hidden;
+}
+
+/* Background image with hover transition */
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/images/hero-bg.png');
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.heroPane:hover .background {
+  transform: scale(1.05);
+}
+
+/* Dark gradient overlay for text readability */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(9, 10, 15, 0.35) 0%,
+    rgba(9, 10, 15, 0.75) 50%,
+    rgba(9, 10, 15, 0.9) 100%
+  );
+  z-index: 2;
+}
+
+.content {
+  position: relative;
+  z-index: 3;
+}
+
+.title {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 2.6rem;
+  font-weight: 750;
+  line-height: 1.15;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.8px;
+}
+
+.gradientText {
+  display: block;
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-teal) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  filter: drop-shadow(0 2px 10px rgba(0, 240, 255, 0.15));
+}
+
+.subtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  max-width: 320px;
+  margin-bottom: 40px;
+}
+
+.statsGrid {
+  display: flex;
+  gap: 16px;
+  max-width: 340px;
+}
+
+.statCard {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 14px 18px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle line indicator under stat cards */
+.statCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: transparent;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.statCard:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+  transform: translateY(-2px);
+}
+
+.statCardNodes:hover::after {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 10px var(--accent-cyan);
+}
+
+.statCardUptime:hover::after {
+  background: var(--accent-purple);
+  box-shadow: 0 0 10px var(--accent-purple);
+}
+
+.statLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.statLabelNodes {
+  color: var(--accent-cyan);
+}
+
+.statLabelUptime {
+  color: var(--accent-purple);
+}
+
+.statValue {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .heroPane {
+    padding: 60px 32px 40px 32px;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 340px;
+  }
+  .subtitle {
+    max-width: 100%;
+    margin-bottom: 24px;
+  }
+  .statsGrid {
+    width: 100%;
+    max-width: 320px;
+  }
+}
