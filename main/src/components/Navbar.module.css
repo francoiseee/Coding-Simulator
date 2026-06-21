@@ -54,11 +54,113 @@
   text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
+.authMenu {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.menuIconBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.menuIconBtn:hover {
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6));
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.avatarWrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatarWrapper:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  transform: scale(1.05);
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  max-width: 480px;
+  margin: 0 24px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 16px 10px 48px;
+  background-color: rgba(10, 15, 26, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  color: var(--text-primary);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+  background-color: rgba(20, 26, 42, 0.7);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+}
+
+.searchInput:focus + .searchIcon {
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.4));
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: 24px 20px;
   }
   .navLinks {
     gap: 20px;
+  }
+  .authMenu {
+    gap: 12px;
+  }
+  .avatarWrapper {
+    width: 32px;
+    height: 32px;
   }
 }

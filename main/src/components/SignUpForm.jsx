@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import styles from './SignUpForm.module.css';
 
-export default function SignUpForm() {
+export default function SignUpForm({ onAuthSuccess }) {
   const [mode, setMode] = useState('signup'); // 'login' or 'signup'
   const [email, setEmail] = useState('name@gmail.com');
   const [password, setPassword] = useState('');
@@ -40,11 +40,21 @@ export default function SignUpForm() {
           type: 'success',
           message: 'Core identity initialized. Welcome to the node architecture!',
         });
+        if (onAuthSuccess) {
+          setTimeout(() => {
+            onAuthSuccess(email, 'signup');
+          }, 1000);
+        }
       } else {
         setStatus({
           type: 'success',
           message: 'Access granted. Welcome back, Node operator!',
         });
+        if (onAuthSuccess) {
+          setTimeout(() => {
+            onAuthSuccess(email, 'login');
+          }, 1000);
+        }
       }
     }, 1200);
   };
