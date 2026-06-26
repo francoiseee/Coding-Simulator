@@ -90,6 +90,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  background: transparent;
+  padding: 0;
 }
 
 .avatarWrapper:hover {

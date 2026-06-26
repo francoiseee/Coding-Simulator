@@ -126,19 +126,20 @@ export default function Assessment({ email, onEnterDashboard }) {
 
   // Timer countdown hook
   useEffect(() => {
-    if (isSubmitted || timeLeft <= 0) {
-      if (timeLeft <= 0 && !isSubmitted) {
-        setIsSubmitted(true);
-      }
-      return;
-    }
+    if (isSubmitted) return;
 
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setIsSubmitted(true);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, isSubmitted]);
+  }, [isSubmitted]);
 
   // Format time remaining
   const formatTime = (seconds) => {
@@ -285,7 +286,6 @@ export default function Assessment({ email, onEnterDashboard }) {
   }
 
   const currentQuestion = QUESTIONS[currentIdx];
-  const answeredCount = selections.filter((ans) => ans !== null).length;
   // Progress calculations
   const progressPercent = Math.round(((currentIdx + 1) / QUESTIONS.length) * 100);
 
@@ -347,8 +347,9 @@ export default function Assessment({ email, onEnterDashboard }) {
             {currentQuestion.options.map((opt, idx) => {
               const isSelected = selections[currentIdx] === idx;
               return (
-                <div
+                <button
                   key={opt.key}
+                  type="button"
                   className={`${styles.optionCard} ${isSelected ? styles.optionCardSelected : ''}`}
                   onClick={() => handleSelectOption(idx)}
                 >
@@ -375,7 +376,7 @@ export default function Assessment({ email, onEnterDashboard }) {
                       </svg>
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -428,7 +429,7 @@ export default function Assessment({ email, onEnterDashboard }) {
           <article className={styles.projectCard}>
             <div className={styles.projectImageWrapper}>
               <img
-                src="/images/project-ewan.png"
+                src="/images/project-ewan.svg"
                 alt="Project EWAN neural circuit board"
                 className={styles.projectImage}
               />

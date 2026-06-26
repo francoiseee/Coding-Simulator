@@ -99,19 +99,22 @@ export default function Navbar({ isAuthenticated, showSearch, onLogOut }) {
             </svg>
           </button>
           
-          <div className={styles.avatarWrapper}>
+          <button
+            className={styles.avatarWrapper}
+            type="button"
+            onClick={() => {
+              if (window.confirm("Do you want to log out?")) {
+                onLogOut();
+              }
+            }}
+            title="Click to logout"
+          >
             <img
-              src="/images/user-avatar.png"
+              src="/images/user-avatar.svg"
               alt="User Profile"
               className={styles.avatar}
-              onClick={() => {
-                if (window.confirm("Do you want to log out?")) {
-                  onLogOut();
-                }
-              }}
-              title="Click to logout"
             />
-          </div>
+          </button>
         </div>
       ) : (
         <div className={styles.navLinks}>

@@ -166,6 +166,9 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
 }
 
 .optionCard:hover {

@@ -5,7 +5,7 @@ import styles from './SignUpForm.module.css';
 
 export default function SignUpForm({ onAuthSuccess }) {
   const [mode, setMode] = useState('signup'); // 'login' or 'signup'
-  const [email, setEmail] = useState('name@gmail.com');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
