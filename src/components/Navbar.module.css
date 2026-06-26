@@ -25,12 +25,10 @@
   letter-spacing: -0.2px;
 }
 
-.logoIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-cyan);
-  filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
+.logoImage {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 
 .navLinks {
