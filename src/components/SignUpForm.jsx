@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import styles from './SignUpForm.module.css';
+import { supabase } from '@/lib/supabase';
 
 export default function SignUpForm({ onAuthSuccess }) {
   const [mode, setMode] = useState('signup'); // 'login' or 'signup'
@@ -12,7 +13,7 @@ export default function SignUpForm({ onAuthSuccess }) {
   const [status, setStatus] = useState(null); // { type: 'success'|'error', message: string }
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus(null);
 
@@ -32,31 +33,31 @@ export default function SignUpForm({ onAuthSuccess }) {
 
     setIsLoading(true);
 
-    // Simulate API initialization call
-    setTimeout(() => {
+    if (mode === 'signup') {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: 'http://localhost:3000',
+        },
+      });
       setIsLoading(false);
-      if (mode === 'signup') {
-        setStatus({
-          type: 'success',
-          message: 'Core identity initialized. Welcome to the node architecture!',
-        });
-        if (onAuthSuccess) {
-          setTimeout(() => {
-            onAuthSuccess(email, 'signup');
-          }, 1000);
-        }
-      } else {
-        setStatus({
-          type: 'success',
-          message: 'Access granted. Welcome back, Node operator!',
-        });
-        if (onAuthSuccess) {
-          setTimeout(() => {
-            onAuthSuccess(email, 'login');
-          }, 1000);
-        }
+      if (error) {
+        setStatus({ type: 'error', message: error.message });
+        return;
       }
-    }, 1200);
+      setStatus({ type: 'success', message: 'Confirmation sent. Check your email, then log in below.' });
+      setTimeout(() => handleTabChange('login'), 1500);
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      setIsLoading(false);
+      if (error) {
+        setStatus({ type: 'error', message: error.message });
+        return;
+      }
+      setStatus({ type: 'success', message: 'Access granted. Welcome back, Node operator!' });
+      setTimeout(() => onAuthSuccess?.(email, 'login'), 1000);
+    }
   };
 
   const handleTabChange = (newMode) => {
