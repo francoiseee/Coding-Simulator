@@ -1,0 +1,466 @@
+.progressWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* 1. Header Styles */
+.progressHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 800px;
+}
+
+.highlightText {
+  color: var(--accent-magenta);
+  font-weight: 600;
+}
+
+/* 2. Row 1 Layout */
+.topRow {
+  display: grid;
+  grid-template-columns: 1.1fr 1.9fr;
+  gap: 30px;
+}
+
+.masteryCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.1rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  letter-spacing: -0.1px;
+}
+
+/* Radar Chart Styling */
+.masteryHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.masteryTitleWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.masterySubtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.pythonBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--accent-magenta);
+  letter-spacing: 0.5px;
+  background-color: rgba(157, 78, 221, 0.08);
+  border: 1px solid rgba(157, 78, 221, 0.15);
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.badgeDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--accent-magenta);
+  box-shadow: 0 0 6px var(--accent-magenta);
+}
+
+.radarWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  margin-top: 14px;
+}
+
+.radarSvg {
+  overflow: visible;
+  max-width: 200px;
+}
+
+.radarLabel {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.46rem;
+  font-weight: 700;
+  fill: var(--text-secondary);
+  letter-spacing: 0.8px;
+}
+
+/* 3. Learning Path Timeline */
+.learningCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+}
+
+.learningHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.learningTag {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent-magenta);
+  letter-spacing: 0.8px;
+  background-color: rgba(157, 78, 221, 0.08);
+  border: 1.5px solid rgba(157, 78, 221, 0.15);
+  padding: 6px 12px;
+  border-radius: 20px;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 28px;
+  position: relative;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 17px;
+  top: 12px;
+  bottom: 12px;
+  width: 1px;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.timelineNode {
+  display: flex;
+  gap: 20px;
+  position: relative;
+}
+
+.nodeIconWrapper {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.completedNode .nodeIconWrapper {
+  background-color: var(--accent-teal);
+  border-color: var(--accent-teal);
+  color: #06070a;
+  box-shadow: 0 0 10px rgba(0, 245, 176, 0.2);
+}
+
+.activeContainer {
+  border: 1.5px solid rgba(0, 240, 255, 0.15);
+  background-color: rgba(0, 240, 255, 0.02);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.04);
+  margin-left: -18px;
+  margin-right: -18px;
+}
+
+.activeContainer .timelineNode {
+  gap: 20px;
+}
+
+.activeNode .nodeIconWrapper {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.25);
+  background-color: #070a12;
+}
+
+.activeDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 6px var(--accent-cyan);
+}
+
+.nodeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-grow: 1;
+}
+
+.nodeHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nodeTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.completedNode .nodeTitle {
+  color: var(--text-primary);
+}
+
+.activeNode .nodeTitle {
+  color: var(--accent-cyan);
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.15);
+}
+
+.lockedNode .nodeTitle {
+  color: var(--text-muted);
+}
+
+.nodeDesc {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.nodeDate {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.inProgressTag {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: rgba(0, 240, 255, 0.05);
+}
+
+.activeProgressTrack {
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.activeProgressFill {
+  height: 100%;
+  border-radius: 10px;
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+}
+
+/* 4. Achievements Section */
+.achievementsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.achievementsHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.achievementIcon {
+  color: var(--accent-cyan);
+  filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.3));
+}
+
+.sectionTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.achievementsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+
+.achievementCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.achCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.achIconWrapper {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.15));
+}
+
+.achTag {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 3px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.achTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.achDesc {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  min-height: 48px;
+}
+
+.achFooter {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* 5. Stats Banner */
+.statsBanner {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 24px 40px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.statColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+}
+
+.statNumber {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.statLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.statDivider {
+  width: 1px;
+  height: 36px;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* 6. Responsiveness */
+@media (max-width: 1024px) {
+  .topRow {
+    grid-template-columns: 1fr;
+  }
+  .achievementsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .achievementsGrid {
+    grid-template-columns: 1fr;
+  }
+  .statsBanner {
+    flex-direction: column;
+    gap: 20px;
+    padding: 24px;
+  }
+  .statDivider {
+    width: 80%;
+    height: 1px;
+  }
+}

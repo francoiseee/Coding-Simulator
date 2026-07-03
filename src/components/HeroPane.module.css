@@ -3,7 +3,8 @@
   padding: 60px 48px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end; /* Text at the bottom */
+  justify-content: flex-end;
+  /* Text at the bottom */
   min-height: 520px;
   overflow: hidden;
 }
@@ -15,7 +16,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/images/hero-bg.png');
+  background-image: url('/images/core-identity-bg.jpg');
   background-size: cover;
   background-position: center;
   z-index: 1;
@@ -33,12 +34,10 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    to bottom,
-    rgba(9, 10, 15, 0.35) 0%,
-    rgba(9, 10, 15, 0.75) 50%,
-    rgba(9, 10, 15, 0.9) 100%
-  );
+  background: linear-gradient(to bottom,
+      rgba(9, 10, 15, 0.35) 0%,
+      rgba(9, 10, 15, 0.75) 50%,
+      rgba(9, 10, 15, 0.9) 100%);
   z-index: 2;
 }
 
@@ -155,10 +154,12 @@
     align-items: flex-start;
     min-height: 340px;
   }
+
   .subtitle {
     max-width: 100%;
     margin-bottom: 24px;
   }
+
   .statsGrid {
     width: 100%;
     max-width: 320px;

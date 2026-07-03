@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import styles from './Dashboard.module.css';
+import Gallery from './Gallery';
+import Progress from './Progress';
 
 export default function Dashboard({ email }) {
   const [activeTab, setActiveTab] = useState('simulations');
@@ -20,10 +22,10 @@ export default function Dashboard({ email }) {
   return (
     <main className={styles.dashboardContainer}>
       <div className={styles.dashboardGrid}>
-        
+
         {/* Left Column: Sidebar Navigation */}
         <aside className={styles.sidebar}>
-          
+
           {/* Active Session Box */}
           <div className={styles.activeSessionCard}>
             <div className={styles.pythonIconWrapper}>
@@ -54,7 +56,7 @@ export default function Dashboard({ email }) {
               </svg>
               <span>Simulations</span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab('gallery')}
               className={`${styles.navBtn} ${activeTab === 'gallery' ? styles.navBtnActive : ''}`}
@@ -67,7 +69,7 @@ export default function Dashboard({ email }) {
               </svg>
               <span>Gallery</span>
             </button>
-            
+
             <button
               onClick={() => setActiveTab('progress')}
               className={`${styles.navBtn} ${activeTab === 'progress' ? styles.navBtnActive : ''}`}
@@ -83,18 +85,30 @@ export default function Dashboard({ email }) {
 
           {/* Action Trigger */}
           <button className={styles.newSimulationBtn}>
-            <span className={styles.btnIcon}>+</span> New Simulation
+            <svg
+              className={styles.btnPlusIcon}
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Start Challenge
           </button>
 
           {/* Footer Utilities */}
           <div className={styles.sidebarFooter}>
-            <a href="#help" className={styles.footerLink}>
+            <a href="#support" className={styles.footerLink}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                <line x1="12" y1="17" x2="12.01" y2="17" />
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
               </svg>
-              Help
+              Support
             </a>
             <a href="#docs" className={styles.footerLink}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -111,16 +125,18 @@ export default function Dashboard({ email }) {
 
         {/* Center/Right Columns: Dashboard Widgets */}
         <section className={styles.mainContent}>
-          
-          {/* Welcome Card Banner */}
-          <div className={styles.welcomeCard}>
+
+          {activeTab === 'simulations' && (
+            <>
+              {/* Welcome Card Banner */}
+              <div className={styles.welcomeCard}>
             <div className={styles.welcomeInfo}>
               <h2 className={styles.welcomeTitle}>Welcome back, {getUserName()}</h2>
               <p className={styles.welcomeDesc}>
-                Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+                Your Python simulation node is active. Run runtime benchmarks, analyze AST generation, and optimize memory layouts for your object-oriented and data-structure modules in the sandbox environment.
               </p>
             </div>
-            
+
             <div className={styles.adaptiveSessionBox}>
               <div className={styles.adaptiveSessionMeta}>
                 <span className={styles.adaptiveLabel}>NEXT ADAPTIVE SESSION</span>
@@ -135,9 +151,9 @@ export default function Dashboard({ email }) {
             </div>
           </div>
 
-          {/* Middle Layout Grid: Chart + Active Simulations */}
+          {/* Middle Layout Grid: Chart + Learning Path */}
           <div className={styles.middleRow}>
-            
+
             {/* Widget 1: Skill Growth Chart */}
             <article className={styles.chartCard}>
               <div className={styles.cardHeader}>
@@ -148,7 +164,7 @@ export default function Dashboard({ email }) {
                   </svg>
                   <h3 className={styles.cardTitle}>Skill Growth Chart</h3>
                 </div>
-                
+
                 <div className={styles.dropdownPill}>
                   Last 30 Days
                 </div>
@@ -163,19 +179,19 @@ export default function Dashboard({ email }) {
                       <stop offset="100%" stopColor="var(--accent-cyan)" stopOpacity="0.0" />
                     </linearGradient>
                   </defs>
-                  
+
                   {/* Grid Lines */}
                   <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
                   <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
                   <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
-                  
+
                   {/* Area path */}
                   <path d="M0 160 Q 150 150, 250 110 T 500 70 L 500 200 L 0 200 Z" fill="url(#chartGradient)" />
-                  
+
                   {/* Line path */}
                   <path d="M0 160 Q 150 150, 250 110 T 500 70" fill="none" stroke="var(--accent-cyan)" strokeWidth="3.5" strokeLinecap="round" />
                 </svg>
-                
+
                 {/* Floating tooltip/annotation */}
                 <div className={styles.chartTooltip}>
                   <span className={styles.tooltipLabel}>CURRENT PROFICIENCY</span>
@@ -184,68 +200,10 @@ export default function Dashboard({ email }) {
               </div>
             </article>
 
-            {/* Right stack: Active Sims + Milestone */}
-            <div className={styles.rightStack}>
-              
-              {/* Active Simulations Widget */}
-              <article className={styles.simsCard}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.simsTitleWrapper}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={styles.simIconTitle}>
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                    </svg>
-                    <h3 className={styles.cardTitle}>Active Simulations</h3>
-                  </div>
-                </div>
-
-                <div className={styles.simsList}>
-                  {/* Sim Item 1 */}
-                  <div className={styles.simItem}>
-                    <div className={styles.simMeta}>
-                      <span className={styles.simName}>JVM Memory Management</span>
-                      <span className={`${styles.simPercent} ${styles.cyanTag}`}>84%</span>
-                    </div>
-                    <div className={styles.simProgressTrack}>
-                      <div className={`${styles.simProgressFill} ${styles.cyanFill}`} style={{ width: '84%' }} />
-                    </div>
-                  </div>
-
-                  {/* Sim Item 2 */}
-                  <div className={styles.simItem}>
-                    <div className={styles.simMeta}>
-                      <span className={styles.simName}>Java Bytecode Editor</span>
-                      <span className={`${styles.simPercent} ${styles.purpleTag}`}>32%</span>
-                    </div>
-                    <div className={styles.simProgressTrack}>
-                      <div className={`${styles.simProgressFill} ${styles.purpleFill}`} style={{ width: '32%' }} />
-                    </div>
-                  </div>
-                </div>
-
-                <button className={styles.viewSimsBtn}>
-                  View All Simulations
-                </button>
-              </article>
-
-              {/* Milestone Widget */}
-              <article className={styles.milestoneCard}>
-                <span className={styles.milestoneLabel}>NEW MILESTONE</span>
-                <h4 className={styles.milestoneTitle}>Master Algorithmicist</h4>
-                <p className={styles.milestoneDesc}>
-                  Achieved 99th percentile in Binary Logic tests.
-                </p>
-              </article>
-
-            </div>
-          </div>
-
-          {/* Lower Layout Grid: Learning Path + Recent Activity */}
-          <div className={styles.lowerRow}>
-            
             {/* Widget 2: Learning Path Timeline */}
             <article className={styles.learningCard}>
               <h3 className={styles.cardTitle}>Learning Path</h3>
-              
+
               <div className={styles.timeline}>
                 {/* Node 1: Completed */}
                 <div className={`${styles.timelineNode} ${styles.nodeCompleted}`}>
@@ -288,10 +246,33 @@ export default function Dashboard({ email }) {
               </div>
             </article>
 
+          </div>
+
+          {/* Lower Layout Grid: Milestone + Recent Activity */}
+          <div className={styles.lowerRow}>
+
+            {/* Milestone Widget */}
+            <article className={styles.milestoneCard}>
+              <span className={styles.milestoneLabel}>NEW MILESTONE</span>
+
+              <div className={styles.milestoneBadgeWrapper}>
+                <img
+                  src="/images/master-algorithmicist.png"
+                  alt="Master Algorithmicist Badge"
+                  className={styles.milestoneBadgeImage}
+                />
+              </div>
+
+              <h4 className={styles.milestoneTitle}>Master Algorithmicist</h4>
+              <p className={styles.milestoneDesc}>
+                Achieved 99th percentile in Binary Logic tests.
+              </p>
+            </article>
+
             {/* Widget 3: Recent Activity Table */}
             <article className={styles.activityCard}>
               <h3 className={styles.cardTitle}>Recent Activity</h3>
-              
+
               <div className={styles.tableWrapper}>
                 <table className={styles.activityTable}>
                   <thead>
@@ -327,8 +308,8 @@ export default function Dashboard({ email }) {
                       <td className={styles.tableDate}>Oct 22, 2023</td>
                       <td>
                         <div className={styles.perfWrapper}>
-                          <div className={`${styles.perfTrack} ${styles.perfYellowFill}`} style={{ width: '72%' }} />
-                          <span className={styles.perfVal}>72%</span>
+                          <div className={`${styles.perfTrack} ${styles.perfYellowFill}`} style={{ width: '80%' }} />
+                          <span className={styles.perfVal}>80%</span>
                         </div>
                       </td>
                       <td className={styles.tableIconCell}>
@@ -358,20 +339,27 @@ export default function Dashboard({ email }) {
                   </tbody>
                 </table>
               </div>
-
-              {/* Circular play button */}
-              <button className={styles.floatingPlayBtn} title="Launch Simulation Workspace">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3" />
-                </svg>
-              </button>
             </article>
 
           </div>
+          </>
+          )}
+
+          {activeTab === 'gallery' && <Gallery />}
+          {activeTab === 'progress' && <Progress />}
 
         </section>
 
       </div>
+
+      {/* Floating play button at page level, outside all container boxes */}
+      {activeTab === 'simulations' && (
+        <button className={styles.floatingPlayBtn} title="Launch Simulation Workspace">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+        </button>
+      )}
     </main>
   );
 }
