@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import styles from './SignUpForm.module.css';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignUpForm({ onAuthSuccess }) {
+  const supabase = createClient();
   const [mode, setMode] = useState('signup'); // 'login' or 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

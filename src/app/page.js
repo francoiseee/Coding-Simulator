@@ -7,11 +7,12 @@ import HeroPane from "@/components/HeroPane";
 import SignUpForm from "@/components/SignUpForm";
 import Assessment from "@/components/Assessment";
 import Dashboard from "@/components/Dashboard";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
   const [view, setView] = useState("auth");
   const [userEmail, setUserEmail] = useState("");
+  const supabase = createClient();
 
   // Restore session on load
   useEffect(() => {
