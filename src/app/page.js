@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import SignUpContainer from "@/components/SignUpContainer";
 import HeroPane from "@/components/HeroPane";
 import SignUpForm from "@/components/SignUpForm";
-import Assessment from "@/components/Assessment";
 import Dashboard from "@/components/Dashboard";
 import { createClient } from "@/lib/supabase/client";
 
@@ -13,6 +13,7 @@ export default function Home() {
   const [view, setView] = useState("auth");
   const [userEmail, setUserEmail] = useState("");
   const supabase = createClient();
+  const router = useRouter();
 
   // Restore session on load
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function Home() {
     if (action === "login") {
       setView("dashboard");
     } else {
-      setView("assessment");
+      router.push("/diagnostic");
     }
   };
 
@@ -60,12 +61,6 @@ export default function Home() {
           <HeroPane />
           <SignUpForm onAuthSuccess={handleAuthSuccess} />
         </SignUpContainer>
-      )}
-      {view === "assessment" && (
-        <Assessment
-          email={userEmail}
-          onEnterDashboard={() => setView("dashboard")}
-        />
       )}
       {view === "dashboard" && <Dashboard email={userEmail} />}
     </>
