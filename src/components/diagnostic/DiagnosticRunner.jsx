@@ -73,10 +73,21 @@ export default function DiagnosticRunner({ onComplete }) {
 
   const handleSubmit = async () => {
     setStatus('submitting');
-    // Step 16 will send { attemptId, answers } to a save/score endpoint.
-    // For now, hand the collected data up to the parent so the flow can advance.
-    setStatus('done');
-    onComplete?.({ attemptId, answers });
+    try {
+      const res = await fetch('/api/diagnostic/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attemptId, answers }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Could not submit the diagnostic.');
+
+      setStatus('done');
+      onComplete?.(data); // { attemptId, rawScore, scorePercentage, conceptResults, ... }
+    } catch (err) {
+      setErrorMessage(err.message);
+      setStatus('error');
+    }
   };
 
   if (status === 'loading') {
