@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // src/components/diagnostic/DiagnosticRunner.jsx
 // Step 15 — Diagnostic interface.
@@ -11,15 +11,16 @@
 // Scoring is intentionally NOT done in the browser. The client only records which
 // option key the student picked; correctness is evaluated server-side later.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
+import styles from "./DiagnosticRunner.module.css";
 
 export default function DiagnosticRunner({ onComplete }) {
   const [attemptId, setAttemptId] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // { [questionId]: optionKey }
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [status, setStatus] = useState('loading'); // loading | ready | error | submitting | done
-  const [errorMessage, setErrorMessage] = useState('');
+  const [status, setStatus] = useState("loading"); // loading | ready | error | submitting | done
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Start the attempt + load questions once on mount.
   useEffect(() => {
@@ -28,23 +29,27 @@ export default function DiagnosticRunner({ onComplete }) {
     async function init() {
       try {
         // 1. Start (or resume) the attempt.
-        const startRes = await fetch('/api/diagnostic/start', { method: 'POST' });
+        const startRes = await fetch("/api/diagnostic/start", {
+          method: "POST",
+        });
         const startData = await startRes.json();
-        if (!startRes.ok) throw new Error(startData.error || 'Could not start the diagnostic.');
+        if (!startRes.ok)
+          throw new Error(startData.error || "Could not start the diagnostic.");
 
         // 2. Load safe questions.
-        const qRes = await fetch('/api/diagnostic/questions');
+        const qRes = await fetch("/api/diagnostic/questions");
         const qData = await qRes.json();
-        if (!qRes.ok) throw new Error(qData.error || 'Could not load questions.');
+        if (!qRes.ok)
+          throw new Error(qData.error || "Could not load questions.");
 
         if (cancelled) return;
         setAttemptId(startData.attemptId);
         setQuestions(qData.questions);
-        setStatus('ready');
+        setStatus("ready");
       } catch (err) {
         if (cancelled) return;
         setErrorMessage(err.message);
-        setStatus('error');
+        setStatus("error");
       }
     }
 
@@ -72,33 +77,38 @@ export default function DiagnosticRunner({ onComplete }) {
   };
 
   const handleSubmit = async () => {
-    setStatus('submitting');
+    setStatus("submitting");
     try {
-      const res = await fetch('/api/diagnostic/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/diagnostic/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ attemptId, answers }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Could not submit the diagnostic.');
+      if (!res.ok)
+        throw new Error(data.error || "Could not submit the diagnostic.");
 
-      setStatus('done');
+      setStatus("done");
       onComplete?.(data); // { attemptId, rawScore, scorePercentage, conceptResults, ... }
     } catch (err) {
       setErrorMessage(err.message);
-      setStatus('error');
+      setStatus("error");
     }
   };
 
-  if (status === 'loading') {
-    return <p>Loading your diagnostic…</p>;
+  if (status === "loading") {
+    return <p className={styles.stateWrapper}>Loading your diagnostic…</p>;
   }
 
-  if (status === 'error') {
+  if (status === "error") {
     return (
-      <div>
+      <div className={styles.stateWrapper}>
         <p>Something went wrong: {errorMessage}</p>
-        <button type="button" onClick={() => window.location.reload()}>
+        <button
+          type="button"
+          className={styles.retryBtn}
+          onClick={() => window.location.reload()}
+        >
           Try again
         </button>
       </div>
@@ -106,30 +116,50 @@ export default function DiagnosticRunner({ onComplete }) {
   }
 
   if (totalQuestions === 0) {
-    return <p>No questions are available for this diagnostic yet.</p>;
+    return (
+      <p className={styles.stateWrapper}>
+        No questions are available for this diagnostic yet.
+      </p>
+    );
   }
 
+  const progressPct =
+    totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+
   return (
-    <div>
+    <div className={styles.container}>
       {/* Progress */}
-      <div>
-        <p>
-          Question {currentIndex + 1} of {totalQuestions} · {answeredCount} answered
-        </p>
+      <div className={styles.progressHeader}>
+        <span className={styles.progressLabel}>
+          QUESTION {currentIndex + 1}/{totalQuestions} · {answeredCount}{" "}
+          ANSWERED
+        </span>
+        <div className={styles.progressBarTrack}>
+          <div
+            className={styles.progressBarFill}
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
       </div>
 
       {/* Question */}
-      <div>
-        <h3>{currentQuestion.prompt}</h3>
+      <div className={styles.questionCard}>
+        {currentQuestion.difficulty && (
+          <span className={styles.categoryTag}>
+            {currentQuestion.difficulty}
+          </span>
+        )}
+
+        <h3 className={styles.questionTitle}>{currentQuestion.prompt}</h3>
 
         {currentQuestion.code_snippet && (
-          <pre>
+          <pre className={styles.codeBlock}>
             <code>{currentQuestion.code_snippet}</code>
           </pre>
         )}
 
         {/* Options — options is a jsonb array of { key, text } */}
-        <ul style={{ listStyle: 'none', padding: 0 }}>
+        <ul className={styles.optionsList}>
           {currentQuestion.options.map((opt) => {
             const selected = answers[currentQuestion.id] === opt.key;
             return (
@@ -138,14 +168,10 @@ export default function DiagnosticRunner({ onComplete }) {
                   type="button"
                   onClick={() => selectOption(currentQuestion.id, opt.key)}
                   aria-pressed={selected}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    fontWeight: selected ? 'bold' : 'normal',
-                  }}
+                  className={`${styles.optionCard} ${selected ? styles.optionCardSelected : ""}`}
                 >
-                  {opt.key}. {opt.text}
+                  <span className={styles.optionKey}>{opt.key}</span>
+                  <span className={styles.optionText}>{opt.text}</span>
                 </button>
               </li>
             );
@@ -154,13 +180,18 @@ export default function DiagnosticRunner({ onComplete }) {
       </div>
 
       {/* Navigation */}
-      <div>
-        <button type="button" onClick={goPrevious} disabled={currentIndex === 0}>
+      <div className={styles.navRow}>
+        <button
+          type="button"
+          className={styles.prevBtn}
+          onClick={goPrevious}
+          disabled={currentIndex === 0}
+        >
           Previous
         </button>
 
         {!isLastQuestion && (
-          <button type="button" onClick={goNext}>
+          <button type="button" className={styles.nextBtn} onClick={goNext}>
             Next
           </button>
         )}
@@ -168,10 +199,11 @@ export default function DiagnosticRunner({ onComplete }) {
         {isLastQuestion && (
           <button
             type="button"
+            className={styles.submitBtn}
             onClick={handleSubmit}
-            disabled={answeredCount < totalQuestions || status === 'submitting'}
+            disabled={answeredCount < totalQuestions || status === "submitting"}
           >
-            {status === 'submitting' ? 'Submitting…' : 'Submit diagnostic'}
+            {status === "submitting" ? "Submitting…" : "Submit diagnostic"}
           </button>
         )}
       </div>
