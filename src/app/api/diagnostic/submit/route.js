@@ -9,19 +9,19 @@
 // therefore run in a trusted server context. We STILL verify the user owns the
 // attempt using their cookie session before doing any privileged writes.
 
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-const ASSESSMENT_SLUG = 'codely-beginner-diagnostic';
+const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
 // Map a concept's score % + evidence count to an allowed classification label.
 function classify(scorePct, relevantCount) {
-  if (relevantCount === 0) return 'insufficient_evidence';
-  if (scorePct >= 80) return 'strong';
-  if (scorePct >= 60) return 'developing';
-  if (scorePct >= 40) return 'needs_practice';
-  return 'weak';
+  if (relevantCount === 0) return "insufficient_evidence";
+  if (scorePct >= 80) return "strong";
+  if (scorePct >= 60) return "developing";
+  if (scorePct >= 40) return "needs_practice";
+  return "weak";
 }
 
 export async function POST(request) {
@@ -30,12 +30,18 @@ export async function POST(request) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body." },
+      { status: 400 },
+    );
   }
 
   const { attemptId, answers, timeSpentSeconds } = body || {};
-  if (!attemptId || typeof answers !== 'object' || answers === null) {
-    return NextResponse.json({ error: 'attemptId and answers are required.' }, { status: 400 });
+  if (!attemptId || typeof answers !== "object" || answers === null) {
+    return NextResponse.json(
+      { error: "attemptId and answers are required." },
+      { status: 400 },
+    );
   }
 
   // ---- 2. Authenticate + verify ownership (cookie session, NOT service role) ----
@@ -46,23 +52,29 @@ export async function POST(request) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
   const { data: attempt, error: attemptError } = await supabase
-    .from('diagnostic_attempts')
-    .select('id, user_id, assessment_id, status')
-    .eq('id', attemptId)
+    .from("diagnostic_attempts")
+    .select("id, user_id, assessment_id, status")
+    .eq("id", attemptId)
     .single();
 
   if (attemptError || !attempt) {
-    return NextResponse.json({ error: 'Attempt not found.' }, { status: 404 });
+    return NextResponse.json({ error: "Attempt not found." }, { status: 404 });
   }
   if (attempt.user_id !== user.id) {
-    return NextResponse.json({ error: 'This attempt does not belong to you.' }, { status: 403 });
+    return NextResponse.json(
+      { error: "This attempt does not belong to you." },
+      { status: 403 },
+    );
   }
-  if (attempt.status === 'completed') {
-    return NextResponse.json({ error: 'This attempt is already completed.' }, { status: 409 });
+  if (attempt.status === "completed") {
+    return NextResponse.json(
+      { error: "This attempt is already completed." },
+      { status: 409 },
+    );
   }
 
   // ---- 3. Privileged work begins (service role) ----
@@ -70,24 +82,32 @@ export async function POST(request) {
 
   // Load full questions incl. answer key for this assessment.
   const { data: questions, error: qError } = await admin
-    .from('diagnostic_questions')
-    .select('id, prompt, code_snippet, language, options, correct_config, difficulty, status')
-    .eq('assessment_id', attempt.assessment_id)
-    .eq('status', 'published');
+    .from("diagnostic_questions")
+    .select(
+      "id, prompt, code_snippet, language, options, correct_config, difficulty, status",
+    )
+    .eq("assessment_id", attempt.assessment_id)
+    .eq("status", "published");
 
   if (qError || !questions?.length) {
-    return NextResponse.json({ error: 'Could not load questions for scoring.' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not load questions for scoring." },
+      { status: 500 },
+    );
   }
 
   // Concept links for per-concept aggregation.
   const questionIds = questions.map((q) => q.id);
   const { data: conceptLinks, error: clError } = await admin
-    .from('diagnostic_question_concepts')
-    .select('question_id, concept_id, weight, is_primary')
-    .in('question_id', questionIds);
+    .from("diagnostic_question_concepts")
+    .select("question_id, concept_id, weight, is_primary")
+    .in("question_id", questionIds);
 
   if (clError) {
-    return NextResponse.json({ error: 'Could not load concept mappings.' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not load concept mappings." },
+      { status: 500 },
+    );
   }
 
   // ---- 4. Score each answered question ----
@@ -125,7 +145,11 @@ export async function POST(request) {
     // Tally per linked concept.
     const links = conceptLinks.filter((l) => l.question_id === q.id);
     for (const link of links) {
-      const t = conceptTally.get(link.concept_id) || { correct: 0, incorrect: 0, relevant: 0 };
+      const t = conceptTally.get(link.concept_id) || {
+        correct: 0,
+        incorrect: 0,
+        relevant: 0,
+      };
       t.relevant += 1;
       if (isCorrect) t.correct += 1;
       else t.incorrect += 1;
@@ -135,21 +159,27 @@ export async function POST(request) {
 
   const answeredCount = answerRows.length;
   const scorePercentage =
-    answeredCount > 0 ? Math.round((rawScore / answeredCount) * 10000) / 100 : 0;
+    answeredCount > 0
+      ? Math.round((rawScore / answeredCount) * 10000) / 100
+      : 0;
 
   // ---- 5. Persist answers (upsert on unique (attempt_id, question_id)) ----
   const { error: ansError } = await admin
-    .from('diagnostic_answers')
-    .upsert(answerRows, { onConflict: 'attempt_id,question_id' });
+    .from("diagnostic_answers")
+    .upsert(answerRows, { onConflict: "attempt_id,question_id" });
 
   if (ansError) {
-    return NextResponse.json({ error: 'Failed to save answers.' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to save answers." },
+      { status: 500 },
+    );
   }
 
   // ---- 6. Persist per-concept results (upsert on unique (attempt_id, concept_id)) ----
   const conceptRows = [];
   for (const [conceptId, t] of conceptTally.entries()) {
-    const pct = t.relevant > 0 ? Math.round((t.correct / t.relevant) * 10000) / 100 : 0;
+    const pct =
+      t.relevant > 0 ? Math.round((t.correct / t.relevant) * 10000) / 100 : 0;
     conceptRows.push({
       attempt_id: attemptId,
       concept_id: conceptId,
@@ -163,11 +193,14 @@ export async function POST(request) {
 
   if (conceptRows.length > 0) {
     const { error: acrError } = await admin
-      .from('attempt_concept_results')
-      .upsert(conceptRows, { onConflict: 'attempt_id,concept_id' });
+      .from("attempt_concept_results")
+      .upsert(conceptRows, { onConflict: "attempt_id,concept_id" });
 
     if (acrError) {
-      return NextResponse.json({ error: 'Failed to save concept results.' }, { status: 500 });
+      return NextResponse.json(
+        { error: "Failed to save concept results." },
+        { status: 500 },
+      );
     }
   }
 
@@ -175,21 +208,35 @@ export async function POST(request) {
   const updatePayload = {
     raw_score: rawScore,
     score_percentage: scorePercentage,
-    status: 'completed',
+    status: "completed",
     completed_at: new Date().toISOString(),
   };
   if (Number.isFinite(timeSpentSeconds)) {
-    updatePayload.time_spent_seconds = Math.max(0, Math.floor(timeSpentSeconds));
+    updatePayload.time_spent_seconds = Math.max(
+      0,
+      Math.floor(timeSpentSeconds),
+    );
   }
 
   const { error: finalizeError } = await admin
-    .from('diagnostic_attempts')
+    .from("diagnostic_attempts")
     .update(updatePayload)
-    .eq('id', attemptId);
+    .eq("id", attemptId);
 
   if (finalizeError) {
-    return NextResponse.json({ error: 'Failed to finalize attempt.' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to finalize attempt." },
+      { status: 500 },
+    );
   }
+
+  // Mark the student's onboarding as past the diagnostic. Non-fatal if it fails
+  // (e.g. profile row missing) — the attempt itself is already scored and saved.
+  await admin
+    .from("profiles")
+    .update({ onboarding_status: "diagnostic_done" })
+    .eq("id", user.id)
+    .eq("onboarding_status", "new"); // don't downgrade a user who is already 'active'
 
   // ---- 8. Return summary for the results page ----
   return NextResponse.json({
