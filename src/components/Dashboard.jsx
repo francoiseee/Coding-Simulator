@@ -1,23 +1,57 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './Dashboard.module.css';
 import Gallery from './Gallery';
 import Progress from './Progress';
 
 export default function Dashboard({ email }) {
   const [activeTab, setActiveTab] = useState('simulations');
+  const [summary, setSummary] = useState(null);
+  const [summaryStatus, setSummaryStatus] = useState('loading'); // loading | ready | error
+  const router = useRouter();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadSummary() {
+      try {
+        const res = await fetch('/api/dashboard/summary');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Could not load your dashboard.');
+        if (cancelled) return;
+        setSummary(data);
+        setSummaryStatus('ready');
+      } catch {
+        if (cancelled) return;
+        setSummaryStatus('error');
+      }
+    }
+
+    loadSummary();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Extract username from email or default to 'Nikko'
   const getUserName = () => {
     if (!email) return 'Nikko';
     const parts = email.split('@');
     if (parts[0]) {
-      // Capitalize first letter
       return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
     }
     return 'Nikko';
   };
+
+  const goToDiagnostic = () => router.push('/diagnostic');
+
+  const hasResults = summaryStatus === 'ready' && summary?.hasCompletedDiagnostic;
+  const weakest = summary?.weakest ?? [];
+  const strongest = summary?.strongest ?? [];
+  // Pick a real "focus" concept for the learning path — the single weakest area.
+  const focusConcept = weakest[0];
 
   return (
     <main className={styles.dashboardContainer}>
@@ -29,7 +63,6 @@ export default function Dashboard({ email }) {
           {/* Active Session Box */}
           <div className={styles.activeSessionCard}>
             <div className={styles.pythonIconWrapper}>
-              {/* Python Logo SVG */}
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M11.91 2C6.54 2 6.64 4.32 6.64 4.32H9.08C9.08 4.32 9.08 3.12 11.91 3.12C14.74 3.12 14.78 4.19 14.78 4.19C14.78 4.19 14.82 5.39 12.02 5.39C9.22 5.39 6.84 5.39 6.84 5.39C6.84 5.39 2 5.16 2 10.3C2 15.43 5.48 15.22 5.48 15.22H6.9V13.88C6.9 13.88 6.74 10.66 10.02 10.66C13.3 10.66 14.78 10.66 14.78 10.66C14.78 10.66 19.38 10.74 19.38 5.6C19.38 0.46 14.78 2 14.78 2H11.91Z" fill="#306998" />
                 <path d="M12.09 22C17.46 22 17.36 19.68 17.36 19.68H14.92C14.92 19.68 14.92 20.88 12.09 20.88C9.26 20.88 9.22 19.81 9.22 19.81C9.22 19.81 9.18 18.61 11.98 18.61C14.78 18.61 17.16 18.61 17.16 18.61C17.16 18.61 22 18.84 22 13.7C22 8.57 18.52 8.78 18.52 8.78H17.1V10.12C17.1 10.12 17.26 13.34 13.98 13.34C10.7 13.34 9.22 13.34 9.22 13.34C9.22 13.34 4.62 13.26 4.62 18.4C4.62 23.54 9.22 22 9.22 22H12.09Z" fill="#FFE873" />
@@ -39,7 +72,9 @@ export default function Dashboard({ email }) {
             </div>
             <div className={styles.activeSessionMeta}>
               <h4 className={styles.activeSessionTitle}>Python Project</h4>
-              <span className={styles.activeSessionStatus}>ACTIVE SESSION</span>
+              <span className={styles.activeSessionStatus}>
+                {hasResults ? `${summary.overallScorePercentage}% DIAGNOSTIC SCORE` : 'ACTIVE SESSION'}
+              </span>
             </div>
           </div>
 
@@ -84,7 +119,7 @@ export default function Dashboard({ email }) {
           </nav>
 
           {/* Action Trigger */}
-          <button className={styles.newSimulationBtn}>
+          <button className={styles.newSimulationBtn} onClick={goToDiagnostic}>
             <svg
               className={styles.btnPlusIcon}
               width="14"
@@ -99,7 +134,7 @@ export default function Dashboard({ email }) {
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Start Challenge
+            {hasResults ? 'Retake Diagnostic' : 'Start Diagnostic'}
           </button>
 
           {/* Footer Utilities */}
@@ -130,223 +165,236 @@ export default function Dashboard({ email }) {
             <>
               {/* Welcome Card Banner */}
               <div className={styles.welcomeCard}>
-            <div className={styles.welcomeInfo}>
-              <h2 className={styles.welcomeTitle}>Welcome back, {getUserName()}</h2>
-              <p className={styles.welcomeDesc}>
-                Your Python simulation node is active. Run runtime benchmarks, analyze AST generation, and optimize memory layouts for your object-oriented and data-structure modules in the sandbox environment.
-              </p>
-            </div>
-
-            <div className={styles.adaptiveSessionBox}>
-              <div className={styles.adaptiveSessionMeta}>
-                <span className={styles.adaptiveLabel}>NEXT ADAPTIVE SESSION</span>
-                <h5 className={styles.adaptiveTitle}>Spring Boot Internals</h5>
-              </div>
-              <div className={styles.adaptiveArrow}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          {/* Middle Layout Grid: Chart + Learning Path */}
-          <div className={styles.middleRow}>
-
-            {/* Widget 1: Skill Growth Chart */}
-            <article className={styles.chartCard}>
-              <div className={styles.cardHeader}>
-                <div className={styles.chartTitleWrapper}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={styles.chartIconTitle}>
-                    <path d="M23 6l-9.5 9.5-5-5L1 18" />
-                    <polyline points="17 6 23 6 23 12" />
-                  </svg>
-                  <h3 className={styles.cardTitle}>Skill Growth Chart</h3>
+                <div className={styles.welcomeInfo}>
+                  <h2 className={styles.welcomeTitle}>Welcome back, {getUserName()}</h2>
+                  <p className={styles.welcomeDesc}>
+                    {hasResults
+                      ? `You scored ${summary.overallScorePercentage}% on your diagnostic. ${
+                          focusConcept
+                            ? `${focusConcept.name} is your biggest opportunity to improve right now.`
+                            : ''
+                        }`
+                      : "You haven't completed your diagnostic yet. Take it to see your personalized skill breakdown."}
+                  </p>
                 </div>
 
-                <div className={styles.dropdownPill}>
-                  Last 30 Days
-                </div>
-              </div>
-
-              {/* Glowing SVG Chart */}
-              <div className={styles.chartWrapper}>
-                <svg className={styles.chartSvg} width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="var(--accent-cyan)" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Grid Lines */}
-                  <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
-                  <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
-                  <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
-
-                  {/* Area path */}
-                  <path d="M0 160 Q 150 150, 250 110 T 500 70 L 500 200 L 0 200 Z" fill="url(#chartGradient)" />
-
-                  {/* Line path */}
-                  <path d="M0 160 Q 150 150, 250 110 T 500 70" fill="none" stroke="var(--accent-cyan)" strokeWidth="3.5" strokeLinecap="round" />
-                </svg>
-
-                {/* Floating tooltip/annotation */}
-                <div className={styles.chartTooltip}>
-                  <span className={styles.tooltipLabel}>CURRENT PROFICIENCY</span>
-                  <span className={styles.tooltipValue}>Level 42.8</span>
-                </div>
-              </div>
-            </article>
-
-            {/* Widget 2: Learning Path Timeline */}
-            <article className={styles.learningCard}>
-              <h3 className={styles.cardTitle}>Learning Path</h3>
-
-              <div className={styles.timeline}>
-                {/* Node 1: Completed */}
-                <div className={`${styles.timelineNode} ${styles.nodeCompleted}`}>
-                  <div className={styles.nodeCircle}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
+                <div className={styles.adaptiveSessionBox} onClick={goToDiagnostic} role="button" tabIndex={0}>
+                  <div className={styles.adaptiveSessionMeta}>
+                    <span className={styles.adaptiveLabel}>
+                      {hasResults ? 'SUGGESTED FOCUS' : 'GET STARTED'}
+                    </span>
+                    <h5 className={styles.adaptiveTitle}>
+                      {focusConcept ? focusConcept.name : 'Take the Diagnostic'}
+                    </h5>
+                  </div>
+                  <div className={styles.adaptiveArrow}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
                     </svg>
                   </div>
-                  <div className={styles.nodeBody}>
-                    <h4 className={styles.nodeTitle}>The Core Fundamentals</h4>
-                    <span className={styles.nodeDesc}>Completed 12/12 modules</span>
-                  </div>
                 </div>
+              </div>
 
-                {/* Node 2: Selected */}
-                <div className={`${styles.timelineNode} ${styles.nodeSelected}`}>
-                  <div className={styles.nodeCircle}>
-                    <div className={styles.innerDot} />
-                  </div>
-                  <div className={styles.nodeBody}>
-                    <h4 className={styles.nodeTitle}>Object-Oriented Programming (OOP)</h4>
-                    <span className={styles.nodeDesc}>Next: CAP Theorem Simulation</span>
-                  </div>
-                </div>
+              {/* Middle Layout Grid: Chart + Learning Path */}
+              <div className={styles.middleRow}>
 
-                {/* Node 3: Locked */}
-                <div className={`${styles.timelineNode} ${styles.nodeLocked}`}>
-                  <div className={styles.nodeCircle}>
-                    {/* Lock icon */}
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                {/* Widget 1: Skill Growth Chart */}
+                <article className={styles.chartCard}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.chartTitleWrapper}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={styles.chartIconTitle}>
+                        <path d="M23 6l-9.5 9.5-5-5L1 18" />
+                        <polyline points="17 6 23 6 23 12" />
+                      </svg>
+                      <h3 className={styles.cardTitle}>Skill Growth Chart</h3>
+                    </div>
+
+                    <div className={styles.dropdownPill}>
+                      {hasResults ? 'Latest Diagnostic' : 'No Data Yet'}
+                    </div>
+                  </div>
+
+                  {/* Glowing SVG Chart — decorative until multiple attempts exist for a real trend */}
+                  <div className={styles.chartWrapper}>
+                    <svg className={styles.chartSvg} width="100%" height="200" viewBox="0 0 500 200" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--accent-cyan)" stopOpacity="0.3" />
+                          <stop offset="100%" stopColor="var(--accent-cyan)" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+
+                      <line x1="0" y1="50" x2="500" y2="50" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
+                      <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
+                      <line x1="0" y1="150" x2="500" y2="150" stroke="rgba(255, 255, 255, 0.03)" strokeWidth="1" />
+
+                      <path d="M0 160 Q 150 150, 250 110 T 500 70 L 500 200 L 0 200 Z" fill="url(#chartGradient)" />
+                      <path d="M0 160 Q 150 150, 250 110 T 500 70" fill="none" stroke="var(--accent-cyan)" strokeWidth="3.5" strokeLinecap="round" />
                     </svg>
+
+                    <div className={styles.chartTooltip}>
+                      <span className={styles.tooltipLabel}>OVERALL SCORE</span>
+                      <span className={styles.tooltipValue}>
+                        {hasResults ? `${summary.overallScorePercentage}%` : '—'}
+                      </span>
+                    </div>
                   </div>
-                  <div className={styles.nodeBody}>
-                    <h4 className={styles.nodeTitle}>The Python Ecosystem</h4>
-                    <span className={styles.nodeDesc}>Locked (Requires Level 45)</span>
+                </article>
+
+                {/* Widget 2: Learning Path Timeline — built from real concept mastery */}
+                <article className={styles.learningCard}>
+                  <h3 className={styles.cardTitle}>Learning Path</h3>
+
+                  <div className={styles.timeline}>
+                    {!hasResults && (
+                      <div className={`${styles.timelineNode} ${styles.nodeLocked}`}>
+                        <div className={styles.nodeBody}>
+                          <h4 className={styles.nodeTitle}>Complete your diagnostic</h4>
+                          <span className={styles.nodeDesc}>
+                            Your personalized learning path unlocks once you finish the assessment.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {hasResults && strongest[0] && (
+                      <div className={`${styles.timelineNode} ${styles.nodeCompleted}`}>
+                        <div className={styles.nodeCircle}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        </div>
+                        <div className={styles.nodeBody}>
+                          <h4 className={styles.nodeTitle}>{strongest[0].name}</h4>
+                          <span className={styles.nodeDesc}>
+                            Strongest area — {strongest[0].scorePercentage}% correct
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {hasResults && focusConcept && (
+                      <div className={`${styles.timelineNode} ${styles.nodeSelected}`}>
+                        <div className={styles.nodeCircle}>
+                          <div className={styles.innerDot} />
+                        </div>
+                        <div className={styles.nodeBody}>
+                          <h4 className={styles.nodeTitle}>{focusConcept.name}</h4>
+                          <span className={styles.nodeDesc}>
+                            Recommended focus — {focusConcept.scorePercentage}% correct
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {hasResults && weakest[1] && (
+                      <div className={`${styles.timelineNode} ${styles.nodeLocked}`}>
+                        <div className={styles.nodeCircle}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                        </div>
+                        <div className={styles.nodeBody}>
+                          <h4 className={styles.nodeTitle}>{weakest[1].name}</h4>
+                          <span className={styles.nodeDesc}>
+                            Needs practice — {weakest[1].scorePercentage}% correct
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </div>
-            </article>
+                </article>
 
-          </div>
-
-          {/* Lower Layout Grid: Milestone + Recent Activity */}
-          <div className={styles.lowerRow}>
-
-            {/* Milestone Widget */}
-            <article className={styles.milestoneCard}>
-              <span className={styles.milestoneLabel}>NEW MILESTONE</span>
-
-              <div className={styles.milestoneBadgeWrapper}>
-                <img
-                  src="/images/master-algorithmicist.png"
-                  alt="Master Algorithmicist Badge"
-                  className={styles.milestoneBadgeImage}
-                />
               </div>
 
-              <h4 className={styles.milestoneTitle}>Master Algorithmicist</h4>
-              <p className={styles.milestoneDesc}>
-                Achieved 99th percentile in Binary Logic tests.
-              </p>
-            </article>
+              {/* Lower Layout Grid: Milestone + Recent Activity */}
+              <div className={styles.lowerRow}>
 
-            {/* Widget 3: Recent Activity Table */}
-            <article className={styles.activityCard}>
-              <h3 className={styles.cardTitle}>Recent Activity</h3>
+                {/* Milestone Widget */}
+                <article className={styles.milestoneCard}>
+                  <span className={styles.milestoneLabel}>
+                    {hasResults ? 'LATEST RESULT' : 'GET STARTED'}
+                  </span>
 
-              <div className={styles.tableWrapper}>
-                <table className={styles.activityTable}>
-                  <thead>
-                    <tr>
-                      <th>SIMULATION NAME</th>
-                      <th>DATE</th>
-                      <th>PERFORMANCE</th>
-                      <th>BADGE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Row 1 */}
-                    <tr>
-                      <td className={styles.tableName}>Python Data Structures</td>
-                      <td className={styles.tableDate}>Oct 24, 2023</td>
-                      <td>
-                        <div className={styles.perfWrapper}>
-                          <div className={`${styles.perfTrack} ${styles.perfGreenFill}`} style={{ width: '95%' }} />
-                          <span className={styles.perfVal}>95%</span>
-                        </div>
-                      </td>
-                      <td className={styles.tableIconCell}>
-                        <svg className={styles.tableGreenIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                          <polyline points="22 4 12 14.01 9 11.01" />
-                        </svg>
-                      </td>
-                    </tr>
+                  {hasResults ? (
+                    <>
+                      <h4 className={styles.milestoneTitle}>{summary.tier}</h4>
+                      <p className={styles.milestoneDesc}>
+                        Scored {summary.overallScorePercentage}% on the Codely Beginner Diagnostic.
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className={styles.milestoneTitle}>No diagnostic yet</h4>
+                      <p className={styles.milestoneDesc}>
+                        Complete your diagnostic to see your skill breakdown here.
+                      </p>
+                    </>
+                  )}
+                </article>
 
-                    {/* Row 2 */}
-                    <tr>
-                      <td className={styles.tableName}>JVM Memory Management</td>
-                      <td className={styles.tableDate}>Oct 22, 2023</td>
-                      <td>
-                        <div className={styles.perfWrapper}>
-                          <div className={`${styles.perfTrack} ${styles.perfYellowFill}`} style={{ width: '80%' }} />
-                          <span className={styles.perfVal}>80%</span>
-                        </div>
-                      </td>
-                      <td className={styles.tableIconCell}>
-                        <svg className={styles.tableYellowIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                          <circle cx="12" cy="12" r="3" />
-                        </svg>
-                      </td>
-                    </tr>
+                {/* Widget 3: Recent Activity Table — real attempt(s) */}
+                <article className={styles.activityCard}>
+                  <h3 className={styles.cardTitle}>Recent Activity</h3>
 
-                    {/* Row 3 */}
-                    <tr>
-                      <td className={styles.tableName}>Java Bytecode Editor</td>
-                      <td className={styles.tableDate}>Oct 21, 2023</td>
-                      <td>
-                        <div className={styles.perfWrapper}>
-                          <div className={`${styles.perfTrack} ${styles.perfGreenFill}`} style={{ width: '88%' }} />
-                          <span className={styles.perfVal}>88%</span>
-                        </div>
-                      </td>
-                      <td className={styles.tableIconCell}>
-                        <svg className={styles.tableCyanIcon} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                        </svg>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                  <div className={styles.tableWrapper}>
+                    <table className={styles.activityTable}>
+                      <thead>
+                        <tr>
+                          <th>SIMULATION NAME</th>
+                          <th>DATE</th>
+                          <th>PERFORMANCE</th>
+                          <th>BADGE</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {hasResults ? (
+                          <tr>
+                            <td className={styles.tableName}>Codely Beginner Diagnostic</td>
+                            <td className={styles.tableDate}>
+                              {new Date(summary.latestAttempt.completedAt).toLocaleDateString()}
+                            </td>
+                            <td>
+                              <div className={styles.perfWrapper}>
+                                <div
+                                  className={`${styles.perfTrack} ${
+                                    summary.overallScorePercentage >= 60 ? styles.perfGreenFill : styles.perfYellowFill
+                                  }`}
+                                  style={{ width: `${summary.overallScorePercentage}%` }}
+                                />
+                                <span className={styles.perfVal}>{summary.overallScorePercentage}%</span>
+                              </div>
+                            </td>
+                            <td className={styles.tableIconCell}>
+                              <svg
+                                className={summary.overallScorePercentage >= 60 ? styles.tableGreenIcon : styles.tableYellowIcon}
+                                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                              >
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                              </svg>
+                            </td>
+                          </tr>
+                        ) : (
+                          <tr>
+                            <td className={styles.tableName} colSpan={4}>
+                              No activity yet — complete your first diagnostic to see it here.
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </article>
+
               </div>
-            </article>
-
-          </div>
-          </>
+            </>
           )}
 
           {activeTab === 'gallery' && <Gallery />}
-          {activeTab === 'progress' && <Progress />}
+          {activeTab === 'progress' && <Progress summary={summary} summaryStatus={summaryStatus} />}
 
         </section>
 
@@ -354,7 +402,7 @@ export default function Dashboard({ email }) {
 
       {/* Floating play button at page level, outside all container boxes */}
       {activeTab === 'simulations' && (
-        <button className={styles.floatingPlayBtn} title="Launch Simulation Workspace">
+        <button className={styles.floatingPlayBtn} title="Start Diagnostic" onClick={goToDiagnostic}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
