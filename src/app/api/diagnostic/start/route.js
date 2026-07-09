@@ -33,16 +33,24 @@ export async function POST() {
   // Check for an existing in-progress attempt first so refreshing/double-clicking
   // "Start" doesn't create duplicate rows (RLS would allow the insert, but we
   // don't want orphaned attempts).
-  const { data: existingAttempt, error: existingAttemptError } = await supabase
-    .from('diagnostic_attempts')
-    .select('id')
-    .eq('user_id', user.id)
-    .eq('assessment_id', assessment.id)
-    .eq('status', 'in_progress')
-    .maybeSingle();
+  const findExistingAttempt = () =>
+    supabase
+      .from('diagnostic_attempts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('assessment_id', assessment.id)
+      .eq('status', 'in_progress')
+      .order('started_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+  const { data: existingAttempt, error: existingAttemptError } = await findExistingAttempt();
 
   if (existingAttemptError) {
-    return NextResponse.json({ error: existingAttemptError.message }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Could not start the diagnostic. Please try again.' },
+      { status: 500 }
+    );
   }
 
   if (existingAttempt) {
@@ -64,7 +72,22 @@ export async function POST() {
     .single();
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 });
+    // A partial unique index on (user_id, assessment_id) where status =
+    // 'in_progress' means a near-simultaneous request may have already
+    // inserted the in-progress attempt. Treat that race as a resume rather
+    // than an error.
+    if (insertError.code === '23505') {
+      const { data: raceWinner, error: raceLookupError } = await findExistingAttempt();
+
+      if (!raceLookupError && raceWinner) {
+        return NextResponse.json({ attemptId: raceWinner.id, resumed: true });
+      }
+    }
+
+    return NextResponse.json(
+      { error: 'Could not start the diagnostic. Please try again.' },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ attemptId: newAttempt.id, resumed: false });
