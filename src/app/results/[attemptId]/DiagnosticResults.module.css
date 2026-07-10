@@ -267,3 +267,151 @@
     gap: 24px;
   }
 }
+
+/* --- AI Weakness Report (Phase 4, Step 24) --- */
+
+.aiReportCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 40px 48px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(20px);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.aiReportHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aiReportBadge {
+  align-self: flex-start;
+  background: rgba(157, 78, 221, 0.08);
+  border: 1px solid rgba(157, 78, 221, 0.25);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--accent-purple);
+  text-transform: uppercase;
+}
+
+.aiReportTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.4rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.aiNarrative {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+  border-left: 3px solid var(--accent-purple);
+  padding-left: 20px;
+}
+
+.aiReportGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.aiReportBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.aiBlockTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
+.aiBlockText {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.aiList,
+.aiOrderedList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 20px;
+  margin: 0;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.aiOrderedList {
+  color: var(--text-primary);
+}
+
+.aiEncouragement {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--accent-teal);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 20px;
+}
+
+.aiReportEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  text-align: center;
+  font-family: var(--font-inter), sans-serif;
+  color: var(--text-secondary);
+}
+
+.generateReportBtn {
+  background-color: transparent;
+  border: 1.5px solid var(--accent-purple);
+  border-radius: 8px;
+  color: var(--accent-purple);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.generateReportBtn:hover:not(:disabled) {
+  background-color: var(--accent-purple);
+  color: #06070a;
+  box-shadow: 0 0 20px rgba(157, 78, 221, 0.35);
+}
+
+.generateReportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .aiReportCard {
+    padding: 28px;
+  }
+  .aiReportGrid {
+    grid-template-columns: 1fr;
+  }
+}

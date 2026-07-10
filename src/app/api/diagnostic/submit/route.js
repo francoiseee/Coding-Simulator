@@ -1,17 +1,21 @@
 // src/app/api/diagnostic/submit/route.js
 // Step 16 — Save answers + server-side scoring.
+// Phase 4 (Steps 21-23) — Also generates and saves an AI weakness report
+// immediately after scoring, using the deterministic concept results as input.
 //
 // POST /api/diagnostic/submit
 // Body: { attemptId: number, answers: { [questionId]: optionKey }, timeSpentSeconds?: number }
 //
 // Why service-role: the RLS design forbids the client from setting is_correct,
-// updating diagnostic_attempts, or inserting attempt_concept_results. Scoring must
-// therefore run in a trusted server context. We STILL verify the user owns the
-// attempt using their cookie session before doing any privileged writes.
+// updating diagnostic_attempts, inserting attempt_concept_results, or inserting
+// ai_reports. Scoring AND report generation therefore run in a trusted server
+// context. We STILL verify the user owns the attempt using their cookie session
+// before doing any privileged writes.
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { generateDiagnosticReport } from "@/lib/ai/generateDiagnosticReport";
 
 const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
@@ -238,12 +242,26 @@ export async function POST(request) {
     .eq("id", user.id)
     .eq("onboarding_status", "new"); // don't downgrade a user who is already 'active'
 
-  // ---- 8. Return summary for the results page ----
+  // ---- 8. Generate + save the AI weakness report (Phase 4, Steps 21-23) ----
+  // Non-fatal: the attempt is already fully scored and saved above. If the AI
+  // call fails (bad key, network issue, rate limit), the student still gets
+  // their real results — they just won't have a written report yet. The
+  // results page (Step 24) handles a missing report gracefully.
+  let aiReportGenerated = false;
+  try {
+    await generateDiagnosticReport({ admin, userId: user.id, attemptId });
+    aiReportGenerated = true;
+  } catch (err) {
+    console.error("AI report generation failed:", err.message);
+  }
+
+  // ---- 9. Return summary for the results page ----
   return NextResponse.json({
     attemptId,
     rawScore,
     answeredCount,
     scorePercentage,
+    aiReportGenerated,
     conceptResults: conceptRows
       .map((c) => ({
         conceptId: c.concept_id,

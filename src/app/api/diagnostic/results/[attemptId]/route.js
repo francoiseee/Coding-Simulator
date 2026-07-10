@@ -1,15 +1,21 @@
 // src/app/api/diagnostic/results/[attemptId]/route.js
 // Step 20 — Serve diagnostic results (score + per-concept breakdown).
+// Step 24 — Also serve the saved AI weakness report, if one exists.
 //
 // GET /api/diagnostic/results/:attemptId
 //
 // Uses the normal cookie-based client (NOT the service-role admin client).
-// RLS on diagnostic_attempts and attempt_concept_results already restricts
-// SELECT to auth.uid() = user_id, so a student can only ever fetch their own
-// results — no extra ownership check needed beyond what the database enforces.
+// RLS on diagnostic_attempts, attempt_concept_results, and ai_reports already
+// restricts SELECT to auth.uid() = user_id, so a student can only ever fetch
+// their own results — no extra ownership check needed beyond what the
+// database enforces.
+//
+// IMPORTANT: this route only READS a previously-saved report (generated
+// during submit — see Step 16/21-23). It never calls the Anthropic API
+// itself, so refreshing this page is free and instant, not another AI call.
 
-import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request, { params }) {
   const { attemptId } = await params;
@@ -21,30 +27,30 @@ export async function GET(request, { params }) {
   } = await supabase.auth.getUser();
 
   if (authError || !user) {
-    return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 });
+    return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
   // RLS guarantees this only returns a row if it belongs to the caller.
   const { data: attempt, error: attemptError } = await supabase
-    .from('diagnostic_attempts')
-    .select('id, status, raw_score, score_percentage, started_at, completed_at')
-    .eq('id', attemptId)
+    .from("diagnostic_attempts")
+    .select("id, status, raw_score, score_percentage, started_at, completed_at")
+    .eq("id", attemptId)
     .single();
 
   if (attemptError || !attempt) {
-    return NextResponse.json({ error: 'Results not found.' }, { status: 404 });
+    return NextResponse.json({ error: "Results not found." }, { status: 404 });
   }
 
-  if (attempt.status !== 'completed') {
+  if (attempt.status !== "completed") {
     return NextResponse.json(
-      { error: 'This diagnostic has not been completed yet.' },
-      { status: 409 }
+      { error: "This diagnostic has not been completed yet." },
+      { status: 409 },
     );
   }
 
   // Join concept results with concept names/slugs for display.
   const { data: conceptResults, error: conceptError } = await supabase
-    .from('attempt_concept_results')
+    .from("attempt_concept_results")
     .select(
       `
       concept_id,
@@ -54,14 +60,42 @@ export async function GET(request, { params }) {
       score_percentage,
       classification,
       concepts ( slug, name, category )
-    `
+    `,
     )
-    .eq('attempt_id', attemptId)
-    .order('score_percentage', { ascending: true });
+    .eq("attempt_id", attemptId)
+    .order("score_percentage", { ascending: true });
 
   if (conceptError) {
-    return NextResponse.json({ error: 'Could not load concept results.' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Could not load concept results." },
+      { status: 500 },
+    );
   }
+
+  // Most recent AI report for this attempt, if any. Reports are append-only,
+  // so there could in theory be more than one (e.g. after a manual
+  // regeneration) — always show the latest.
+  const { data: reportRow, error: reportError } = await supabase
+    .from("ai_reports")
+    .select("id, generated_text, structured_output, model_name, created_at")
+    .eq("source_type", "diagnostic_attempt")
+    .eq("source_id", attemptId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  // A missing/failed report is not a fatal error for the results page —
+  // just omit it and let the UI show the deterministic breakdown alone.
+  const aiReport =
+    !reportError && reportRow
+      ? {
+          id: reportRow.id,
+          generatedText: reportRow.generated_text,
+          structured: reportRow.structured_output,
+          modelName: reportRow.model_name,
+          createdAt: reportRow.created_at,
+        }
+      : null;
 
   return NextResponse.json({
     attempt: {
@@ -82,5 +116,6 @@ export async function GET(request, { params }) {
       scorePercentage: c.score_percentage,
       classification: c.classification,
     })),
+    aiReport,
   });
 }
