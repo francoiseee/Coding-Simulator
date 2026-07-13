@@ -16,6 +16,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateDiagnosticReport } from "@/lib/ai/generateDiagnosticReport";
+import { generatePracticeRecommendations } from "@/lib/practice/generatePracticeRecommendations";
 
 const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
@@ -255,6 +256,22 @@ export async function POST(request) {
     console.error("AI report generation failed:", err.message);
   }
 
+  // ---- 8b. Generate practice recommendations from weak concepts (Phase 5) ----
+  // Deterministic — matches weak/needs_practice concepts to problems already
+  // tagged with that concept. Non-fatal: a missing recommendation batch just
+  // means the dashboard has nothing to suggest yet, nothing else breaks.
+  let practiceRecommendationCount = 0;
+  try {
+    const { count } = await generatePracticeRecommendations({
+      admin,
+      userId: user.id,
+      attemptId,
+    });
+    practiceRecommendationCount = count;
+  } catch (err) {
+    console.error("Practice recommendation generation failed:", err.message);
+  }
+
   // ---- 9. Return summary for the results page ----
   return NextResponse.json({
     attemptId,
@@ -262,6 +279,7 @@ export async function POST(request) {
     answeredCount,
     scorePercentage,
     aiReportGenerated,
+    practiceRecommendationCount,
     conceptResults: conceptRows
       .map((c) => ({
         conceptId: c.concept_id,
