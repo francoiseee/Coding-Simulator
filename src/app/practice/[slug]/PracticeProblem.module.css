@@ -1,0 +1,314 @@
+.page {
+  min-height: 100vh;
+  padding: 90px 24px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.backLink {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.backLink:hover {
+  color: var(--accent-cyan);
+}
+
+.difficultyPill {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 5px 14px;
+  border-radius: 20px;
+}
+
+.difficulty_easy {
+  color: var(--accent-teal);
+  background: rgba(0, 245, 176, 0.08);
+  border: 1px solid rgba(0, 245, 176, 0.25);
+}
+.difficulty_medium {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+}
+.difficulty_hard {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+/* Split pane */
+.splitPane {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Left: problem */
+.problemPane {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 36px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 600px;
+}
+
+.problemTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.estimate {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: -14px;
+}
+
+.statement {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blockTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.exampleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: rgba(6, 8, 14, 0.5);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 14px 18px;
+}
+
+.exampleIn,
+.exampleOut {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.exampleOut {
+  color: var(--accent-cyan);
+}
+
+.constraints {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.hintsBlock {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 16px;
+}
+
+.hintsSummary {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-magenta);
+  cursor: pointer;
+}
+
+.hintsList {
+  margin: 14px 0 0;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Right: editor */
+.editorPane {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: rgba(6, 8, 14, 0.4);
+}
+
+.editorLang {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+
+.saveIndicator {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.editor {
+  flex: 1;
+  min-height: 320px;
+  width: 100%;
+  resize: vertical;
+  background-color: rgba(6, 8, 14, 0.6);
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  padding: 20px 24px;
+  tab-size: 4;
+}
+
+.samplesBlock {
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.samplesTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.sampleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.editorFooter {
+  padding: 18px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.runBtn {
+  align-self: flex-start;
+  background-color: var(--accent-cyan);
+  border: 1.5px solid var(--accent-cyan);
+  border-radius: 8px;
+  color: #06070a;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 12px 28px;
+  cursor: pointer;
+}
+
+.runBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.footerNote {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.stateWrapper {
+  max-width: 480px;
+  margin: 160px auto;
+  text-align: center;
+  font-family: var(--font-inter), sans-serif;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.backBtn {
+  align-self: center;
+  background: transparent;
+  border: 1.5px solid var(--accent-cyan);
+  border-radius: 8px;
+  color: var(--accent-cyan);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 12px 28px;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .splitPane {
+    grid-template-columns: 1fr;
+  }
+  .problemPane,
+  .editorPane {
+    min-height: auto;
+  }
+}
