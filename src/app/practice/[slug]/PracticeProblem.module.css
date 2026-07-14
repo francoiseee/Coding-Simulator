@@ -312,3 +312,80 @@
     min-height: auto;
   }
 }
+
+/* --- Submission verdict --- */
+
+.submitError {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: #f87171;
+}
+
+.verdict {
+  margin-top: 6px;
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--input-border);
+}
+
+.verdictPass {
+  background: rgba(0, 245, 176, 0.05);
+  border-color: rgba(0, 245, 176, 0.3);
+}
+
+.verdictFail {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.25);
+}
+
+.verdictHeadline {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1rem;
+  font-weight: 750;
+  color: var(--text-primary);
+}
+
+.verdictScore {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.verdictList {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.verdictItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: monospace;
+  font-size: 0.8rem;
+}
+
+.itemPass .verdictMark {
+  color: var(--accent-teal);
+}
+
+.itemFail .verdictMark {
+  color: #f87171;
+}
+
+.verdictMark {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.verdictDetail {
+  color: var(--text-secondary);
+  word-break: break-all;
+}
