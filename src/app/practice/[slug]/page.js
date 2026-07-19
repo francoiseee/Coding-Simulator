@@ -28,6 +28,13 @@ export default function PracticeProblemPage() {
   const [submitResult, setSubmitResult] = useState(null);
   const [submitError, setSubmitError] = useState("");
 
+  // Step 32/33 — reflective question gate shown before grading.
+  const [reflectState, setReflectState] = useState("idle"); // idle | loading | asking | saving | error
+  const [reflectInstances, setReflectInstances] = useState([]);
+  const [reflectAnswers, setReflectAnswers] = useState({}); // { [instanceId]: text }
+  const [reflectError, setReflectError] = useState("");
+  const reflectShownAt = useRef(null);
+
   const saveTimer = useRef(null);
 
   // Load problem + start/resume session on mount.
@@ -120,7 +127,89 @@ export default function PracticeProblemPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  // Step 1 of submit: open the reflective-question gate. Fetches (and creates)
+  // the instances for this session, then shows them. If there are none, or the
+  // fetch fails, we do NOT block the student — grading proceeds directly.
+  const handleRunClick = async () => {
+    if (!sessionId) return;
+    setReflectError("");
+    setReflectState("loading");
+    try {
+      const res = await fetch(`/api/practice/reflect?sessionId=${sessionId}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not load questions.");
+
+      const instances = data.instances || [];
+      if (instances.length === 0) {
+        // Nothing to ask — go straight to grading.
+        setReflectState("idle");
+        await runGrading();
+        return;
+      }
+      reflectShownAt.current = Date.now();
+      setReflectInstances(instances);
+      setReflectState("asking");
+    } catch (err) {
+      // Reflective questions must never block grading. Log intent, grade anyway.
+      console.warn("Reflection gate skipped:", err.message);
+      setReflectState("idle");
+      await runGrading();
+    }
+  };
+
+  const onReflectChange = (instanceId, text) => {
+    setReflectAnswers((prev) => ({ ...prev, [instanceId]: text }));
+  };
+
+  // Step 2: save each answer, then grade. `skipAll` handles the Skip button.
+  const submitReflection = async (skipAll = false) => {
+    setReflectError("");
+    setReflectState("saving");
+
+    const elapsed = reflectShownAt.current
+      ? Math.round((Date.now() - reflectShownAt.current) / 1000)
+      : null;
+
+    try {
+      for (const inst of reflectInstances) {
+        const text = (reflectAnswers[inst.id] || "").trim();
+        const isSkipped = skipAll || text.length === 0;
+
+        // A required question cannot be skipped with empty text.
+        if (inst.is_required && isSkipped) {
+          setReflectError(
+            "Please answer the required question before submitting.",
+          );
+          setReflectState("asking");
+          return;
+        }
+
+        const res = await fetch("/api/practice/reflect/answer", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            instanceId: inst.id,
+            answerText: isSkipped ? null : text,
+            isSkipped,
+            timeToAnswerSeconds: elapsed,
+          }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Could not save your answer.");
+        }
+      }
+
+      setReflectState("idle");
+      await runGrading();
+    } catch (err) {
+      setReflectError(err.message);
+      setReflectState("asking");
+    }
+  };
+
+  // The original grading call, unchanged in behavior.
+  const runGrading = async () => {
     setSubmitState("running");
     setSubmitResult(null);
     setSubmitError("");
@@ -256,14 +345,82 @@ export default function PracticeProblemPage() {
             </div>
           )}
 
+          {/* Reflective question gate (Steps 32-33) */}
+          {reflectState === "asking" && (
+            <div className={styles.reflectPanel}>
+              <h3 className={styles.reflectTitle}>
+                Before you submit — reflect on your solution
+              </h3>
+              {reflectInstances.map((inst) => (
+                <div key={inst.id} className={styles.reflectItem}>
+                  <label className={styles.reflectQuestion}>
+                    {inst.rendered_text}
+                    {inst.is_required && (
+                      <span className={styles.reflectRequired}> *</span>
+                    )}
+                  </label>
+                  <textarea
+                    className={styles.reflectInput}
+                    value={reflectAnswers[inst.id] || ""}
+                    onChange={(e) => onReflectChange(inst.id, e.target.value)}
+                    rows={3}
+                    placeholder="Type your answer…"
+                  />
+                </div>
+              ))}
+
+              {reflectError && (
+                <span className={styles.reflectError}>{reflectError}</span>
+              )}
+
+              <div className={styles.reflectActions}>
+                <button
+                  type="button"
+                  className={styles.runBtn}
+                  onClick={() => submitReflection(false)}
+                  disabled={reflectState === "saving"}
+                >
+                  {reflectState === "saving"
+                    ? "Saving…"
+                    : "Submit answer & grade"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.reflectSkipBtn}
+                  onClick={() => submitReflection(true)}
+                  disabled={
+                    reflectState === "saving" ||
+                    reflectInstances.some((i) => i.is_required)
+                  }
+                  title={
+                    reflectInstances.some((i) => i.is_required)
+                      ? "A required question must be answered."
+                      : "Skip and grade"
+                  }
+                >
+                  Skip
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className={styles.editorFooter}>
             <button
               type="button"
               className={styles.runBtn}
-              onClick={handleSubmit}
-              disabled={submitState === "running"}
+              onClick={handleRunClick}
+              disabled={
+                submitState === "running" ||
+                reflectState === "loading" ||
+                reflectState === "asking" ||
+                reflectState === "saving"
+              }
             >
-              {submitState === "running" ? "Running…" : "Run & Submit"}
+              {submitState === "running"
+                ? "Running…"
+                : reflectState === "loading"
+                  ? "Loading…"
+                  : "Run & Submit"}
             </button>
 
             {submitState === "error" && (

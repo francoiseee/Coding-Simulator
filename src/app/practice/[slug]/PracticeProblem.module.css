@@ -389,3 +389,84 @@
   color: var(--text-secondary);
   word-break: break-all;
 }
+
+/* Reflective question gate (Steps 32-33) */
+.reflectPanel {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.reflectTitle {
+  margin: 0;
+  font-family: var(--font-outfit);
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.reflectItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reflectQuestion {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.reflectRequired {
+  color: var(--accent-magenta);
+  font-weight: 700;
+}
+
+.reflectInput {
+  width: 100%;
+  resize: vertical;
+  padding: 10px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-inter);
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.reflectInput:focus {
+  outline: none;
+  border-color: var(--accent-cyan);
+}
+
+.reflectError {
+  color: #f87171;
+  font-size: 0.8rem;
+}
+
+.reflectActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.reflectSkipBtn {
+  padding: 8px 16px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-outfit);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.reflectSkipBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
