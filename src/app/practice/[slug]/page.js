@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import styles from "./PracticeProblem.module.css";
+import Editor from "@monaco-editor/react";
 
 const AUTOSAVE_DELAY_MS = 1500;
 
@@ -105,26 +106,11 @@ export default function PracticeProblemPage() {
     };
   }, []);
 
-  const onCodeChange = (e) => {
-    const next = e.target.value;
-    setCode(next);
-    scheduleSave(next);
-  };
-
-  // Tab inserts spaces instead of moving focus, so the editor feels code-like.
-  const onKeyDown = (e) => {
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const el = e.target;
-      const start = el.selectionStart;
-      const end = el.selectionEnd;
-      const next = code.slice(0, start) + "    " + code.slice(end);
-      setCode(next);
-      scheduleSave(next);
-      requestAnimationFrame(() => {
-        el.selectionStart = el.selectionEnd = start + 4;
-      });
-    }
+  // Monaco passes the new value directly, not an event.
+  const onCodeChange = (next) => {
+    const value = next ?? "";
+    setCode(value);
+    scheduleSave(value);
   };
 
   // Step 1 of submit: open the reflective-question gate. Fetches (and creates)
@@ -321,16 +307,23 @@ export default function PracticeProblemPage() {
             </span>
           </div>
 
-          <textarea
-            className={styles.editor}
-            value={code}
-            onChange={onCodeChange}
-            onKeyDown={onKeyDown}
-            spellCheck={false}
-            autoComplete="off"
-            autoCapitalize="off"
-            autoCorrect="off"
-          />
+          <div className={styles.editorWrapper}>
+            <Editor
+              language="python"
+              theme="vs-dark"
+              value={code}
+              onChange={onCodeChange}
+              options={{
+                fontSize: 14,
+                minimap: { enabled: false },
+                tabSize: 4,
+                insertSpaces: true,
+                automaticLayout: true,
+                scrollBeyondLastLine: false,
+                padding: { top: 16 },
+              }}
+            />
+          </div>
 
           {/* Sample tests (public only) */}
           {sampleTests.length > 0 && (

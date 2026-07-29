@@ -204,20 +204,11 @@
   color: var(--text-muted);
 }
 
-.editor {
+.editorWrapper {
   flex: 1;
   min-height: 320px;
   width: 100%;
-  resize: vertical;
   background-color: rgba(6, 8, 14, 0.6);
-  border: none;
-  outline: none;
-  color: var(--text-primary);
-  font-family: monospace;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  padding: 20px 24px;
-  tab-size: 4;
 }
 
 .samplesBlock {
