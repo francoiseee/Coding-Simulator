@@ -204,10 +204,13 @@
   color: var(--text-muted);
 }
 
+/* Fixed height, matching EDITOR_HEIGHT in page.js. Monaco needs a definite
+   box: a `flex: 1` item has an indefinite height until layout resolves, and
+   Monaco measures itself before that, collapsing to a sliver. */
 .editorWrapper {
-  flex: 1;
-  min-height: 320px;
+  height: 460px;
   width: 100%;
+  overflow: hidden;
   background-color: rgba(6, 8, 14, 0.6);
 }
 
@@ -460,4 +463,102 @@
 .reflectSkipBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* --- Already-evaluated reflective answers (Step 34, read-only) --- */
+
+/* The student's own answer, shown as static text once it has been AI-scored.
+   The row is immutable under RLS at that point (cqa_update_own requires
+   ai_score IS NULL), so an editable field would be misleading. */
+.reflectAnswered {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 2px solid var(--input-border);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+}
+
+/* The Step 34 evaluation. This is the only place the student sees it. */
+.reflectFeedbackBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid rgba(0, 245, 176, 0.2);
+  border-radius: 10px;
+  background: rgba(0, 245, 176, 0.04);
+}
+
+.reflectScore {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--accent-teal);
+}
+
+.reflectFeedback {
+  margin: 0;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+/* Concepts the answer suggested confusion about — framed as a pointer to
+   revisit, not a penalty. */
+.reflectGaps {
+  margin: 0;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: #f59e0b;
+}
+
+/* --- Post-verdict reflection (after_failed_test) --- */
+
+/* Visually distinct from the pre-submit gate: this one is an invitation, not
+   a gate, and it sits below the verdict the student just received. */
+.postFailPanel {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Completion state (solved) --- */
+
+/* Shown after an accepted submission. Deliberately an explicit exit rather than
+   an automatic redirect: the student still wants to review their passing code,
+   the reflection feedback and the runtime before leaving. */
+.completionPanel {
+  margin-top: 14px;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 245, 176, 0.3);
+  border-radius: 12px;
+  background: rgba(0, 245, 176, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.completionHeadline {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+}
+
+.completionActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }

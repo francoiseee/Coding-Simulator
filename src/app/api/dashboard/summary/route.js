@@ -1,16 +1,48 @@
 // src/app/api/dashboard/summary/route.js
 // Serves the real data the Dashboard and Progress tabs need: the student's
-// latest completed diagnostic attempt plus their per-concept mastery, so the
-// UI can stop showing hardcoded placeholder content.
+// latest completed diagnostic attempt, their per-concept results, and their
+// current practice recommendations.
 //
 // GET /api/dashboard/summary
 //
-// Uses the normal cookie client. RLS already restricts diagnostic_attempts and
-// attempt_concept_results to auth.uid() = user_id, so this can only ever
-// return the caller's own data.
+// Uses the normal cookie client. RLS already restricts diagnostic_attempts,
+// attempt_concept_results and practice_recommendations to auth.uid() = user_id,
+// so this can only ever return the caller's own data.
+//
+// ---------------------------------------------------------------------------
+// Why `weakest` is filtered rather than "lowest three by score"
+// ---------------------------------------------------------------------------
+// Previously `weakest` was simply the three lowest-scoring concepts. That
+// produced two user-facing defects:
+//
+//  1. Concepts classified `insufficient_evidence` (fewer than the minimum
+//     number of diagnostic questions) surfaced as the headline "biggest
+//     opportunity to improve" — directly contradicting the recommendation
+//     engine, which correctly excludes them. A student was being pointed at
+//     the one concept the system had explicitly decided it could not judge.
+//
+//  2. A concept could be labelled as needing practice purely because it
+//     ranked lowest, even when classified `strong`. Telling a student who
+//     scored 80% that they "need practice" undercuts the credibility of the
+//     feedback.
+//
+// So: unjudgeable concepts are excluded entirely, and only concepts actually
+// below `strong` are eligible for `weakest`. When nothing qualifies, `weakest`
+// is empty and the UI should say the student is on track rather than
+// manufacturing a weakness.
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+
+// Human-readable label per classification. The UI should render these rather
+// than inferring a label from a concept's position in a sorted list.
+const CLASSIFICATION_LABELS = {
+  strong: "Strong",
+  developing: "Developing",
+  needs_practice: "Needs practice",
+  weak: "Weak",
+  insufficient_evidence: "Not enough data yet",
+};
 
 function tierFromScore(pct) {
   if (pct >= 80) return "Advanced Architect";
@@ -54,6 +86,7 @@ export async function GET() {
       concepts: [],
       strongest: [],
       weakest: [],
+      recommendedProblems: [],
       overallScorePercentage: null,
       tier: "Not Yet Assessed",
     });
@@ -66,6 +99,7 @@ export async function GET() {
       concept_id,
       score_percentage,
       classification,
+      questions_relevant,
       concepts ( slug, name, category )
     `,
     )
@@ -86,10 +120,23 @@ export async function GET() {
     category: c.concepts?.category,
     scorePercentage: c.score_percentage,
     classification: c.classification,
+    // Surfaced so the UI can render an honest label instead of deriving one
+    // from sort position, and can show how much evidence backs the estimate.
+    classificationLabel:
+      CLASSIFICATION_LABELS[c.classification] || c.classification,
+    questionsRelevant: c.questions_relevant,
+    hasEnoughEvidence: c.classification !== "insufficient_evidence",
   }));
 
-  const weakest = concepts.slice(0, 3);
-  const strongest = [...concepts].reverse().slice(0, 3);
+  // Only concepts the attempt could actually judge are eligible for headline
+  // guidance — see the note at the top of this file.
+  const judged = concepts.filter((c) => c.hasEnoughEvidence);
+
+  // "Needs work" means genuinely below `strong`, not merely lowest-ranked.
+  const needsWork = judged.filter((c) => c.classification !== "strong");
+
+  const weakest = needsWork.slice(0, 3);
+  const strongest = [...judged].reverse().slice(0, 3);
 
   // Latest batch of practice recommendations, if any (Phase 5). RLS already
   // restricts this to the caller's own rows.
@@ -132,6 +179,25 @@ export async function GET() {
       }));
   }
 
+  // The headline "suggested focus" must agree with what the recommendation
+  // engine actually produced. Prefer the top-priority recommendation; fall
+  // back to the weakest judged concept only if no recommendations exist.
+  const suggestedFocus = recommendedProblems.length
+    ? {
+        kind: "problem",
+        problemSlug: recommendedProblems[0].slug,
+        title: recommendedProblems[0].title,
+        reason: recommendedProblems[0].reason,
+      }
+    : weakest.length
+      ? {
+          kind: "concept",
+          conceptSlug: weakest[0].slug,
+          title: weakest[0].name,
+          reason: `Scored ${weakest[0].scorePercentage}% on this concept.`,
+        }
+      : null;
+
   return NextResponse.json({
     hasCompletedDiagnostic: true,
     latestAttempt: {
@@ -144,6 +210,10 @@ export async function GET() {
     strongest,
     weakest,
     recommendedProblems,
+    suggestedFocus,
+    // True when every judged concept is already `strong` — the UI should
+    // congratulate rather than invent a weakness.
+    allConceptsStrong: judged.length > 0 && needsWork.length === 0,
     overallScorePercentage: attempt.score_percentage,
     tier: tierFromScore(attempt.score_percentage),
   });

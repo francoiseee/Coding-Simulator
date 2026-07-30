@@ -21,9 +21,13 @@ import { updateMasteryFromAttempt } from "@/lib/mastery/updateConceptMastery";
 
 const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
+const MIN_QUESTIONS_FOR_CLASSIFICATION = 3;
+
 // Map a concept's score % + evidence count to an allowed classification label.
 function classify(scorePct, relevantCount) {
-  if (relevantCount === 0) return "insufficient_evidence";
+  if (relevantCount < MIN_QUESTIONS_FOR_CLASSIFICATION) {
+    return "insufficient_evidence";
+  }
   if (scorePct >= 80) return "strong";
   if (scorePct >= 60) return "developing";
   if (scorePct >= 40) return "needs_practice";
