@@ -1,5 +1,6 @@
 // src/app/api/practice/submit/route.js
 // Phase 6 — Grade a coding submission with Judge0.
+// Phase 7, Step 36 — Also record per-test-case results in submission_test_results.
 //
 // POST /api/practice/submit
 // Body: { sessionId: number, code: string }
@@ -13,10 +14,14 @@
 //   4. Aggregate pass/fail, runtime, errors.
 //   5. Write a graded row to `submissions` via the service-role client
 //      (RLS forbids clients from writing a scored submission directly).
+//   5b. Write per-test-case rows to `submission_test_results` (Step 36).
 //   6. Return per-visible-test results + overall verdict to the UI.
 //
 // Non-fatal philosophy: if Judge0 is unreachable, respond with a clear
-// "grading service unavailable" message rather than crashing.
+// "grading service unavailable" message rather than crashing. Likewise, a
+// failure to write submission_test_results does not block the graded
+// verdict — the `submissions` row is the source of truth for grading; the
+// per-test rows are supplementary evidence (e.g. for later RF feature work).
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
@@ -27,6 +32,7 @@ import {
   normalizeForCompare,
   functionNameFromSignature,
 } from "@/lib/judge0/buildHarness";
+import { updateMasteryFromSubmission } from "@/lib/mastery/updateConceptMastery";
 
 export async function POST(request) {
   let body;
@@ -99,9 +105,11 @@ export async function POST(request) {
     );
   }
 
+  // NOTE: `id` is now selected — required as the FK target for
+  // submission_test_results.test_case_id (Step 36).
   const { data: testCases, error: tcError } = await admin
     .from("test_cases")
-    .select("input, expected_output, visibility, display_order")
+    .select("id, input, expected_output, visibility, display_order")
     .eq("problem_id", session.problem_id)
     .order("display_order", { ascending: true });
 
@@ -114,6 +122,7 @@ export async function POST(request) {
 
   // 3. Run each test case through Judge0.
   const results = [];
+  const testResultRows = []; // Step 36 — per-test-case rows, submission_id filled in after insert
   let passedCount = 0;
   let totalRuntimeMs = 0;
   let maxMemoryKb = 0;
@@ -145,9 +154,14 @@ export async function POST(request) {
       const actualNorm = actual ? normalizeForCompare(actual) : "";
       const passed = ranOk && actualNorm === expected;
 
+      const testRuntimeMs = jr.time
+        ? Math.round(parseFloat(jr.time) * 1000)
+        : null;
+      const testMemoryKb = jr.memory || null;
+
       if (passed) passedCount += 1;
-      if (jr.time) totalRuntimeMs += Math.round(parseFloat(jr.time) * 1000);
-      if (jr.memory) maxMemoryKb = Math.max(maxMemoryKb, jr.memory);
+      if (testRuntimeMs) totalRuntimeMs += testRuntimeMs;
+      if (testMemoryKb) maxMemoryKb = Math.max(maxMemoryKb, testMemoryKb);
       if (!firstError && (jr.stderr || jr.compile_output)) {
         firstError = jr.stderr || jr.compile_output;
       }
@@ -166,6 +180,19 @@ export async function POST(request) {
               actual: actual || null,
             }
           : {}),
+      });
+
+      // Step 36 — full per-test-case record, including hidden tests, for
+      // internal evidence (RF features later). submission_id is attached
+      // after the submissions insert below.
+      testResultRows.push({
+        test_case_id: tc.id,
+        passed,
+        actual_output: actual ? JSON.stringify(actual) : null,
+        runtime_ms: testRuntimeMs,
+        memory_kb: testMemoryKb,
+        judge_status: jr.status?.description || "Unknown",
+        executed_at: new Date().toISOString(),
       });
     }
   } catch (err) {
@@ -223,6 +250,37 @@ export async function POST(request) {
       { error: "Could not record the submission." },
       { status: 500 },
     );
+  }
+
+  // 5b. Record per-test-case results (Step 36). Non-fatal: the aggregate
+  // `submissions` row above is already the source of truth for grading —
+  // per-test detail is supplementary and must never block the response.
+  if (testResultRows.length > 0) {
+    const { error: tcrError } = await admin
+      .from("submission_test_results")
+      .insert(
+        testResultRows.map((row) => ({
+          ...row,
+          submission_id: submission.id,
+        })),
+      );
+    if (tcrError) {
+      console.error("submission_test_results insert failed:", tcrError.message);
+    }
+  }
+
+  // 5c. Update persistent concept mastery from this submission's score.
+  // Non-fatal: the graded `submissions` row above is already the source of
+  // truth — a mastery blending failure must not block the verdict response.
+  try {
+    await updateMasteryFromSubmission({
+      admin,
+      userId: user.id,
+      problemId: session.problem_id,
+      scorePercentage,
+    });
+  } catch (err) {
+    console.error("Mastery update from submission failed:", err.message);
   }
 
   // 6. Return verdict.

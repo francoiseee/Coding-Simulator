@@ -26,6 +26,8 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { evaluateReflectiveAnswer } from "@/lib/ai/evaluateReflectiveAnswer";
 
 export async function POST(request) {
   let body;
@@ -138,5 +140,17 @@ export async function POST(request) {
     );
   }
 
-  return NextResponse.json({ answer: saved, saved: true });
+  // Step 34 — AI evaluation. Admin client is required: RLS blocks students
+  // from writing ai_score, so this cannot run on the cookie client.
+  let evaluated = saved;
+  try {
+    const admin = createAdminClient();
+    evaluated = await evaluateReflectiveAnswer({ admin, answerId: saved.id });
+  } catch (err) {
+    console.error("Reflect answer: AI evaluation failed:", err.message);
+    // Non-fatal — the student's raw answer is already saved. They just
+    // won't see a score yet.
+  }
+
+  return NextResponse.json({ answer: evaluated, saved: true });
 }

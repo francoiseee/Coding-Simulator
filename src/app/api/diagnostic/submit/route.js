@@ -17,6 +17,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateDiagnosticReport } from "@/lib/ai/generateDiagnosticReport";
 import { generatePracticeRecommendations } from "@/lib/practice/generatePracticeRecommendations";
+import { updateMasteryFromAttempt } from "@/lib/mastery/updateConceptMastery";
 
 const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
@@ -272,6 +273,21 @@ export async function POST(request) {
     console.error("Practice recommendation generation failed:", err.message);
   }
 
+  // ---- 8c. Update persistent concept mastery (Step 19) ----
+  // Non-fatal: mastery is derived data blended from attempt_concept_results,
+  // which is already saved above. A failure here must not fail the request.
+  let masteryUpdated = 0;
+  try {
+    const { updated } = await updateMasteryFromAttempt({
+      admin,
+      userId: user.id,
+      attemptId,
+    });
+    masteryUpdated = updated;
+  } catch (err) {
+    console.error("Mastery update failed:", err.message);
+  }
+
   // ---- 9. Return summary for the results page ----
   return NextResponse.json({
     attemptId,
@@ -280,6 +296,7 @@ export async function POST(request) {
     scorePercentage,
     aiReportGenerated,
     practiceRecommendationCount,
+    masteryUpdated,
     conceptResults: conceptRows
       .map((c) => ({
         conceptId: c.concept_id,

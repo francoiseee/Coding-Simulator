@@ -9,13 +9,12 @@
 // caller — a missing AI score must never block grading or the submit flow.
 
 const MODEL_NAME = "claude-sonnet-4-6";
-const MODEL_PROVIDER = "anthropic";
 const PROMPT_VERSION = "v1";
 
 const EVAL_JSON_SCHEMA_INSTRUCTIONS = `
 Respond with ONLY valid JSON (no markdown fences, no prose before or after) matching exactly this shape:
 {
-  "score": number,                        // 1-5 integer, how well the answer demonstrates genuine understanding
+  "score": number,                        // 1-5, how well the answer demonstrates genuine understanding (decimals allowed, e.g. 3.5)
   "feedback": string,                     // 1-3 sentences, direct and specific, addressed to the student
   "concepts_demonstrated": string[],      // concept names the answer shows real understanding of
   "concepts_misunderstood": string[]      // concept names the answer suggests confusion about (empty array if none)
@@ -35,6 +34,7 @@ export async function evaluateReflectiveAnswer({ admin, answerId }) {
   }
 
   // 1. Load the answer + its instance + the originating problem statement.
+  // Verified join path: coding_question_instances.session_id -> coding_sessions.problem_id -> problems.statement
   const { data: answer, error: answerError } = await admin
     .from("coding_question_answers")
     .select(
@@ -42,7 +42,7 @@ export async function evaluateReflectiveAnswer({ admin, answerId }) {
       id, answer_text, is_skipped,
       coding_question_instances (
         rendered_text, category, concept_id, code_snapshot,
-        coding_sessions ( problem_id, coding_problems ( statement ) )
+        coding_sessions ( problem_id, problems ( statement ) )
       )
     `,
     )
@@ -55,6 +55,7 @@ export async function evaluateReflectiveAnswer({ admin, answerId }) {
 
   // A skipped answer isn't evaluable content — score it minimally without
   // calling Claude at all (saves a call, and there's nothing to assess).
+  // eval_model / eval_prompt_version stay null here since no model was invoked.
   if (answer.is_skipped) {
     const { data: updated, error: updateError } = await admin
       .from("coding_question_answers")
@@ -73,7 +74,7 @@ export async function evaluateReflectiveAnswer({ admin, answerId }) {
 
   const instance = answer.coding_question_instances;
   const problemStatement =
-    instance?.coding_sessions?.coding_problems?.statement || "(unavailable)";
+    instance?.coding_sessions?.problems?.statement || "(unavailable)";
 
   // 2. Build the prompt.
   const userPrompt = `
@@ -135,10 +136,8 @@ ${EVAL_JSON_SCHEMA_INSTRUCTIONS}
   }
 
   // Clamp score defensively — never trust the model's number blindly.
-  const score = Math.min(
-    5,
-    Math.max(1, Math.round(Number(structured.score) || 1)),
-  );
+  // ai_score is numeric, so decimals are fine; just bound it to [1, 5].
+  const score = Math.min(5, Math.max(1, Number(structured.score) || 1));
 
   // 4. Update the same row (admin client — RLS would otherwise block this).
   const { data: updated, error: updateError } = await admin
@@ -148,6 +147,8 @@ ${EVAL_JSON_SCHEMA_INSTRUCTIONS}
       ai_feedback: structured.feedback || "",
       concepts_demonstrated: structured.concepts_demonstrated || [],
       concepts_misunderstood: structured.concepts_misunderstood || [],
+      eval_model: MODEL_NAME,
+      eval_prompt_version: PROMPT_VERSION,
     })
     .eq("id", answerId)
     .select()
