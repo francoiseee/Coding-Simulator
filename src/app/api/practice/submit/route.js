@@ -124,7 +124,9 @@ export async function POST(request) {
   const results = [];
   const testResultRows = []; // Step 36 — per-test-case rows, submission_id filled in after insert
   let passedCount = 0;
-  let totalRuntimeMs = 0;
+  // Per-test runtimes, averaged at the end. A sum would scale with test-case
+  // count, confounding runtime_ms as an RF feature.
+  const runtimes = [];
   let maxMemoryKb = 0;
   let firstError = null;
   let sawCompileError = false;
@@ -160,7 +162,7 @@ export async function POST(request) {
       const testMemoryKb = jr.memory || null;
 
       if (passed) passedCount += 1;
-      if (testRuntimeMs) totalRuntimeMs += testRuntimeMs;
+      if (testRuntimeMs) runtimes.push(testRuntimeMs);
       if (testMemoryKb) maxMemoryKb = Math.max(maxMemoryKb, testMemoryKb);
       if (!firstError && (jr.stderr || jr.compile_output)) {
         firstError = jr.stderr || jr.compile_output;
@@ -223,6 +225,12 @@ export async function POST(request) {
     executionStatus = "wrong_answer";
   }
 
+  // Mean runtime across test cases that reported a time. Null when none did
+  // (e.g. a compile error on every case).
+  const meanRuntimeMs = runtimes.length
+    ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length)
+    : null;
+
   // 5. Record the graded submission (service role — RLS blocks scored client writes).
   const { data: submission, error: insertError } = await admin
     .from("submissions")
@@ -236,7 +244,7 @@ export async function POST(request) {
       score_percentage: scorePercentage,
       passed_test_count: passedCount,
       total_test_count: totalTests,
-      runtime_ms: totalRuntimeMs || null,
+      runtime_ms: meanRuntimeMs,
       memory_kb: maxMemoryKb || null,
       stderr: firstError || null,
       graded_at: new Date().toISOString(),

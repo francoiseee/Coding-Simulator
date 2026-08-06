@@ -12,6 +12,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function POST(request) {
   let body;
@@ -48,6 +49,24 @@ export async function POST(request) {
     .maybeSingle();
 
   if (existing) {
+    // New sitting on an existing session: re-open the measurement window.
+    // Non-fatal — a failed stamp costs one row of RF data, never the session.
+    try {
+      const admin = createAdminClient();
+      const { error: stampError } = await admin
+        .from('coding_sessions')
+        .update({
+          last_opened_at: new Date().toISOString(),
+          first_run_at: null,
+        })
+        .eq('id', existing.id);
+      if (stampError) {
+        console.error('Session resume stamp failed:', stampError.message);
+      }
+    } catch (err) {
+      console.error('Session resume stamp threw:', err.message);
+    }
+
     return NextResponse.json({
       sessionId: existing.id,
       currentCode: existing.current_code,
@@ -63,6 +82,7 @@ export async function POST(request) {
       problem_id: problemId,
       language,
       status: 'active',
+      last_opened_at: new Date().toISOString(),
     })
     .select('id, current_code, language')
     .single();

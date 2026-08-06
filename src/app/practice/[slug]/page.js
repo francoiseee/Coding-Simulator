@@ -37,6 +37,9 @@ export default function PracticeProblemPage() {
   const [submitState, setSubmitState] = useState("idle"); // idle | running | done | error
   const [submitResult, setSubmitResult] = useState(null);
   const [submitError, setSubmitError] = useState("");
+  const [runState, setRunState] = useState("idle"); // idle | running | done | error
+  const [runResult, setRunResult] = useState(null);
+  const [runError, setRunError] = useState("");
 
   // Steps 32-34 — reflective question gate shown before grading.
   // idle | loading | asking | saving | reviewing
@@ -138,6 +141,30 @@ export default function PracticeProblemPage() {
     const value = next ?? "";
     setCode(value);
     scheduleSave(value);
+  };
+
+  // Ungraded execution against public sample tests only. Does not open the
+  // reflection gate and does not create a submission. Also causes the server
+  // to stamp first_run_at on the first call for this session.
+  const handleRunCode = async () => {
+    if (!sessionId) return;
+    setRunState("running");
+    setRunResult(null);
+    setRunError("");
+    try {
+      const res = await fetch("/api/practice/run", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not run your code.");
+      setRunResult(data);
+      setRunState("done");
+    } catch (err) {
+      setRunError(err.message);
+      setRunState("error");
+    }
   };
 
   // Step 1 of submit: open the reflective-question gate. Fetches (and creates)
@@ -317,6 +344,8 @@ export default function PracticeProblemPage() {
 
   const runGrading = async () => {
     setSubmitState("running");
+    setRunResult(null);
+    setRunState("idle");
     setSubmitResult(null);
     setSubmitError("");
     setPostFailInstances([]);
@@ -618,8 +647,24 @@ export default function PracticeProblemPage() {
             <button
               type="button"
               className={styles.runBtn}
+              onClick={handleRunCode}
+              disabled={
+                runState === "running" ||
+                submitState === "running" ||
+                reflectState === "loading" ||
+                reflectState === "asking" ||
+                reflectState === "saving"
+              }
+            >
+              {runState === "running" ? "Running…" : "Run Code"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.runBtn}
               onClick={handleRunClick}
               disabled={
+                runState === "running" ||
                 submitState === "running" ||
                 reflectState === "loading" ||
                 reflectState === "asking" ||
@@ -628,11 +673,43 @@ export default function PracticeProblemPage() {
               }
             >
               {submitState === "running"
-                ? "Running…"
+                ? "Submitting…"
                 : reflectState === "loading"
                   ? "Loading…"
-                  : "Run & Submit"}
+                  : "Submit"}
             </button>
+
+            {runState === "error" && (
+              <span className={styles.submitError}>{runError}</span>
+            )}
+
+            {runState === "done" && runResult && (
+              <div
+                className={`${styles.verdict} ${
+                  runResult.allPassed ? styles.verdictPass : styles.verdictFail
+                }`}
+              >
+                <span className={styles.verdictHeadline}>
+                  {runResult.allPassed
+                    ? "All sample tests passed"
+                    : `${runResult.passedCount} / ${runResult.totalTests} sample tests passed`}
+                </span>
+                <ul className={styles.verdictList}>
+                  {runResult.results.map((r, i) => (
+                    <li
+                      key={i}
+                      className={`${styles.verdictItem} ${r.passed ? styles.itemPass : styles.itemFail}`}
+                    >
+                      <span className={styles.verdictMark}>{r.passed ? "✓" : "✗"}</span>
+                      <span className={styles.verdictDetail}>
+                        in {JSON.stringify(r.input)} → expected {JSON.stringify(r.expected)}
+                        {!r.passed && r.actual != null ? `, got ${r.actual}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
             {submitState === "error" && (
               <span className={styles.submitError}>{submitError}</span>
