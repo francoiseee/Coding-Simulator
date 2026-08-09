@@ -17,6 +17,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import MonacoEditor from "@monaco-editor/react";
 import styles from "./PracticeProblem.module.css";
 
 const AUTOSAVE_DELAY_MS = 1500;
@@ -134,25 +135,10 @@ export default function PracticeProblemPage() {
     };
   }, []);
 
-  const onCodeChange = (e) => {
-    const value = e.target.value;
-    setCode(value);
-    scheduleSave(value);
-  };
-
-  // Plain <textarea> doesn't handle Tab-as-indent the way Monaco used to —
-  // native Tab just moves focus out of the field. Insert 4 spaces instead.
-  const onKeyDown = (e) => {
-    if (e.key !== "Tab") return;
-    e.preventDefault();
-    const target = e.target;
-    const { selectionStart, selectionEnd } = target;
-    const next = code.slice(0, selectionStart) + "    " + code.slice(selectionEnd);
+  const onCodeChange = (value) => {
+    const next = value || "";
     setCode(next);
     scheduleSave(next);
-    requestAnimationFrame(() => {
-      target.selectionStart = target.selectionEnd = selectionStart + 4;
-    });
   };
 
   // Ungraded execution against public sample tests only. Does not open the
@@ -531,16 +517,33 @@ export default function PracticeProblemPage() {
         </div>
 
         {activeTab === "editor" ? (
-          <textarea
-            className={styles.editor}
-            value={code}
-            onChange={onCodeChange}
-            onKeyDown={onKeyDown}
-            spellCheck={false}
-            autoComplete="off"
-            autoCapitalize="off"
-            autoCorrect="off"
-          />
+          <div className={styles.editor}>
+            <MonacoEditor
+              height="100%"
+              language="python"
+              theme="vs-dark"
+              value={code}
+              onChange={onCodeChange}
+              options={{
+                fontSize: 13,
+                fontFamily: "'Fira Code', 'Cascadia Code', monospace",
+                fontLigatures: true,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                tabSize: 4,
+                insertSpaces: true,
+                lineNumbers: "on",
+                renderLineHighlight: "line",
+                automaticLayout: true,
+                padding: { top: 16, bottom: 16 },
+                scrollbar: {
+                  verticalScrollbarSize: 4,
+                  horizontalScrollbarSize: 4,
+                },
+              }}
+            />
+          </div>
         ) : (
           <div className={styles.instructionsPane}>
             <h2 className={styles.instructionsTitle}>{problem.title}</h2>
