@@ -6,11 +6,14 @@ import DiagnosticRunner from '@/components/diagnostic/DiagnosticRunner';
 export default function DiagnosticPage() {
   const router = useRouter();
 
-  const handleComplete = ({ attemptId, answers }) => {
-    // Step 16 will replace this with a POST to /api/diagnostic/answers.
-    console.log('Diagnostic complete:', { attemptId, answers });
-    // "/" re-checks the session on mount and lands on the dashboard view.
-    router.push('/');
+  const handleComplete = (data) => {
+    const attemptId = data?.attemptId;
+    if (attemptId) {
+      router.push(`/results/${attemptId}`);
+    } else {
+      // Fallback if attemptId is missing — go to dashboard
+      router.push('/');
+    }
   };
 
   return <DiagnosticRunner onComplete={handleComplete} />;

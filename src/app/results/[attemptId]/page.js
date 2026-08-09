@@ -96,11 +96,6 @@ export default function ResultsPage() {
     <div className={styles.container}>
       <section className={styles.scoreCard}>
         <div className={styles.scoreHeader}>
-          <div className={styles.terminalDotWrapper}>
-            <span className={`${styles.dot} ${styles.dotRed}`} />
-            <span className={`${styles.dot} ${styles.dotYellow}`} />
-            <span className={`${styles.dot} ${styles.dotGreen}`} />
-          </div>
           <h1 className={styles.scoreTitle}>Diagnostic results</h1>
           <p className={styles.scoreMeta}>
             Completed {new Date(attempt.completedAt).toLocaleString()}
@@ -115,6 +110,15 @@ export default function ResultsPage() {
             </div>
             <span className={styles.scoreLabel}>
               {attempt.scorePercentage}% overall
+            </span>
+            <span className={styles.scoreInterpretation}>
+              {attempt.scorePercentage >= 80
+                ? "Strong performance — you're ready to start practicing."
+                : attempt.scorePercentage >= 60
+                ? "Good foundation — focus on the concepts below."
+                : attempt.scorePercentage >= 40
+                ? "Keep going — consistent practice will move the needle."
+                : "Everyone starts somewhere — the plan below is built for you."}
             </span>
           </div>
 
@@ -220,8 +224,10 @@ export default function ResultsPage() {
       </section>
 
       <section className={styles.conceptSection}>
-        <h2 className={styles.conceptSectionTitle}>Concept breakdown</h2>
-        <p className={styles.conceptSectionDesc}>Weakest areas first.</p>
+        <h2 className={styles.conceptSectionTitle}>Your concept breakdown</h2>
+        <p className={styles.conceptSectionDesc}>
+          Sorted weakest first — these are the areas Codely will focus your practice on.
+        </p>
 
         <ul className={styles.conceptList}>
           {conceptResults.map((c) => (
@@ -245,6 +251,12 @@ export default function ResultsPage() {
           ))}
         </ul>
       </section>
+
+      <div className={styles.ctaRow}>
+        <a href="/" className={styles.ctaPrimary}>
+          Go to Dashboard
+        </a>
+      </div>
     </div>
   );
 }

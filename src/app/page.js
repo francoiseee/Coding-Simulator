@@ -17,10 +17,19 @@ export default function Home() {
 
   // Restore session on load
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
         setUserEmail(session.user.email);
-        setView("dashboard");
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_status")
+          .eq("id", session.user.id)
+          .single();
+        if (!profile || profile.onboarding_status === "new") {
+          router.push("/diagnostic");
+        } else {
+          setView("dashboard");
+        }
       }
     });
 
@@ -34,12 +43,27 @@ export default function Home() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleAuthSuccess = (email, action) => {
+  const handleAuthSuccess = async (email, action) => {
     setUserEmail(email);
-    if (action === "login") {
-      setView("dashboard");
-    } else {
+    if (action === "signup") {
       router.push("/diagnostic");
+      return;
+    }
+    // For login: check if they've completed the diagnostic before
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("onboarding_status")
+        .eq("id", user.id)
+        .single();
+      if (!profile || profile.onboarding_status === "new") {
+        router.push("/diagnostic");
+      } else {
+        setView("dashboard");
+      }
+    } else {
+      setView("dashboard");
     }
   };
 

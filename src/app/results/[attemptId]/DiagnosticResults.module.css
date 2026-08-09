@@ -26,30 +26,6 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.terminalDotWrapper {
-  position: absolute;
-  top: -12px;
-  left: 0;
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
-
-.dotRed {
-  background-color: #ef4444;
-}
-.dotYellow {
-  background-color: #f59e0b;
-}
-.dotGreen {
-  background-color: #10b981;
-}
-
 .scoreTitle {
   font-family: var(--font-outfit), sans-serif;
   font-size: 2rem;
@@ -114,6 +90,14 @@
   letter-spacing: 1px;
   color: var(--text-secondary);
   text-transform: uppercase;
+}
+
+.scoreInterpretation {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: var(--accent-cyan);
+  font-weight: 500;
+  margin-top: 4px;
 }
 
 .scoreSideText {
@@ -245,6 +229,31 @@
   font-family: var(--font-inter), sans-serif;
   font-size: 0.82rem;
   color: var(--text-secondary);
+}
+
+.ctaRow {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 16px;
+  flex-wrap: wrap;
+}
+
+.ctaPrimary {
+  background-color: var(--accent-cyan);
+  color: #06070a;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 14px 36px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.ctaPrimary:hover {
+  opacity: 0.85;
 }
 
 .stateWrapper {
