@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styles from "./Dashboard.module.css";
 import Gallery from "./Gallery";
@@ -10,6 +11,7 @@ export default function Dashboard({ email }) {
   const [activeTab, setActiveTab] = useState("simulations");
   const [summary, setSummary] = useState(null);
   const [summaryStatus, setSummaryStatus] = useState("loading"); // loading | ready | error
+  const [showAllConcepts, setShowAllConcepts] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function Dashboard({ email }) {
   const hasResults =
     summaryStatus === "ready" && summary?.hasCompletedDiagnostic;
   const weakest = summary?.weakest ?? [];
-  const strongest = summary?.strongest ?? [];
+  const allConcepts = summary?.allConcepts ?? [];
   const recommendedProblems = summary?.recommendedProblems ?? [];
   // Pick a real "focus" concept for the learning path — the single weakest area.
   const focusConcept = weakest[0];
@@ -391,12 +393,12 @@ export default function Dashboard({ email }) {
                   </div>
                 </article>
 
-                {/* Widget 2: Learning Path Timeline — built from real concept mastery */}
+                {/* Widget 2: Learning Path — built from real concept mastery */}
                 <article className={styles.learningCard}>
                   <h3 className={styles.cardTitle}>Learning Path</h3>
 
-                  <div className={styles.timeline}>
-                    {!hasResults && (
+                  {!hasResults ? (
+                    <div className={styles.timeline}>
                       <div
                         className={`${styles.timelineNode} ${styles.nodeLocked}`}
                       >
@@ -410,95 +412,129 @@ export default function Dashboard({ email }) {
                           </span>
                         </div>
                       </div>
-                    )}
-
-                    {hasResults && strongest[0] && (
-                      <div
-                        className={`${styles.timelineNode} ${styles.nodeCompleted}`}
-                      >
-                        <div className={styles.nodeCircle}>
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                    </div>
+                  ) : (
+                    <>
+                      <ul className={styles.learningPathList}>
+                        {allConcepts.slice(0, 3).map((c) => (
+                          <li
+                            key={c.conceptId}
+                            className={styles.learningPathItem}
                           >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </div>
-                        <div className={styles.nodeBody}>
-                          <h4 className={styles.nodeTitle}>
-                            {strongest[0].name}
-                          </h4>
-                          <span className={styles.nodeDesc}>
-                            Strongest area — {strongest[0].scorePercentage}%
-                            correct
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {hasResults && focusConcept && (
-                      <div
-                        className={`${styles.timelineNode} ${styles.nodeSelected}`}
-                      >
-                        <div className={styles.nodeCircle}>
-                          <div className={styles.innerDot} />
-                        </div>
-                        <div className={styles.nodeBody}>
-                          <h4 className={styles.nodeTitle}>
-                            {focusConcept.name}
-                          </h4>
-                          <span className={styles.nodeDesc}>
-                            Recommended focus — {focusConcept.scorePercentage}%
-                            correct
-                          </span>
-                        </div>
-                      </div>
-                    )}
-
-                    {hasResults && weakest[1] && (
-                      <div
-                        className={`${styles.timelineNode} ${styles.nodeLocked}`}
-                      >
-                        <div className={styles.nodeCircle}>
-                          <svg
-                            width="10"
-                            height="10"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <rect
-                              x="3"
-                              y="11"
-                              width="18"
-                              height="11"
-                              rx="2"
-                              ry="2"
+                            <span
+                              className={`${styles.learningPathDot} ${
+                                c.classification === "strong"
+                                  ? styles.dotStrong
+                                  : c.classification === "weak" ||
+                                      c.classification === "needs_practice"
+                                    ? styles.dotWeak
+                                    : styles.dotNeutral
+                              }`}
                             />
-                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                          </svg>
-                        </div>
-                        <div className={styles.nodeBody}>
-                          <h4 className={styles.nodeTitle}>
-                            {weakest[1].name}
-                          </h4>
-                          <span className={styles.nodeDesc}>
-                            Needs practice — {weakest[1].scorePercentage}%
-                            correct
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                            <div className={styles.learningPathText}>
+                              <h4 className={styles.nodeName}>{c.name}</h4>
+                              <span className={styles.nodeDesc}>
+                                {c.classification === "strong"
+                                  ? `Strongest area — ${c.scorePercentage}% correct`
+                                  : c.classification === "weak"
+                                    ? `Needs work — ${c.scorePercentage}% correct`
+                                    : c.classification === "needs_practice"
+                                      ? `Recommended focus — ${c.scorePercentage}% correct`
+                                      : `${c.scorePercentage}% correct`}
+                              </span>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {allConcepts.length > 3 && (
+                        <button
+                          type="button"
+                          className={styles.viewAllBtn}
+                          onClick={() => setShowAllConcepts(true)}
+                        >
+                          View all {allConcepts.length} concepts →
+                        </button>
+                      )}
+
+                      {showAllConcepts &&
+                        typeof document !== "undefined" &&
+                        createPortal(
+                          <div
+                            className={styles.modalBackdrop}
+                            onClick={() => setShowAllConcepts(false)}
+                          >
+                            <div
+                              className={styles.modalCard}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className={styles.modalHeader}>
+                                <h3 className={styles.modalTitle}>
+                                  All Concepts
+                                </h3>
+                                <button
+                                  type="button"
+                                  className={styles.modalClose}
+                                  onClick={() => setShowAllConcepts(false)}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                              <ul className={styles.modalList}>
+                                {allConcepts.map((c) => (
+                                  <li
+                                    key={c.conceptId}
+                                    className={styles.modalItem}
+                                  >
+                                    <span
+                                      className={`${styles.learningPathDot} ${
+                                        c.classification === "strong"
+                                          ? styles.dotStrong
+                                          : c.classification === "weak" ||
+                                              c.classification ===
+                                                "needs_practice"
+                                            ? styles.dotWeak
+                                            : styles.dotNeutral
+                                      }`}
+                                    />
+                                    <div className={styles.learningPathText}>
+                                      <h4 className={styles.nodeName}>
+                                        {c.name}
+                                      </h4>
+                                      <span className={styles.nodeDesc}>
+                                        {c.classification === "strong"
+                                          ? `Strongest area — ${c.scorePercentage}% correct`
+                                          : c.classification === "weak"
+                                            ? `Needs work — ${c.scorePercentage}% correct`
+                                            : c.classification ===
+                                                "needs_practice"
+                                              ? `Recommended focus — ${c.scorePercentage}% correct`
+                                              : `${c.scorePercentage}% correct`}
+                                      </span>
+                                    </div>
+                                    <span
+                                      className={`${styles.modalBadge} ${
+                                        c.classification === "strong"
+                                          ? styles.modalBadgeStrong
+                                          : c.classification === "weak"
+                                            ? styles.modalBadgeWeak
+                                            : c.classification ===
+                                                "needs_practice"
+                                              ? styles.modalBadgeNeeds
+                                              : styles.modalBadgeNeutral
+                                      }`}
+                                    >
+                                      {c.scorePercentage}%
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>,
+                          document.body,
+                        )}
+                    </>
+                  )}
                 </article>
               </div>
 
@@ -528,6 +564,7 @@ export default function Dashboard({ email }) {
                               {rp.title}
                             </span>
                             <span className={styles.recommendItemReason}>
+                              {rp.conceptName ? `${rp.conceptName} · ` : ""}
                               {rp.reason}
                             </span>
                           </div>

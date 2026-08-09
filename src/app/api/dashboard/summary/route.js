@@ -137,6 +137,7 @@ export async function GET() {
 
   const weakest = needsWork.slice(0, 3);
   const strongest = [...judged].reverse().slice(0, 3);
+  const allConcepts = concepts; // all 16, weakest first
 
   // Latest batch of practice recommendations, if any (Phase 5). RLS already
   // restricts this to the caller's own rows.
@@ -158,7 +159,8 @@ export async function GET() {
         priority,
         reason,
         status,
-        problems ( id, slug, title, difficulty, estimated_minutes )
+        problems ( id, slug, title, difficulty, estimated_minutes ),
+        concepts ( name )
       `,
       )
       .eq("batch_id", latestRec.batch_id)
@@ -176,6 +178,7 @@ export async function GET() {
         estimatedMinutes: r.problems.estimated_minutes,
         reason: r.reason,
         priority: r.priority,
+        conceptName: r.concepts?.name ?? null,
       }));
   }
 
@@ -209,6 +212,7 @@ export async function GET() {
     concepts,
     strongest,
     weakest,
+    allConcepts,
     recommendedProblems,
     suggestedFocus,
     // True when every judged concept is already `strong` — the UI should
