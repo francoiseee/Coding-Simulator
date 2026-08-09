@@ -1,564 +1,695 @@
 .page {
-  min-height: 100vh;
-  padding: 90px 24px 40px;
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 200px 1fr 300px;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-base, #06070a);
+  font-family: var(--font-inter), sans-serif;
+  min-width: 0;
 }
 
-.topBar {
+/* ── Left Sidebar ── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255,255,255,0.02);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  padding: 24px 16px;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.sidebarBrand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 20px;
+}
+
+.brandIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(0,240,255,0.08);
+  border: 1px solid rgba(0,240,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.brandTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.brandSub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  margin-top: 2px;
+}
+
+.sidebarNav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navItem:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+}
+
+.navItemActive {
+  background: rgba(0,240,255,0.06);
+  color: var(--accent-cyan);
+  border-left: 2px solid var(--accent-cyan);
+}
+
+.submitBtn {
+  margin-top: 24px;
+  padding: 13px;
+  background: var(--accent-cyan);
+  border: none;
+  border-radius: 10px;
+  color: #06070a;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.88;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sidebarFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 6px 4px;
+  transition: color 0.15s ease;
+}
+
+.footerLink:hover { color: var(--text-secondary); }
+
+/* ── Center Editor ── */
+.centerPane {
+  display: grid;
+  grid-template-rows: 40px 1fr 180px;
+  overflow: hidden;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+.editorTabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 0 16px;
+}
+
+.editorTabActive {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--accent-cyan);
+  padding: 0 16px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid var(--accent-cyan);
+}
+
+.editorTab {
+  font-family: monospace;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  padding: 0 16px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.editorTabActions {
+  margin-left: auto;
+}
+
+.saveIndicator {
+  font-size: 0.72rem;
+  color: var(--accent-teal);
+}
+
+.editor {
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.015);
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text-primary);
+  font-family: "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.83rem;
+  line-height: 1.7;
+  padding: 20px 24px;
+  tab-size: 4;
+  caret-color: var(--accent-cyan);
+}
+
+/* ── Terminal ── */
+.terminal {
+  background: rgba(0,0,0,0.3);
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminalHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 
-.backLink {
-  background: none;
-  border: none;
+.terminalTitle {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.terminalStatus {
+  font-size: 0.68rem;
+  color: var(--accent-teal);
+  font-family: monospace;
+}
+
+.terminalBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.terminalPlaceholder {
+  font-family: monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.terminalLine {
+  font-family: monospace;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: color 0.2s ease;
+  display: flex;
+  gap: 12px;
 }
 
-.backLink:hover {
+.terminalPass { color: #4ade80; }
+.terminalFail { color: #f87171; }
+.terminalError { color: #f87171; font-family: monospace; font-size: 0.75rem; }
+
+/* ── Right Pane ── */
+.rightPane {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: rgba(255,255,255,0.01);
+  min-width: 0;
+}
+
+.challengeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  background: var(--bg-base, #06070a);
+  z-index: 1;
+}
+
+.challengeTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 1.5px;
   color: var(--accent-cyan);
 }
 
-.difficultyPill {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.68rem;
-  font-weight: 700;
+.challengeStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.65rem;
+  color: var(--text-muted);
   letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 5px 14px;
-  border-radius: 20px;
 }
 
-.difficulty_easy {
-  color: var(--accent-teal);
-  background: rgba(0, 245, 176, 0.08);
-  border: 1px solid rgba(0, 245, 176, 0.25);
-}
-.difficulty_medium {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-.difficulty_hard {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-teal);
+  box-shadow: 0 0 6px rgba(0,245,176,0.6);
 }
 
-/* Split pane */
-.splitPane {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  align-items: start;
-}
-
-/* Left: problem */
-.problemPane {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  padding: 36px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(16px);
+.problemBlock {
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  min-height: 600px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  min-width: 0;
+}
+
+.problemBlockLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-muted);
 }
 
 .problemTitle {
   font-family: var(--font-outfit), sans-serif;
-  font-size: 1.7rem;
-  font-weight: 800;
+  font-size: 1rem;
+  font-weight: 750;
   color: var(--text-primary);
-  letter-spacing: -0.3px;
+  line-height: 1.3;
 }
 
+.difficultyPill {
+  align-self: flex-start;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.difficulty_easy { background: rgba(74,222,128,0.1); color: #4ade80; border: 1px solid rgba(74,222,128,0.3); }
+.difficulty_medium { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+.difficulty_hard { background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+
 .estimate {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  margin-top: -14px;
 }
 
 .statement {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 1rem;
+  font-size: 0.85rem;
   line-height: 1.7;
-  color: var(--text-primary);
+  color: var(--text-secondary);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
-.block {
+.examplesBlock, .constraintsBlock {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-.blockTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.8rem;
+.examplesLabel {
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--text-muted);
 }
 
 .exampleRow {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  background-color: rgba(6, 8, 14, 0.5);
-  border: 1px solid var(--input-border);
-  border-radius: 8px;
-  padding: 14px 18px;
+  gap: 4px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  padding: 8px 10px;
 }
 
-.exampleIn,
-.exampleOut {
+.exampleIn, .exampleOut {
   font-family: monospace;
-  font-size: 0.85rem;
-  color: var(--text-primary);
-}
-
-.exampleOut {
-  color: var(--accent-cyan);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .constraints {
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.hintsBlock {
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: 16px;
-}
-
-.hintsSummary {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-magenta);
-  cursor: pointer;
-}
-
-.hintsList {
-  margin: 14px 0 0;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
 
-/* Right: editor */
-.editorPane {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-height: 600px;
-}
-
-.editorHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  background-color: rgba(6, 8, 14, 0.4);
-}
-
-.editorLang {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
+.hintsBlock { margin-top: 4px; }
+.hintsSummary {
+  font-size: 0.78rem;
   color: var(--accent-cyan);
+  cursor: pointer;
+}
+.hintsList {
+  margin-top: 8px;
+  padding-left: 16px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
 }
 
-.saveIndicator {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-/* Fixed height, matching EDITOR_HEIGHT in page.js. Monaco needs a definite
-   box: a `flex: 1` item has an indefinite height until layout resolves, and
-   Monaco measures itself before that, collapsing to a sliver. */
-.editorWrapper {
-  height: 460px;
-  width: 100%;
-  overflow: hidden;
-  background-color: rgba(6, 8, 14, 0.6);
-}
-
-.samplesBlock {
-  padding: 16px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+.testSuiteBlock {
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.samplesTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
+  gap: 8px;
+  min-width: 0;
 }
 
 .sampleRow {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   font-family: monospace;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-}
-
-.editorFooter {
-  padding: 18px 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.runBtn {
-  align-self: flex-start;
-  background-color: var(--accent-cyan);
-  border: 1.5px solid var(--accent-cyan);
-  border-radius: 8px;
-  color: #06070a;
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  padding: 12px 28px;
-  cursor: pointer;
-}
-
-.runBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.footerNote {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
+  background: rgba(255,255,255,0.02);
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  min-width: 0;
 }
 
-.stateWrapper {
-  max-width: 480px;
-  margin: 160px auto;
-  text-align: center;
-  font-family: var(--font-inter), sans-serif;
-  color: var(--text-secondary);
+.sampleRow code {
+  white-space: pre-wrap;
+  word-break: break-all;
+  overflow-wrap: break-word;
+  display: block;
+}
+
+.testSuiteFooter {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.backBtn {
-  align-self: center;
-  background: transparent;
-  border: 1.5px solid var(--accent-cyan);
-  border-radius: 8px;
-  color: var(--accent-cyan);
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 12px 28px;
-  cursor: pointer;
-}
-
-@media (max-width: 900px) {
-  .splitPane {
-    grid-template-columns: 1fr;
-  }
-  .problemPane,
-  .editorPane {
-    min-height: auto;
-  }
-}
-
-/* --- Submission verdict --- */
-
-.submitError {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.82rem;
-  color: #f87171;
-}
-
-.verdict {
-  margin-top: 6px;
-  border-radius: 10px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  border: 1px solid var(--input-border);
-}
-
-.verdictPass {
-  background: rgba(0, 245, 176, 0.05);
-  border-color: rgba(0, 245, 176, 0.3);
-}
-
-.verdictFail {
-  background: rgba(239, 68, 68, 0.04);
-  border-color: rgba(239, 68, 68, 0.25);
-}
-
-.verdictHeadline {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 1rem;
-  font-weight: 750;
-  color: var(--text-primary);
-}
-
-.verdictScore {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-}
-
-.verdictList {
-  list-style: none;
-  padding: 0;
-  margin: 6px 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.verdictItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
   font-family: monospace;
-  font-size: 0.8rem;
 }
 
-.itemPass .verdictMark {
-  color: var(--accent-teal);
+.envStable { color: var(--accent-teal); }
+
+/* ── Modals ── */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
-.itemFail .verdictMark {
-  color: #f87171;
+/* Reflection modal */
+.reflectModal {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: 520px;
+  width: 100%;
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
 }
 
-.verdictMark {
-  font-weight: 700;
+.reflectModalIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(0,240,255,0.08);
+  border: 1px solid rgba(0,240,255,0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
   flex-shrink: 0;
 }
 
-.verdictDetail {
-  color: var(--text-secondary);
-  word-break: break-all;
-}
-
-/* Reflective question gate (Steps 32-33) */
-.reflectPanel {
-  margin-top: 16px;
-  padding: 16px;
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  background: var(--card-bg);
+.reflectModalContent {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
-.reflectTitle {
-  margin: 0;
-  font-family: var(--font-outfit);
-  font-size: 0.95rem;
-  color: var(--text-primary);
+.reflectModalLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  letter-spacing: 0.5px;
 }
 
-.reflectItem {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+.reflectItem { display: flex; flex-direction: column; gap: 8px; }
 
 .reflectQuestion {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.4;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.5;
 }
 
-.reflectRequired {
-  color: var(--accent-magenta);
-  font-weight: 700;
-}
+.reflectRequired { color: #f87171; }
 
 .reflectInput {
-  width: 100%;
-  resize: vertical;
-  padding: 10px;
-  border: 1px solid var(--input-border);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 8px;
-  background: transparent;
+  padding: 10px 14px;
   color: var(--text-primary);
-  font-family: var(--font-inter);
+  font-family: var(--font-inter), sans-serif;
   font-size: 0.85rem;
-  line-height: 1.4;
-}
-
-.reflectInput:focus {
+  resize: vertical;
   outline: none;
-  border-color: var(--accent-cyan);
+  transition: border-color 0.2s;
 }
 
-.reflectError {
-  color: #f87171;
-  font-size: 0.8rem;
+.reflectInput:focus { border-color: var(--accent-cyan); }
+.reflectError { font-size: 0.78rem; color: #f87171; }
+
+.reflectActions { display: flex; gap: 10px; }
+
+.reflectSubmitBtn {
+  flex: 1;
+  padding: 10px;
+  background: var(--accent-cyan);
+  color: #06070a;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
 }
 
-.reflectActions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
+.reflectSubmitBtn:hover:not(:disabled) { opacity: 0.85; }
+.reflectSubmitBtn:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .reflectSkipBtn {
-  padding: 8px 16px;
-  border: 1px solid var(--input-border);
+  padding: 10px 16px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 8px;
-  background: transparent;
-  color: var(--text-secondary);
-  font-family: var(--font-outfit);
-  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-size: 0.78rem;
   cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
 }
 
-.reflectSkipBtn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+.reflectSkipBtn:hover:not(:disabled) { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }
+.reflectSkipBtn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Challenge Solved modal */
+.solvedModal {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
 }
 
-/* --- Already-evaluated reflective answers (Step 34, read-only) --- */
+.solvedIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-cyan);
+  box-shadow: 0 0 24px rgba(0,240,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-cyan);
+}
 
-/* The student's own answer, shown as static text once it has been AI-scored.
-   The row is immutable under RLS at that point (cqa_update_own requires
-   ai_score IS NULL), so an editable field would be misleading. */
-.reflectAnswered {
-  margin: 0;
-  padding: 10px 12px;
-  border-left: 2px solid var(--input-border);
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.85rem;
-  line-height: 1.5;
+.solvedBadge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--accent-cyan);
+  background: rgba(0,240,255,0.08);
+  border: 1px solid rgba(0,240,255,0.2);
+  border-radius: 20px;
+  padding: 4px 14px;
+}
+
+.solvedTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+}
+
+.solvedPartialDesc {
+  font-size: 0.88rem;
   color: var(--text-secondary);
-  white-space: pre-wrap;
 }
 
-/* The Step 34 evaluation. This is the only place the student sees it. */
-.reflectFeedbackBox {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 16px;
-  border: 1px solid rgba(0, 245, 176, 0.2);
+.solvedScoreBlock {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 10px;
-  background: rgba(0, 245, 176, 0.04);
-}
-
-.reflectScore {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  color: var(--accent-teal);
-}
-
-.reflectFeedback {
-  margin: 0;
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.85rem;
-  line-height: 1.6;
-  color: var(--text-primary);
-}
-
-/* Concepts the answer suggested confusion about — framed as a pointer to
-   revisit, not a penalty. */
-.reflectGaps {
-  margin: 0;
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: #f59e0b;
-}
-
-/* --- Post-verdict reflection (after_failed_test) --- */
-
-/* Visually distinct from the pre-submit gate: this one is an invitation, not
-   a gate, and it sits below the verdict the student just received. */
-.postFailPanel {
-  margin-top: 14px;
-  padding: 16px;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 12px;
-  background: rgba(245, 158, 11, 0.03);
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-/* --- Completion state (solved) --- */
-
-/* Shown after an accepted submission. Deliberately an explicit exit rather than
-   an automatic redirect: the student still wants to review their passing code,
-   the reflection feedback and the runtime before leaving. */
-.completionPanel {
-  margin-top: 14px;
-  padding: 18px 20px;
-  border: 1px solid rgba(0, 245, 176, 0.3);
-  border-radius: 12px;
-  background: rgba(0, 245, 176, 0.06);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.completionHeadline {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--accent-teal);
-}
-
-.completionActions {
-  display: flex;
   gap: 10px;
+}
+
+.solvedScoreHeader {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
 }
+
+.solvedScoreLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.solvedScoreVal {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+}
+
+.solvedScoreTrack {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.solvedScoreFill {
+  height: 100%;
+  background: var(--accent-cyan);
+  border-radius: 99px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.solvedActions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.solvedNextBtn {
+  padding: 14px;
+  background: var(--accent-cyan);
+  color: #06070a;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.solvedNextBtn:hover { opacity: 0.85; }
+
+.solvedDashBtn {
+  padding: 14px;
+  background: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.solvedDashBtn:hover { border-color: rgba(255,255,255,0.25); color: var(--text-primary); }

@@ -17,11 +17,9 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Editor from "@monaco-editor/react";
 import styles from "./PracticeProblem.module.css";
 
 const AUTOSAVE_DELAY_MS = 1500;
-const EDITOR_HEIGHT = "460px"; // must match .editorWrapper height in the CSS
 
 export default function PracticeProblemPage() {
   const { slug } = useParams();
@@ -135,12 +133,25 @@ export default function PracticeProblemPage() {
     };
   }, []);
 
-  // Monaco hands back the new value directly, not an event. It also handles
-  // Tab-as-indent natively, so no manual key handling is needed.
-  const onCodeChange = (next) => {
-    const value = next ?? "";
+  const onCodeChange = (e) => {
+    const value = e.target.value;
     setCode(value);
     scheduleSave(value);
+  };
+
+  // Plain <textarea> doesn't handle Tab-as-indent the way Monaco used to —
+  // native Tab just moves focus out of the field. Insert 4 spaces instead.
+  const onKeyDown = (e) => {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    const target = e.target;
+    const { selectionStart, selectionEnd } = target;
+    const next = code.slice(0, selectionStart) + "    " + code.slice(selectionEnd);
+    setCode(next);
+    scheduleSave(next);
+    requestAnimationFrame(() => {
+      target.selectionStart = target.selectionEnd = selectionStart + 4;
+    });
   };
 
   // Ungraded execution against public sample tests only. Does not open the
@@ -443,36 +454,141 @@ export default function PracticeProblemPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.topBar}>
+
+      {/* Left Sidebar */}
+      <aside className={styles.sidebar}>
+        <div className={styles.sidebarBrand}>
+          <div className={styles.brandIcon}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="16 18 22 12 16 6" />
+              <polyline points="8 6 2 12 8 18" />
+            </svg>
+          </div>
+          <div>
+            <p className={styles.brandTitle}>Python Project</p>
+            <p className={styles.brandSub}>Active Session</p>
+          </div>
+        </div>
+
+        <nav className={styles.sidebarNav}>
+          <button type="button" className={`${styles.navItem} ${styles.navItemActive}`}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="4 17 10 11 4 5" /><line x1="12" y1="19" x2="20" y2="19" />
+            </svg>
+            IDE Editor
+          </button>
+        </nav>
+
         <button
           type="button"
-          className={styles.backLink}
-          onClick={() => router.push("/")}
+          className={styles.submitBtn}
+          onClick={handleRunClick}
+          disabled={submitState === "running" || reflectState === "loading" || reflectState === "asking" || reflectState === "saving"}
         >
-          ← Dashboard
+          {submitState === "running" ? "Running…" : reflectState === "loading" ? "Loading…" : "Submit Code"}
         </button>
-        <span
-          className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}
-        >
-          {problem.difficulty}
-        </span>
-      </header>
 
-      <div className={styles.splitPane}>
-        {/* Left: problem statement */}
-        <section className={styles.problemPane}>
-          <h1 className={styles.problemTitle}>{problem.title}</h1>
-          {problem.estimatedMinutes ? (
-            <span className={styles.estimate}>
-              ~{problem.estimatedMinutes} min
+        <div className={styles.sidebarFooter}>
+          <button type="button" className={styles.footerLink} onClick={() => router.push("/")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+            </svg>
+            Support
+          </button>
+          <button type="button" className={styles.footerLink} onClick={() => router.push("/")}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+            </svg>
+            Documentation
+          </button>
+        </div>
+      </aside>
+
+      {/* Center: Editor */}
+      <main className={styles.centerPane}>
+        <div className={styles.editorTabs}>
+          <span className={styles.editorTabActive}>solution.py</span>
+          <div className={styles.editorTabActions}>
+            <span className={styles.saveIndicator}>
+              {saveState === "saving" && "Saving…"}
+              {saveState === "saved" && "✓ Saved"}
             </span>
-          ) : null}
+          </div>
+        </div>
 
+        <textarea
+          className={styles.editor}
+          value={code}
+          onChange={onCodeChange}
+          onKeyDown={onKeyDown}
+          spellCheck={false}
+          autoComplete="off"
+          autoCapitalize="off"
+          autoCorrect="off"
+        />
+
+        {/* Output terminal */}
+        <div className={styles.terminal}>
+          <div className={styles.terminalHeader}>
+            <span className={styles.terminalTitle}>OUTPUT TERMINAL</span>
+            <span className={styles.terminalStatus}>
+              {submitState === "running" ? "Running…" : "Ready"}
+            </span>
+          </div>
+          <div className={styles.terminalBody}>
+            {submitState === "idle" && (
+              <span className={styles.terminalPlaceholder}>
+                Submit your code to see test results here.
+              </span>
+            )}
+            {submitState === "running" && (
+              <span className={styles.terminalLine}>Running tests…</span>
+            )}
+            {submitState === "error" && (
+              <span className={styles.terminalError}>{submitError}</span>
+            )}
+            {submitState === "done" && submitResult && (
+              <div className={styles.terminalResults}>
+                {submitResult.results.map((r, i) => (
+                  <div key={i} className={`${styles.terminalLine} ${r.passed ? styles.terminalPass : styles.terminalFail}`}>
+                    <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
+                    {r.visibility === "public_sample" ? (
+                      <span>Test {i + 1}: in {JSON.stringify(r.input)} → expected {JSON.stringify(r.expected)}{!r.passed && r.actual != null ? `, got ${r.actual}` : ""}</span>
+                    ) : (
+                      <span>Hidden test {i + 1} {r.passed ? "passed" : "failed"}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+
+      {/* Right: Problem panel */}
+      <aside className={styles.rightPane}>
+        <div className={styles.challengeHeader}>
+          <span className={styles.challengeTitle}>PYTHON CHALLENGE</span>
+          <span className={styles.challengeStatus}>
+            <span className={styles.statusDot} />
+            ACTIVE SESSION
+          </span>
+        </div>
+
+        <div className={styles.problemBlock}>
+          <p className={styles.problemBlockLabel}>PROBLEM STATEMENT</p>
+          <h2 className={styles.problemTitle}>{problem.title}</h2>
+          <span className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}>
+            {problem.difficulty}
+          </span>
+          {problem.estimatedMinutes && (
+            <span className={styles.estimate}>~{problem.estimatedMinutes} min</span>
+          )}
           <p className={styles.statement}>{problem.statement}</p>
 
           {examples.length > 0 && (
-            <div className={styles.block}>
-              <h2 className={styles.blockTitle}>Examples</h2>
+            <div className={styles.examplesBlock}>
+              <p className={styles.examplesLabel}>EXAMPLES</p>
               {examples.map((ex, i) => (
                 <div key={i} className={styles.exampleRow}>
                   <code className={styles.exampleIn}>Input: {ex.input}</code>
@@ -483,367 +599,145 @@ export default function PracticeProblemPage() {
           )}
 
           {problem.constraints && (
-            <div className={styles.block}>
-              <h2 className={styles.blockTitle}>Constraints</h2>
+            <div className={styles.constraintsBlock}>
+              <p className={styles.examplesLabel}>CONSTRAINTS</p>
               <p className={styles.constraints}>{problem.constraints}</p>
             </div>
           )}
 
           {hints.length > 0 && (
             <details className={styles.hintsBlock}>
-              <summary className={styles.hintsSummary}>
-                Show hints ({hints.length})
-              </summary>
+              <summary className={styles.hintsSummary}>Show hints ({hints.length})</summary>
               <ul className={styles.hintsList}>
-                {hints.map((h, i) => (
-                  <li key={i}>{h}</li>
-                ))}
+                {hints.map((h, i) => <li key={i}>{h}</li>)}
               </ul>
             </details>
           )}
-        </section>
+        </div>
 
-        {/* Right: editor */}
-        <section className={styles.editorPane}>
-          <div className={styles.editorHeader}>
-            <span className={styles.editorLang}>Python</span>
-            <span className={styles.saveIndicator}>
-              {saveState === "saving" && "Saving…"}
-              {saveState === "saved" && "Saved"}
-            </span>
+        {/* Sample tests */}
+        {sampleTests.length > 0 && (
+          <div className={styles.testSuiteBlock}>
+            <p className={styles.problemBlockLabel}>TEST SUITE READY</p>
+            {sampleTests.map((t, i) => (
+              <div key={i} className={styles.sampleRow}>
+                <code>in: {JSON.stringify(t.input)}</code>
+                <code>→ {JSON.stringify(t.expected_output)}</code>
+              </div>
+            ))}
+            <div className={styles.testSuiteFooter}>
+              <span>Python 3.12</span>
+              <span className={styles.envStable}>● Environment Stable</span>
+            </div>
           </div>
+        )}
+      </aside>
 
-          <div className={styles.editorWrapper}>
-            <Editor
-              height={EDITOR_HEIGHT}
-              language="python"
-              theme="vs-dark"
-              value={code}
-              onChange={onCodeChange}
-              options={{
-                fontSize: 14,
-                minimap: { enabled: false },
-                tabSize: 4,
-                insertSpaces: true,
-                automaticLayout: true,
-                scrollBeyondLastLine: false,
-                padding: { top: 16 },
-              }}
-            />
-          </div>
-
-          {/* Sample tests (public only) */}
-          {sampleTests.length > 0 && (
-            <div className={styles.samplesBlock}>
-              <h3 className={styles.samplesTitle}>Sample tests</h3>
-              {sampleTests.map((t, i) => (
-                <div key={i} className={styles.sampleRow}>
-                  <code>in: {JSON.stringify(t.input)}</code>
-                  <code>expected: {JSON.stringify(t.expected_output)}</code>
+      {/* Reflective question modal */}
+      {reflectState === "asking" && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.reflectModal}>
+            <div className={styles.reflectModalIcon}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <div className={styles.reflectModalContent}>
+              <p className={styles.reflectModalLabel}>HR Check-in</p>
+              {reflectInstances.map((inst) => (
+                <div key={inst.id} className={styles.reflectItem}>
+                  <p className={styles.reflectQuestion}>
+                    {inst.rendered_text}
+                    {inst.is_required && <span className={styles.reflectRequired}> *</span>}
+                  </p>
+                  <textarea
+                    className={styles.reflectInput}
+                    value={reflectAnswers[inst.id] || ""}
+                    onChange={(e) => onReflectChange(inst.id, e.target.value)}
+                    rows={3}
+                    placeholder="Type your answer…"
+                  />
                 </div>
               ))}
-            </div>
-          )}
-
-          {/* Reflective question gate (Steps 32-34) */}
-          {(reflectState === "asking" || reflectState === "reviewing") && (
-            <div className={styles.reflectPanel}>
-              <h3 className={styles.reflectTitle}>
-                {reflectState === "reviewing"
-                  ? "How your reasoning looked"
-                  : allReflectAnswered
-                    ? "Your reflection on this solution"
-                    : "Before you submit — reflect on your solution"}
-              </h3>
-
-              {reflectInstances.map((inst) =>
-                inst.isEvaluated ? (
-                  renderEvaluated(inst)
-                ) : (
-                  <div key={inst.id} className={styles.reflectItem}>
-                    <label className={styles.reflectQuestion}>
-                      {inst.rendered_text}
-                      {inst.is_required && (
-                        <span className={styles.reflectRequired}> *</span>
-                      )}
-                    </label>
-                    <textarea
-                      className={styles.reflectInput}
-                      value={reflectAnswers[inst.id] || ""}
-                      onChange={(e) => onReflectChange(inst.id, e.target.value)}
-                      rows={3}
-                      placeholder="Type your answer…"
-                    />
-                  </div>
-                ),
-              )}
-
-              {reflectError && (
-                <span className={styles.reflectError}>{reflectError}</span>
-              )}
-
+              {reflectError && <span className={styles.reflectError}>{reflectError}</span>}
               <div className={styles.reflectActions}>
-                {reflectState === "reviewing" ? (
-                  <button
-                    type="button"
-                    className={styles.runBtn}
-                    onClick={() => {
-                      setReflectState("idle");
-                      runGrading();
-                    }}
-                  >
-                    See my results
-                  </button>
-                ) : allReflectAnswered ? (
-                  <button
-                    type="button"
-                    className={styles.runBtn}
-                    onClick={() => {
-                      setReflectState("idle");
-                      runGrading();
-                    }}
-                  >
-                    Continue to grading
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={styles.runBtn}
-                      onClick={() => submitReflection(false)}
-                      disabled={reflectState === "saving"}
-                    >
-                      {reflectState === "saving"
-                        ? "Evaluating…"
-                        : "Submit answer & grade"}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.reflectSkipBtn}
-                      onClick={() => submitReflection(true)}
-                      disabled={
-                        reflectState === "saving" ||
-                        reflectInstances.some(
-                          (i) => i.is_required && !i.isAnswered,
-                        )
-                      }
-                      title={
-                        reflectInstances.some(
-                          (i) => i.is_required && !i.isAnswered,
-                        )
-                          ? "A required question must be answered."
-                          : "Skip and grade"
-                      }
-                    >
-                      Skip
-                    </button>
-                  </>
-                )}
+                <button
+                  type="button"
+                  className={styles.reflectSubmitBtn}
+                  onClick={() => submitReflection(false)}
+                  disabled={reflectState === "saving"}
+                >
+                  {reflectState === "saving" ? "Saving…" : "Submit & Continue"}
+                </button>
+                <button
+                  type="button"
+                  className={styles.reflectSkipBtn}
+                  onClick={() => submitReflection(true)}
+                  disabled={reflectState === "saving" || reflectInstances.some((i) => i.is_required)}
+                >
+                  Skip
+                </button>
               </div>
             </div>
-          )}
-
-          <div className={styles.editorFooter}>
-            <button
-              type="button"
-              className={styles.runBtn}
-              onClick={handleRunCode}
-              disabled={
-                runState === "running" ||
-                submitState === "running" ||
-                reflectState === "loading" ||
-                reflectState === "asking" ||
-                reflectState === "saving"
-              }
-            >
-              {runState === "running" ? "Running…" : "Run Code"}
-            </button>
-
-            <button
-              type="button"
-              className={styles.runBtn}
-              onClick={handleRunClick}
-              disabled={
-                runState === "running" ||
-                submitState === "running" ||
-                reflectState === "loading" ||
-                reflectState === "asking" ||
-                reflectState === "saving" ||
-                reflectState === "reviewing"
-              }
-            >
-              {submitState === "running"
-                ? "Submitting…"
-                : reflectState === "loading"
-                  ? "Loading…"
-                  : "Submit"}
-            </button>
-
-            {runState === "error" && (
-              <span className={styles.submitError}>{runError}</span>
-            )}
-
-            {runState === "done" && runResult && (
-              <div
-                className={`${styles.verdict} ${
-                  runResult.allPassed ? styles.verdictPass : styles.verdictFail
-                }`}
-              >
-                <span className={styles.verdictHeadline}>
-                  {runResult.allPassed
-                    ? "All sample tests passed"
-                    : `${runResult.passedCount} / ${runResult.totalTests} sample tests passed`}
-                </span>
-                <ul className={styles.verdictList}>
-                  {runResult.results.map((r, i) => (
-                    <li
-                      key={i}
-                      className={`${styles.verdictItem} ${r.passed ? styles.itemPass : styles.itemFail}`}
-                    >
-                      <span className={styles.verdictMark}>{r.passed ? "✓" : "✗"}</span>
-                      <span className={styles.verdictDetail}>
-                        in {JSON.stringify(r.input)} → expected {JSON.stringify(r.expected)}
-                        {!r.passed && r.actual != null ? `, got ${r.actual}` : ""}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {submitState === "error" && (
-              <span className={styles.submitError}>{submitError}</span>
-            )}
-
-            {submitState === "done" && submitResult && (
-              <div
-                className={`${styles.verdict} ${
-                  submitResult.allPassed
-                    ? styles.verdictPass
-                    : styles.verdictFail
-                }`}
-              >
-                <span className={styles.verdictHeadline}>
-                  {submitResult.allPassed
-                    ? "All tests passed!"
-                    : `${submitResult.passedCount} / ${submitResult.totalTests} tests passed`}
-                </span>
-                <span className={styles.verdictScore}>
-                  {submitResult.scorePercentage}%
-                </span>
-
-                <ul className={styles.verdictList}>
-                  {submitResult.results.map((r, i) => (
-                    <li
-                      key={i}
-                      className={`${styles.verdictItem} ${r.passed ? styles.itemPass : styles.itemFail}`}
-                    >
-                      <span className={styles.verdictMark}>
-                        {r.passed ? "✓" : "✗"}
-                      </span>
-                      {r.visibility === "public_sample" ? (
-                        <span className={styles.verdictDetail}>
-                          in {JSON.stringify(r.input)} → expected{" "}
-                          {JSON.stringify(r.expected)}
-                          {!r.passed && r.actual != null
-                            ? `, got ${r.actual}`
-                            : ""}
-                        </span>
-                      ) : (
-                        <span className={styles.verdictDetail}>
-                          Hidden test {r.passed ? "passed" : "failed"}
-                        </span>
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Completion state. Deliberately NOT an automatic redirect: the
-                student still wants to review their passing code, the AI
-                feedback and the runtime. Leaving is offered, not imposed. */}
-            {submitState === "done" && submitResult?.allPassed && (
-              <div className={styles.completionPanel}>
-                <span className={styles.completionHeadline}>
-                  {recCompleted
-                    ? "Nice — this problem is off your practice list."
-                    : "Solved."}
-                </span>
-                <div className={styles.completionActions}>
-                  <button
-                    type="button"
-                    className={styles.runBtn}
-                    onClick={() => router.push("/")}
-                  >
-                    Back to dashboard
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* after_failed_test reflection — appears BELOW the verdict, and
-                never blocks anything. The student already has their result. */}
-            {postFailState !== "idle" && postFailInstances.length > 0 && (
-              <div className={styles.postFailPanel}>
-                <h3 className={styles.reflectTitle}>
-                  {postFailState === "done"
-                    ? "Your debugging reflection"
-                    : "A test failed — think it through"}
-                </h3>
-
-                {postFailInstances.map((inst) =>
-                  inst.isEvaluated ? (
-                    renderEvaluated(inst)
-                  ) : (
-                    <div key={inst.id} className={styles.reflectItem}>
-                      <label className={styles.reflectQuestion}>
-                        {inst.rendered_text}
-                      </label>
-                      <textarea
-                        className={styles.reflectInput}
-                        value={postFailAnswers[inst.id] || ""}
-                        onChange={(e) =>
-                          onPostFailChange(inst.id, e.target.value)
-                        }
-                        rows={3}
-                        placeholder="What's your hypothesis?"
-                      />
-                    </div>
-                  ),
-                )}
-
-                {postFailError && (
-                  <span className={styles.reflectError}>{postFailError}</span>
-                )}
-
-                {postFailState !== "done" && (
-                  <div className={styles.reflectActions}>
-                    <button
-                      type="button"
-                      className={styles.runBtn}
-                      onClick={submitPostFailReflection}
-                      disabled={postFailState === "saving"}
-                    >
-                      {postFailState === "saving"
-                        ? "Evaluating…"
-                        : "Submit reflection"}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.reflectSkipBtn}
-                      onClick={() => setPostFailState("idle")}
-                      disabled={postFailState === "saving"}
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
-        </section>
-      </div>
+        </div>
+      )}
+
+      {/* Challenge Solved modal */}
+      {submitState === "done" && submitResult?.allPassed && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.solvedModal}>
+            <div className={styles.solvedIcon}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <span className={styles.solvedBadge}>COMPLETED</span>
+            <h2 className={styles.solvedTitle}>Challenge Solved!</h2>
+
+            <div className={styles.solvedScoreBlock}>
+              <div className={styles.solvedScoreHeader}>
+                <span className={styles.solvedScoreLabel}>CODE EFFICIENCY SCORE</span>
+                <span className={styles.solvedScoreVal}>{submitResult.scorePercentage}%</span>
+              </div>
+              <div className={styles.solvedScoreTrack}>
+                <div className={styles.solvedScoreFill} style={{ width: `${submitResult.scorePercentage}%` }} />
+              </div>
+            </div>
+
+            <div className={styles.solvedActions}>
+              <button type="button" className={styles.solvedNextBtn} onClick={() => router.push("/")}>
+                NEXT PROBLEM →
+              </button>
+              <button type="button" className={styles.solvedDashBtn} onClick={() => router.push("/")}>
+                GO BACK TO DASHBOARD
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Partial pass modal */}
+      {submitState === "done" && submitResult && !submitResult.allPassed && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.solvedModal}>
+            <h2 className={styles.solvedTitle} style={{ color: "#f59e0b" }}>
+              {submitResult.passedCount}/{submitResult.totalTests} Tests Passed
+            </h2>
+            <p className={styles.solvedPartialDesc}>
+              Score: {submitResult.scorePercentage}% — keep refining your solution.
+            </p>
+            <div className={styles.solvedActions}>
+              <button type="button" className={styles.solvedNextBtn} onClick={() => setSubmitState("idle")}>
+                KEEP TRYING
+              </button>
+              <button type="button" className={styles.solvedDashBtn} onClick={() => router.push("/")}>
+                GO BACK TO DASHBOARD
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
