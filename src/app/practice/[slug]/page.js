@@ -27,6 +27,7 @@ export default function PracticeProblemPage() {
 
   const [problem, setProblem] = useState(null);
   const [sampleTests, setSampleTests] = useState([]);
+  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "instructions"
   const [sessionId, setSessionId] = useState(null);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState("loading"); // loading | ready | error
@@ -507,7 +508,20 @@ export default function PracticeProblemPage() {
       {/* Center: Editor */}
       <main className={styles.centerPane}>
         <div className={styles.editorTabs}>
-          <span className={styles.editorTabActive}>solution.py</span>
+          <span
+            className={activeTab === "editor" ? styles.editorTabActive : styles.editorTab}
+            onClick={() => setActiveTab("editor")}
+            style={{ cursor: "pointer" }}
+          >
+            solution.py
+          </span>
+          <span
+            className={activeTab === "instructions" ? styles.editorTabActive : styles.editorTab}
+            onClick={() => setActiveTab("instructions")}
+            style={{ cursor: "pointer" }}
+          >
+            Instructions
+          </span>
           <div className={styles.editorTabActions}>
             <span className={styles.saveIndicator}>
               {saveState === "saving" && "Saving…"}
@@ -516,16 +530,62 @@ export default function PracticeProblemPage() {
           </div>
         </div>
 
-        <textarea
-          className={styles.editor}
-          value={code}
-          onChange={onCodeChange}
-          onKeyDown={onKeyDown}
-          spellCheck={false}
-          autoComplete="off"
-          autoCapitalize="off"
-          autoCorrect="off"
-        />
+        {activeTab === "editor" ? (
+          <textarea
+            className={styles.editor}
+            value={code}
+            onChange={onCodeChange}
+            onKeyDown={onKeyDown}
+            spellCheck={false}
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
+          />
+        ) : (
+          <div className={styles.instructionsPane}>
+            <h2 className={styles.instructionsTitle}>{problem.title}</h2>
+            <div className={styles.instructionsMeta}>
+              <span className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}>
+                {problem.difficulty}
+              </span>
+              {problem.estimatedMinutes && (
+                <span className={styles.estimate}>~{problem.estimatedMinutes} min</span>
+              )}
+            </div>
+
+            <p className={styles.instructionsBody}>{problem.statement}</p>
+
+            {examples.length > 0 && (
+              <div className={styles.instructionsSection}>
+                <h3 className={styles.instructionsSectionTitle}>Examples</h3>
+                {examples.map((ex, i) => (
+                  <div key={i} className={styles.exampleRow}>
+                    <code className={styles.exampleIn}>Input: {ex.input}</code>
+                    <code className={styles.exampleOut}>Output: {ex.output}</code>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {problem.constraints && (
+              <div className={styles.instructionsSection}>
+                <h3 className={styles.instructionsSectionTitle}>Constraints</h3>
+                <p className={styles.instructionsBody}>{problem.constraints}</p>
+              </div>
+            )}
+
+            {hints.length > 0 && (
+              <details className={styles.hintsBlock}>
+                <summary className={styles.hintsSummary}>
+                  Show hints ({hints.length})
+                </summary>
+                <ul className={styles.hintsList}>
+                  {hints.map((h, i) => <li key={i}>{h}</li>)}
+                </ul>
+              </details>
+            )}
+          </div>
+        )}
 
         {/* Output terminal */}
         <div className={styles.terminal}>
@@ -573,46 +633,6 @@ export default function PracticeProblemPage() {
             <span className={styles.statusDot} />
             ACTIVE SESSION
           </span>
-        </div>
-
-        <div className={styles.problemBlock}>
-          <p className={styles.problemBlockLabel}>PROBLEM STATEMENT</p>
-          <h2 className={styles.problemTitle}>{problem.title}</h2>
-          <span className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}>
-            {problem.difficulty}
-          </span>
-          {problem.estimatedMinutes && (
-            <span className={styles.estimate}>~{problem.estimatedMinutes} min</span>
-          )}
-          <p className={styles.statement}>{problem.statement}</p>
-
-          {examples.length > 0 && (
-            <div className={styles.examplesBlock}>
-              <p className={styles.examplesLabel}>EXAMPLES</p>
-              {examples.map((ex, i) => (
-                <div key={i} className={styles.exampleRow}>
-                  <code className={styles.exampleIn}>Input: {ex.input}</code>
-                  <code className={styles.exampleOut}>Output: {ex.output}</code>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {problem.constraints && (
-            <div className={styles.constraintsBlock}>
-              <p className={styles.examplesLabel}>CONSTRAINTS</p>
-              <p className={styles.constraints}>{problem.constraints}</p>
-            </div>
-          )}
-
-          {hints.length > 0 && (
-            <details className={styles.hintsBlock}>
-              <summary className={styles.hintsSummary}>Show hints ({hints.length})</summary>
-              <ul className={styles.hintsList}>
-                {hints.map((h, i) => <li key={i}>{h}</li>)}
-              </ul>
-            </details>
-          )}
         </div>
 
         {/* Sample tests */}

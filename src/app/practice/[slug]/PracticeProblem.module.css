@@ -189,6 +189,52 @@
   color: var(--accent-teal);
 }
 
+.instructionsPane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.instructionsTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.2rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.instructionsMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.instructionsBody {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.instructionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.instructionsSectionTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.2px;
+}
+
 .editor {
   width: 100%;
   height: 100%;
