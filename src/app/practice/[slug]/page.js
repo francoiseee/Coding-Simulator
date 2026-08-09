@@ -390,7 +390,11 @@ export default function PracticeProblemPage() {
   };
 
   if (status === "loading")
-    return <p className={styles.stateWrapper}>Loading problem…</p>;
+    return (
+      <div className={styles.loadingScreen}>
+        <div className={styles.spinner} />
+      </div>
+    );
   if (status === "error") {
     return (
       <div className={styles.stateWrapper}>
