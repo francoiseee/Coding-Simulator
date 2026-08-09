@@ -201,6 +201,25 @@ export async function GET() {
         }
       : null;
 
+  // Fetch latest AI report for this attempt
+  let aiReport = null;
+  const { data: reportRow } = await supabase
+    .from("ai_reports")
+    .select("generated_text, structured_output, created_at")
+    .eq("source_type", "diagnostic_attempt")
+    .eq("source_id", attempt.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (reportRow) {
+    aiReport = {
+      generatedText: reportRow.generated_text,
+      structured: reportRow.structured_output,
+      createdAt: reportRow.created_at,
+    };
+  }
+
   return NextResponse.json({
     hasCompletedDiagnostic: true,
     latestAttempt: {
@@ -214,6 +233,7 @@ export async function GET() {
     weakest,
     allConcepts,
     recommendedProblems,
+    aiReport,
     suggestedFocus,
     // True when every judged concept is already `strong` — the UI should
     // congratulate rather than invent a weakness.
