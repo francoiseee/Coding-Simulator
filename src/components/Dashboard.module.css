@@ -537,23 +537,23 @@
 .learningPathList {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 8px 0 0 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 }
 
 .learningPathItem {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
 }
 
 .learningPathDot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  margin-top: 4px;
+  margin-top: 5px;
   flex-shrink: 0;
 }
 
@@ -576,7 +576,7 @@
 .learningPathText {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .nodeName {
@@ -587,7 +587,7 @@
 }
 
 .viewAllBtn {
-  margin-top: 12px;
+  margin-top: 20px;
   background: none;
   border: none;
   color: var(--accent-cyan);
