@@ -314,82 +314,34 @@ export default function Dashboard({ email }) {
                     </div>
                   </div>
 
-                  {/* Glowing SVG Chart — decorative until multiple attempts exist for a real trend */}
                   <div className={styles.chartWrapper}>
-                    <svg
-                      className={styles.chartSvg}
-                      width="100%"
-                      height="200"
-                      viewBox="0 0 500 200"
-                      preserveAspectRatio="none"
-                    >
-                      <defs>
-                        <linearGradient
-                          id="chartGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop
-                            offset="0%"
-                            stopColor="var(--accent-cyan)"
-                            stopOpacity="0.3"
-                          />
-                          <stop
-                            offset="100%"
-                            stopColor="var(--accent-cyan)"
-                            stopOpacity="0.0"
-                          />
-                        </linearGradient>
-                      </defs>
-
-                      <line
-                        x1="0"
-                        y1="50"
-                        x2="500"
-                        y2="50"
-                        stroke="rgba(255, 255, 255, 0.03)"
-                        strokeWidth="1"
-                      />
-                      <line
-                        x1="0"
-                        y1="100"
-                        x2="500"
-                        y2="100"
-                        stroke="rgba(255, 255, 255, 0.03)"
-                        strokeWidth="1"
-                      />
-                      <line
-                        x1="0"
-                        y1="150"
-                        x2="500"
-                        y2="150"
-                        stroke="rgba(255, 255, 255, 0.03)"
-                        strokeWidth="1"
-                      />
-
-                      <path
-                        d="M0 160 Q 150 150, 250 110 T 500 70 L 500 200 L 0 200 Z"
-                        fill="url(#chartGradient)"
-                      />
-                      <path
-                        d="M0 160 Q 150 150, 250 110 T 500 70"
-                        fill="none"
-                        stroke="var(--accent-cyan)"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-
-                    <div className={styles.chartTooltip}>
-                      <span className={styles.tooltipLabel}>OVERALL SCORE</span>
-                      <span className={styles.tooltipValue}>
-                        {hasResults
-                          ? `${summary.overallScorePercentage}%`
-                          : "—"}
-                      </span>
-                    </div>
+                    {!hasResults ? (
+                      <div className={styles.chartEmpty}>
+                        Complete your diagnostic to see your skill breakdown.
+                      </div>
+                    ) : (
+                      <div className={styles.barChart}>
+                        {allConcepts.map((c) => {
+                          const barColor =
+                            c.classification === "strong" ? "var(--accent-teal)"
+                            : c.classification === "weak" ? "#ef4444"
+                            : c.classification === "needs_practice" ? "#f59e0b"
+                            : "var(--accent-cyan)";
+                          return (
+                            <div key={c.conceptId} className={styles.barRow}>
+                              <span className={styles.barLabel}>{c.name}</span>
+                              <div className={styles.barTrack}>
+                                <div
+                                  className={styles.barFill}
+                                  style={{ width: `${c.scorePercentage}%`, backgroundColor: barColor }}
+                                />
+                              </div>
+                              <span className={styles.barPct}>{c.scorePercentage}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 </article>
 

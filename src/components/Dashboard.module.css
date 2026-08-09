@@ -331,40 +331,63 @@
   height: 200px;
 }
 
-.chartSvg {
-  overflow: visible;
+.chartEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px;
 }
 
-.chartTooltip {
-  position: absolute;
-  top: 36px;
-  left: 55%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(10, 15, 26, 0.9);
-  border: 1.5px solid var(--accent-cyan);
-  border-radius: 8px;
-  padding: 8px 14px;
+.barChart {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
-  z-index: 10;
-  pointer-events: none;
+  gap: 8px;
+  padding: 8px 4px;
+  width: 100%;
+  overflow-y: auto;
+  max-height: 220px;
 }
 
-.tooltipLabel {
-  font-family: var(--font-outfit), monospace;
-  font-size: 0.55rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-  letter-spacing: 1px;
+.barRow {
+  display: grid;
+  grid-template-columns: 160px 1fr 40px;
+  align-items: center;
+  gap: 10px;
 }
 
-.tooltipValue {
+.barLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barTrack {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.barPct {
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.88rem;
-  font-weight: 800;
-  color: var(--text-primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: right;
 }
 
 .milestoneCard {
