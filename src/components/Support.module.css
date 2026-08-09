@@ -1,0 +1,214 @@
+.section {
+  width: 100%;
+  padding: 80px 20px 100px 20px;
+  scroll-margin-top: 40px;
+}
+
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.sectionEmbedded {
+  width: 100%;
+  padding: 0;
+}
+
+.containerEmbedded {
+  width: 100%;
+  max-width: 720px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.containerEmbedded .heading {
+  font-size: 1.8rem;
+}
+
+.containerEmbedded .intro {
+  max-width: 100%;
+  margin-bottom: 32px;
+}
+
+.containerEmbedded .contactCard {
+  text-align: left;
+}
+
+.badge {
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+
+.heading {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 2.2rem;
+  font-weight: 850;
+  color: var(--text-primary);
+  letter-spacing: -0.6px;
+  margin-bottom: 14px;
+}
+
+.intro {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  max-width: 460px;
+  margin-bottom: 44px;
+}
+
+.faqList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+
+.faqItem {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.faqItem:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.faqItemOpen {
+  border-color: rgba(0, 240, 255, 0.25);
+}
+
+.faqQuestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: transparent;
+  border: none;
+  padding: 18px 22px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.faqQuestion:hover {
+  color: var(--accent-cyan);
+}
+
+.faqIcon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--accent-cyan);
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faqItemOpen .faqIcon {
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
+}
+
+.faqAnswerWrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.faqItemOpen .faqAnswerWrapper {
+  grid-template-rows: 1fr;
+}
+
+.faqAnswer {
+  overflow: hidden;
+  min-height: 0;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.65;
+  padding: 0 22px;
+}
+
+.faqItemOpen .faqAnswer {
+  padding: 0 22px 20px 22px;
+}
+
+.contactCard {
+  width: 100%;
+  margin-top: 40px;
+  background: rgba(157, 78, 221, 0.06);
+  border: 1px solid rgba(157, 78, 221, 0.2);
+  border-radius: 14px;
+  padding: 28px 32px;
+  text-align: center;
+}
+
+.contactTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.05rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.contactText {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 60px 16px 70px 16px;
+  }
+
+  .heading {
+    font-size: 1.7rem;
+  }
+
+  .faqQuestion {
+    padding: 15px 18px;
+    font-size: 0.85rem;
+  }
+
+  .faqItemOpen .faqAnswer {
+    padding: 0 18px 16px 18px;
+  }
+
+  .contactCard {
+    padding: 22px 20px;
+  }
+}

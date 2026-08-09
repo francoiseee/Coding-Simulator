@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import styles from "./Dashboard.module.css";
 import Gallery from "./Gallery";
 import Progress from "./Progress";
+import Support from "./Support";
 
 export default function Dashboard({ email }) {
   const [activeTab, setActiveTab] = useState("simulations");
@@ -189,7 +190,11 @@ export default function Dashboard({ email }) {
 
           {/* Footer Utilities */}
           <div className={styles.sidebarFooter}>
-            <a href="#support" className={styles.footerLink}>
+            <button
+              type="button"
+              onClick={() => setActiveTab("support")}
+              className={`${styles.footerLink} ${activeTab === "support" ? styles.footerLinkActive : ""}`}
+            >
               <svg
                 width="16"
                 height="16"
@@ -203,7 +208,7 @@ export default function Dashboard({ email }) {
                 <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
               </svg>
               Support
-            </a>
+            </button>
             <a href="#docs" className={styles.footerLink}>
               <svg
                 width="16"
@@ -652,6 +657,7 @@ export default function Dashboard({ email }) {
           {activeTab === "progress" && (
             <Progress summary={summary} summaryStatus={summaryStatus} />
           )}
+          {activeTab === "support" && <Support embedded />}
         </section>
       </div>
 

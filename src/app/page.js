@@ -7,6 +7,7 @@ import SignUpContainer from "@/components/SignUpContainer";
 import HeroPane from "@/components/HeroPane";
 import SignUpForm from "@/components/SignUpForm";
 import Dashboard from "@/components/Dashboard";
+import Support from "@/components/Support";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
@@ -81,10 +82,13 @@ export default function Home() {
         onLogOut={handleLogOut}
       />
       {view === "auth" && (
-        <SignUpContainer>
-          <HeroPane />
-          <SignUpForm onAuthSuccess={handleAuthSuccess} />
-        </SignUpContainer>
+        <>
+          <SignUpContainer>
+            <HeroPane />
+            <SignUpForm onAuthSuccess={handleAuthSuccess} />
+          </SignUpContainer>
+          <Support />
+        </>
       )}
       {view === "dashboard" && <Dashboard email={userEmail} />}
     </>

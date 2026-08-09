@@ -121,12 +121,12 @@ export default function Navbar({ isAuthenticated, showSearch, onLogOut }) {
         </div>
       ) : (
         <div className={styles.navLinks}>
-          <Link href="#documentation" className={styles.navLink}>
+          <a href="#documentation" className={styles.navLink}>
             Documentation
-          </Link>
-          <Link href="#support" className={styles.navLink}>
+          </a>
+          <a href="#support" className={styles.navLink}>
             Support
-          </Link>
+          </a>
         </div>
       )}
     </nav>
