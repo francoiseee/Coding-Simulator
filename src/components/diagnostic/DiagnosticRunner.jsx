@@ -158,20 +158,20 @@ export default function DiagnosticRunner({ onComplete }) {
           </pre>
         )}
 
-        {/* Options — options is a jsonb array of { key, text } */}
+        {/* Options — options is a jsonb object of { "A": "text", "B": "text", ... } */}
         <ul className={styles.optionsList}>
-          {currentQuestion.options.map((opt) => {
-            const selected = answers[currentQuestion.id] === opt.key;
+          {Object.entries(currentQuestion.options).map(([key, text]) => {
+            const selected = answers[currentQuestion.id] === key;
             return (
-              <li key={opt.key}>
+              <li key={key}>
                 <button
                   type="button"
-                  onClick={() => selectOption(currentQuestion.id, opt.key)}
+                  onClick={() => selectOption(currentQuestion.id, key)}
                   aria-pressed={selected}
                   className={`${styles.optionCard} ${selected ? styles.optionCardSelected : ""}`}
                 >
-                  <span className={styles.optionKey}>{opt.key}</span>
-                  <span className={styles.optionText}>{opt.text}</span>
+                  <span className={styles.optionKey}>{key}</span>
+                  <span className={styles.optionText}>{text}</span>
                 </button>
               </li>
             );

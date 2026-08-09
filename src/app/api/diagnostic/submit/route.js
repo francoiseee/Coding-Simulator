@@ -21,7 +21,7 @@ import { updateMasteryFromAttempt } from "@/lib/mastery/updateConceptMastery";
 
 const ASSESSMENT_SLUG = "codely-beginner-diagnostic";
 
-const MIN_QUESTIONS_FOR_CLASSIFICATION = 3;
+const MIN_QUESTIONS_FOR_CLASSIFICATION = 1;
 
 // Map a concept's score % + evidence count to an allowed classification label.
 function classify(scorePct, relevantCount) {
@@ -130,7 +130,8 @@ export async function POST(request) {
     const selectedKey = answers[q.id] ?? answers[String(q.id)];
     if (selectedKey === undefined) continue; // unanswered — skip
 
-    const correctKey = q.correct_config?.correct_key;
+    const correctKey =
+      q.correct_config?.correct_key ?? q.correct_config?.correct;
     const isCorrect = selectedKey === correctKey;
     if (isCorrect) rawScore += 1;
 
