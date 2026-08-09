@@ -25,7 +25,7 @@ export default function Progress({ summary, summaryStatus }) {
       <header className={styles.progressHeader}>
         <h1 className={styles.title}>My Progress</h1>
         <p className={styles.subtitle}>
-          Your current performance tier is{" "}
+          {summary?.displayName ? `${summary.displayName}'s` : "Your"} current performance tier is{" "}
           <span className={styles.highlightText}>{tier}</span>.
         </p>
       </header>

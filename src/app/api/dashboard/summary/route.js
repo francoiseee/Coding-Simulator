@@ -62,6 +62,15 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated." }, { status: 401 });
   }
 
+  // Fetch display name from profile
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user.id)
+    .single();
+
+  const displayName = profile?.display_name || null;
+
   // Most recent completed attempt, if any.
   const { data: attempt, error: attemptError } = await supabase
     .from("diagnostic_attempts")
@@ -82,6 +91,7 @@ export async function GET() {
     // Student hasn't finished a diagnostic yet — nothing else to fetch.
     return NextResponse.json({
       hasCompletedDiagnostic: false,
+      displayName,
       latestAttempt: null,
       concepts: [],
       strongest: [],
@@ -222,6 +232,7 @@ export async function GET() {
 
   return NextResponse.json({
     hasCompletedDiagnostic: true,
+    displayName,
     latestAttempt: {
       id: attempt.id,
       rawScore: attempt.raw_score,

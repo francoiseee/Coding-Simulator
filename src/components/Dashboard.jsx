@@ -38,14 +38,15 @@ export default function Dashboard({ email }) {
     };
   }, []);
 
-  // Extract username from email or default to 'Nikko'
+  // Prefer the onboarding display name, then fall back to email, then a generic greeting
   const getUserName = () => {
-    if (!email) return "Nikko";
+    if (summary?.displayName) return summary.displayName;
+    if (!email) return "there";
     const parts = email.split("@");
     if (parts[0]) {
       return parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
     }
-    return "Nikko";
+    return "there";
   };
 
   const goToDiagnostic = () => router.push("/diagnostic");
