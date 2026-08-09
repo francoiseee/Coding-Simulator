@@ -505,7 +505,7 @@ export default function Dashboard({ email }) {
                   </p>
 
                   <ul className={styles.recommendList}>
-                    {recommendedProblems.slice(0, 6).map((rp) => (
+                    {recommendedProblems.map((rp) => (
                       <li key={rp.recommendationId}>
                         <button
                           type="button"
