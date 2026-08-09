@@ -7,6 +7,7 @@ import styles from "./Dashboard.module.css";
 import Gallery from "./Gallery";
 import Progress from "./Progress";
 import Support from "./Support";
+import Documentation from "./Documentation";
 
 export default function Dashboard({ email }) {
   const [activeTab, setActiveTab] = useState("simulations");
@@ -209,7 +210,11 @@ export default function Dashboard({ email }) {
               </svg>
               Support
             </button>
-            <a href="#docs" className={styles.footerLink}>
+            <button
+              type="button"
+              onClick={() => setActiveTab("docs")}
+              className={`${styles.footerLink} ${activeTab === "docs" ? styles.footerLinkActive : ""}`}
+            >
               <svg
                 width="16"
                 height="16"
@@ -227,7 +232,7 @@ export default function Dashboard({ email }) {
                 <polyline points="10 9 9 9 8 9" />
               </svg>
               Documentation
-            </a>
+            </button>
           </div>
         </aside>
 
@@ -658,6 +663,7 @@ export default function Dashboard({ email }) {
             <Progress summary={summary} summaryStatus={summaryStatus} />
           )}
           {activeTab === "support" && <Support embedded />}
+          {activeTab === "docs" && <Documentation embedded />}
         </section>
       </div>
 

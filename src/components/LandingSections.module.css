@@ -1,0 +1,196 @@
+/* ─── Shared section shell ──────────────────────────────────────────────── */
+
+.section {
+  width: 100%;
+  padding: 100px 20px;
+  position: relative;
+}
+
+.section + .section {
+  padding-top: 60px;
+}
+
+.sectionInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ─── Section header ────────────────────────────────────────────────────── */
+
+.sectionHeader {
+  margin-bottom: 56px;
+}
+
+.sectionTag {
+  display: inline-block;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-bottom: 16px;
+}
+
+.sectionTagSupport {
+  color: var(--accent-teal);
+  border-color: rgba(0, 245, 176, 0.25);
+}
+
+.sectionTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 2rem;
+  font-weight: 750;
+  line-height: 1.2;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 14px;
+}
+
+.sectionSubtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  max-width: 520px;
+}
+
+/* ─── FAQ list ──────────────────────────────────────────────────────────── */
+
+.faqList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.faqItem {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  transition: border-color 0.25s ease;
+}
+
+.faqItem:hover,
+.faqItemOpen {
+  border-color: rgba(0, 240, 255, 0.18);
+}
+
+.faqQuestion {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 22px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-primary);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.faqQuestion:hover {
+  color: var(--accent-cyan);
+}
+
+.faqChevron {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s ease;
+}
+
+.faqChevronOpen {
+  transform: rotate(180deg);
+  color: var(--accent-cyan);
+}
+
+.faqAnswer {
+  padding: 0 22px 18px 22px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--card-border);
+  padding-top: 14px;
+}
+
+/* ─── Contact card ──────────────────────────────────────────────────────── */
+
+.contactCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  background: rgba(0, 245, 176, 0.04);
+  border: 1px solid rgba(0, 245, 176, 0.12);
+  border-radius: 12px;
+  padding: 24px 28px;
+}
+
+.contactIcon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: rgba(0, 245, 176, 0.08);
+  border: 1px solid rgba(0, 245, 176, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent-teal);
+}
+
+.contactHeading {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.contactBody {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.83rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .section {
+    padding: 72px 16px;
+  }
+
+  .sectionTitle {
+    font-size: 1.6rem;
+  }
+
+  .contactCard {
+    flex-direction: column;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .faqQuestion {
+    font-size: 0.84rem;
+    padding: 16px 16px;
+  }
+
+  .faqAnswer {
+    padding: 0 16px 16px;
+    padding-top: 12px;
+  }
+}

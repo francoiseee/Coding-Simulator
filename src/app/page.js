@@ -9,6 +9,7 @@ import SignUpForm from "@/components/SignUpForm";
 import Dashboard from "@/components/Dashboard";
 import Support from "@/components/Support";
 import { createClient } from "@/lib/supabase/client";
+import LandingSections from "@/components/LandingSections";
 
 export default function Home() {
   const [view, setView] = useState("auth");
@@ -34,7 +35,9 @@ export default function Home() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setView("auth");
         setUserEmail("");
@@ -51,7 +54,9 @@ export default function Home() {
       return;
     }
     // For login: check if they've completed the diagnostic before
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
         .from("profiles")
@@ -91,6 +96,7 @@ export default function Home() {
         </>
       )}
       {view === "dashboard" && <Dashboard email={userEmail} />}
+      {view === "auth" && <LandingSections />}
     </>
   );
 }
