@@ -31,27 +31,6 @@
   object-fit: contain;
 }
 
-.navLinks {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.navLink {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.navLink:hover {
-  color: var(--text-primary);
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-}
-
 .authMenu {
   display: flex;
   align-items: center;
@@ -74,7 +53,7 @@
 .menuIconBtn:hover {
   color: var(--accent-cyan);
   filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6));
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-1);
 }
 
 .avatarWrapper {
@@ -82,7 +61,7 @@
   height: 38px;
   border-radius: 50%;
   overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid var(--border-strong);
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
@@ -124,8 +103,8 @@
 .searchInput {
   width: 100%;
   padding: 10px 16px 10px 48px;
-  background-color: rgba(10, 15, 26, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 20px;
   color: var(--text-primary);
   font-family: var(--font-inter), sans-serif;
@@ -140,8 +119,8 @@
 .searchInput:focus {
   outline: none;
   border-color: var(--accent-cyan);
-  background-color: rgba(20, 26, 42, 0.7);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+  background-color: var(--input-bg);
+  box-shadow: 0 0 15px var(--input-focus-glow);
 }
 
 .searchInput:focus + .searchIcon {
@@ -175,10 +154,10 @@
   position: absolute;
   top: calc(100% + 14px);
   right: 0;
-  background: rgba(13, 20, 38, 0.85);
+  background: var(--card-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.03);
   width: 170px;
@@ -201,7 +180,7 @@
 
 .dropdownHeader {
   padding: 8px 16px 6px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--border-hairline);
   margin-bottom: 4px;
 }
 
@@ -213,6 +192,42 @@
   letter-spacing: 0.8px;
   text-transform: uppercase;
   margin: 0;
+}
+
+.themeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.themeLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.themeToggle:hover {
+  color: var(--accent-cyan);
+  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.06);
 }
 
 .dropdownItem {

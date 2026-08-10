@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styles from "./Dashboard.module.css";
-import Gallery from "./Gallery";
 import Progress from "./Progress";
 import Support from "./Support";
 import Documentation from "./Documentation";
@@ -62,6 +61,57 @@ export default function Dashboard({ email }) {
   const focusConcept = weakest[0];
 
   const goToProblem = (slug) => router.push(`/practice/${slug}`);
+
+  // Status colors double as the meter fill and the donut slice — one legend,
+  // one meaning, reused everywhere a concept's classification is drawn.
+  const STATUS_META = {
+    strong: { label: "Strong", color: "var(--accent-teal)" },
+    developing: { label: "Developing", color: "var(--accent-cyan)" },
+    needs_practice: { label: "Needs Practice", color: "#f59e0b" },
+    weak: { label: "Weak", color: "#ef4444" },
+    insufficient_evidence: { label: "Not Assessed", color: "#57657a" },
+  };
+  const getStatusMeta = (classification) =>
+    STATUS_META[classification] || STATUS_META.insufficient_evidence;
+
+  // Donut geometry: one ring, one gap width, slices ordered to match the
+  // legend below it so color always lands next to its label.
+  const DONUT_RADIUS = 42;
+  const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+  const DONUT_GAP = 3;
+  const conceptTotal = allConcepts.length || 1;
+  let donutCumulative = 0;
+  const donutSlices = Object.keys(STATUS_META)
+    .map((key) => ({
+      key,
+      ...STATUS_META[key],
+      count: allConcepts.filter((c) => c.classification === key).length,
+    }))
+    .filter((slice) => slice.count > 0)
+    .map((slice) => {
+      const sliceLength = (slice.count / conceptTotal) * DONUT_CIRCUMFERENCE;
+      const rotation = (donutCumulative / DONUT_CIRCUMFERENCE) * 360 - 90;
+      donutCumulative += sliceLength;
+      return {
+        ...slice,
+        rotation,
+        dasharray: `${Math.max(sliceLength - DONUT_GAP, 0)} ${DONUT_CIRCUMFERENCE}`,
+      };
+    });
+
+  // Same status buckets as the donut, reused to group the "All Concepts"
+  // modal so it reads as one system with the chart instead of a flat list.
+  const conceptGroups = Object.keys(STATUS_META)
+    .map((key) => ({
+      key,
+      ...STATUS_META[key],
+      items: allConcepts.filter((c) => c.classification === key),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  const masteredCount = allConcepts.filter(
+    (c) => c.classification === "strong",
+  ).length;
 
   return (
     <main className={styles.dashboardContainer}>
@@ -125,29 +175,6 @@ export default function Dashboard({ email }) {
             </button>
 
             <button
-              onClick={() => setActiveTab("gallery")}
-              className={`${styles.navBtn} ${activeTab === "gallery" ? styles.navBtnActive : ""}`}
-            >
-              <svg
-                className={styles.navIcon}
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <rect x="3" y="3" width="7" height="7" />
-                <rect x="14" y="3" width="7" height="7" />
-                <rect x="14" y="14" width="7" height="7" />
-                <rect x="3" y="14" width="7" height="7" />
-              </svg>
-              <span>Gallery</span>
-            </button>
-
-            <button
               onClick={() => setActiveTab("progress")}
               className={`${styles.navBtn} ${activeTab === "progress" ? styles.navBtnActive : ""}`}
             >
@@ -171,7 +198,14 @@ export default function Dashboard({ email }) {
           </nav>
 
           {/* Action Trigger */}
-          <button className={styles.newSimulationBtn} onClick={goToDiagnostic}>
+          <button
+            className={styles.newSimulationBtn}
+            onClick={() =>
+              recommendedProblems[0]
+                ? goToProblem(recommendedProblems[0].slug)
+                : goToDiagnostic()
+            }
+          >
             <svg
               className={styles.btnPlusIcon}
               width="14"
@@ -186,7 +220,7 @@ export default function Dashboard({ email }) {
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            {hasResults ? "Retake Diagnostic" : "Start Diagnostic"}
+            Coding Challenge
           </button>
 
           {/* Footer Utilities */}
@@ -331,27 +365,111 @@ export default function Dashboard({ email }) {
                         Complete your diagnostic to see your skill breakdown.
                       </div>
                     ) : (
-                      <div className={styles.barChart}>
-                        {allConcepts.map((c) => {
-                          const barColor =
-                            c.classification === "strong" ? "var(--accent-teal)"
-                            : c.classification === "weak" ? "#ef4444"
-                            : c.classification === "needs_practice" ? "#f59e0b"
-                            : "var(--accent-cyan)";
-                          return (
-                            <div key={c.conceptId} className={styles.barRow}>
-                              <span className={styles.barLabel}>{c.name}</span>
-                              <div className={styles.barTrack}>
-                                <div
-                                  className={styles.barFill}
-                                  style={{ width: `${c.scorePercentage}%`, backgroundColor: barColor }}
-                                />
-                              </div>
-                              <span className={styles.barPct}>{c.scorePercentage}%</span>
+                      <>
+                        <div className={styles.donutRow}>
+                          <div className={styles.donutBlock}>
+                            <svg
+                              className={styles.donutSvg}
+                              viewBox="0 0 100 100"
+                              width="118"
+                              height="118"
+                            >
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r={DONUT_RADIUS}
+                                fill="none"
+                                stroke="rgba(255, 255, 255, 0.06)"
+                                strokeWidth="10"
+                              />
+                              {donutSlices.map((slice) => (
+                                <circle
+                                  key={slice.key}
+                                  cx="50"
+                                  cy="50"
+                                  r={DONUT_RADIUS}
+                                  fill="none"
+                                  stroke={slice.color}
+                                  strokeWidth="10"
+                                  strokeLinecap="round"
+                                  strokeDasharray={slice.dasharray}
+                                  transform={`rotate(${slice.rotation} 50 50)`}
+                                  className={styles.donutSlice}
+                                >
+                                  <title>
+                                    {slice.label}: {slice.count} concept
+                                    {slice.count === 1 ? "" : "s"}
+                                  </title>
+                                </circle>
+                              ))}
+                            </svg>
+                            <div className={styles.donutCenter}>
+                              <span className={styles.donutScore}>
+                                {summary.overallScorePercentage}%
+                              </span>
+                              <span className={styles.donutScoreLabel}>Overall</span>
                             </div>
-                          );
-                        })}
-                      </div>
+                          </div>
+
+                          <ul className={styles.donutLegend}>
+                            {Object.keys(STATUS_META).map((key) => {
+                              const meta = STATUS_META[key];
+                              const count = allConcepts.filter(
+                                (c) => c.classification === key,
+                              ).length;
+                              return (
+                                <li
+                                  key={key}
+                                  className={styles.donutLegendItem}
+                                  style={{ opacity: count > 0 ? 1 : 0.35 }}
+                                >
+                                  <span
+                                    className={styles.donutLegendDot}
+                                    style={{ backgroundColor: meta.color }}
+                                  />
+                                  <span className={styles.donutLegendLabel}>
+                                    {meta.label}
+                                  </span>
+                                  <span className={styles.donutLegendCount}>
+                                    {count}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+
+                        <div className={styles.barChart}>
+                          {allConcepts.map((c) => {
+                            const meta = getStatusMeta(c.classification);
+                            return (
+                              <div
+                                key={c.conceptId}
+                                className={styles.barRow}
+                                title={`${c.name}: ${c.scorePercentage}% — ${c.classificationLabel}`}
+                              >
+                                <span className={styles.barLabel}>{c.name}</span>
+                                <div className={styles.barTrack}>
+                                  <div
+                                    className={styles.barFill}
+                                    style={{
+                                      width: `${c.scorePercentage}%`,
+                                      backgroundColor: meta.color,
+                                    }}
+                                  />
+                                </div>
+                                <span
+                                  className={styles.barStatusDot}
+                                  style={{ backgroundColor: meta.color }}
+                                />
+                                <span className={styles.barPct}>
+                                  {c.scorePercentage}%
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </>
                     )}
                   </div>
                 </article>
@@ -379,7 +497,7 @@ export default function Dashboard({ email }) {
                   ) : (
                     <>
                       <ul className={styles.learningPathList}>
-                        {allConcepts.slice(0, 3).map((c) => (
+                        {allConcepts.slice(0, 5).map((c) => (
                           <li
                             key={c.conceptId}
                             className={styles.learningPathItem}
@@ -410,13 +528,41 @@ export default function Dashboard({ email }) {
                         ))}
                       </ul>
 
-                      {allConcepts.length > 3 && (
+                      <div className={styles.masteryStrip}>
+                        <div className={styles.masteryStripTrack}>
+                          <div
+                            className={styles.masteryStripFill}
+                            style={{
+                              width: `${(masteredCount / conceptTotal) * 100}%`,
+                            }}
+                          />
+                        </div>
+                        <span className={styles.masteryStripLabel}>
+                          {masteredCount} of {allConcepts.length} concepts
+                          mastered
+                        </span>
+                      </div>
+
+                      {allConcepts.length > 5 && (
                         <button
                           type="button"
                           className={styles.viewAllBtn}
                           onClick={() => setShowAllConcepts(true)}
                         >
-                          View all {allConcepts.length} concepts →
+                          View all {allConcepts.length} concepts
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                            <polyline points="12 5 19 12 12 19" />
+                          </svg>
                         </button>
                       )}
 
@@ -432,66 +578,81 @@ export default function Dashboard({ email }) {
                               onClick={(e) => e.stopPropagation()}
                             >
                               <div className={styles.modalHeader}>
-                                <h3 className={styles.modalTitle}>
-                                  All Concepts
-                                </h3>
+                                <div className={styles.modalHeaderText}>
+                                  <h3 className={styles.modalTitle}>
+                                    All Concepts
+                                  </h3>
+                                  <p className={styles.modalSubtitle}>
+                                    {allConcepts.length} concepts ·{" "}
+                                    {summary.overallScorePercentage}% overall
+                                  </p>
+                                </div>
                                 <button
                                   type="button"
                                   className={styles.modalClose}
                                   onClick={() => setShowAllConcepts(false)}
+                                  aria-label="Close"
                                 >
-                                  ✕
+                                  <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
                                 </button>
                               </div>
-                              <ul className={styles.modalList}>
-                                {allConcepts.map((c) => (
-                                  <li
-                                    key={c.conceptId}
-                                    className={styles.modalItem}
+                              <div className={styles.modalBody}>
+                                {conceptGroups.map((group) => (
+                                  <div
+                                    key={group.key}
+                                    className={styles.modalGroup}
                                   >
-                                    <span
-                                      className={`${styles.learningPathDot} ${
-                                        c.classification === "strong"
-                                          ? styles.dotStrong
-                                          : c.classification === "weak" ||
-                                              c.classification ===
-                                                "needs_practice"
-                                            ? styles.dotWeak
-                                            : styles.dotNeutral
-                                      }`}
-                                    />
-                                    <div className={styles.learningPathText}>
-                                      <h4 className={styles.nodeName}>
-                                        {c.name}
-                                      </h4>
-                                      <span className={styles.nodeDesc}>
-                                        {c.classification === "strong"
-                                          ? `Strongest area — ${c.scorePercentage}% correct`
-                                          : c.classification === "weak"
-                                            ? `Needs work — ${c.scorePercentage}% correct`
-                                            : c.classification ===
-                                                "needs_practice"
-                                              ? `Recommended focus — ${c.scorePercentage}% correct`
-                                              : `${c.scorePercentage}% correct`}
+                                    <div className={styles.modalGroupHeader}>
+                                      <span
+                                        className={styles.modalGroupDot}
+                                        style={{ backgroundColor: group.color }}
+                                      />
+                                      <span className={styles.modalGroupLabel}>
+                                        {group.label}
+                                      </span>
+                                      <span className={styles.modalGroupCount}>
+                                        {group.items.length}
                                       </span>
                                     </div>
-                                    <span
-                                      className={`${styles.modalBadge} ${
-                                        c.classification === "strong"
-                                          ? styles.modalBadgeStrong
-                                          : c.classification === "weak"
-                                            ? styles.modalBadgeWeak
-                                            : c.classification ===
-                                                "needs_practice"
-                                              ? styles.modalBadgeNeeds
-                                              : styles.modalBadgeNeutral
-                                      }`}
-                                    >
-                                      {c.scorePercentage}%
-                                    </span>
-                                  </li>
+                                    <ul className={styles.modalGroupList}>
+                                      {group.items.map((c) => (
+                                        <li
+                                          key={c.conceptId}
+                                          className={styles.modalItem}
+                                        >
+                                          <span className={styles.modalItemName}>
+                                            {c.name}
+                                          </span>
+                                          <div className={styles.modalItemMeter}>
+                                            <div
+                                              className={styles.modalItemMeterFill}
+                                              style={{
+                                                width: `${c.scorePercentage}%`,
+                                                backgroundColor: group.color,
+                                              }}
+                                            />
+                                          </div>
+                                          <span className={styles.modalItemPct}>
+                                            {c.scorePercentage}%
+                                          </span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
                                 ))}
-                              </ul>
+                              </div>
                             </div>
                           </div>,
                           document.body,
@@ -533,10 +694,9 @@ export default function Dashboard({ email }) {
                           </div>
                           <div className={styles.recommendItemMeta}>
                             <span
-                              className={`${styles.difficultyPill} ${styles["difficulty_" + rp.difficulty]}`}
-                            >
-                              {rp.difficulty}
-                            </span>
+                              className={`${styles.difficultyDot} ${styles["difficulty_" + rp.difficulty]}`}
+                              title={`Difficulty: ${rp.difficulty}`}
+                            />
                             {rp.estimatedMinutes ? (
                               <span className={styles.recommendMinutes}>
                                 ~{rp.estimatedMinutes}m
@@ -658,7 +818,6 @@ export default function Dashboard({ email }) {
             </>
           )}
 
-          {activeTab === "gallery" && <Gallery />}
           {activeTab === "progress" && (
             <Progress summary={summary} summaryStatus={summaryStatus} />
           )}
@@ -666,28 +825,6 @@ export default function Dashboard({ email }) {
           {activeTab === "docs" && <Documentation embedded />}
         </section>
       </div>
-
-      {/* Floating play button at page level, outside all container boxes */}
-      {activeTab === "simulations" && (
-        <button
-          className={styles.floatingPlayBtn}
-          title="Start Diagnostic"
-          onClick={goToDiagnostic}
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polygon points="5 3 19 12 5 21 5 3" />
-          </svg>
-        </button>
-      )}
     </main>
   );
 }

@@ -29,8 +29,8 @@
   gap: 12px;
   padding: 16px 20px;
   border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-2);
+  border: 1px solid var(--surface-2);
 }
 
 .pythonIconWrapper {
@@ -40,8 +40,8 @@
   width: 36px;
   height: 36px;
   border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--surface-1);
+  border: 1px solid var(--card-border);
 }
 
 .activeSessionMeta {
@@ -91,7 +91,7 @@
 }
 
 .navBtn:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--surface-1);
   color: var(--text-primary);
 }
 
@@ -105,6 +105,19 @@
 .navBtnActive:hover {
   background-color: rgba(0, 240, 255, 0.07);
   color: var(--accent-cyan);
+}
+
+/* The bright-cyan wash above reads as a near-invisible pale tint on the
+   light background — darken it specifically for light mode so the active
+   sidebar item stays clearly highlighted. */
+:root[data-theme="light"] .navBtnActive {
+  background-color: rgba(0, 147, 168, 0.14);
+  border-color: rgba(0, 147, 168, 0.32);
+  box-shadow: 0 0 12px rgba(0, 147, 168, 0.1);
+}
+
+:root[data-theme="light"] .navBtnActive:hover {
+  background-color: rgba(0, 147, 168, 0.2);
 }
 
 .navIcon {
@@ -133,8 +146,7 @@
 }
 
 .newSimulationBtn:hover {
-  background-color: #00d8e6;
-  border-color: #00d8e6;
+  filter: brightness(1.12);
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
   transform: translateY(-1px);
 }
@@ -149,7 +161,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid var(--surface-2);
   padding-top: 20px;
 }
 
@@ -224,8 +236,8 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--surface-1);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 14px 20px;
   cursor: pointer;
@@ -317,8 +329,8 @@
 }
 
 .dropdownPill {
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-1);
+  border: 1px solid var(--surface-2);
   border-radius: 20px;
   padding: 6px 14px;
   font-family: var(--font-inter), sans-serif;
@@ -330,15 +342,104 @@
 }
 
 .dropdownPill:hover {
-  background-color: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--card-border);
+  border-color: var(--border-strong);
   color: var(--text-primary);
 }
 
 .chartWrapper {
   position: relative;
   width: 100%;
-  height: 200px;
+}
+
+.donutRow {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-bottom: 18px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.donutBlock {
+  position: relative;
+  flex-shrink: 0;
+  width: 118px;
+  height: 118px;
+}
+
+.donutSvg {
+  transform: rotate(0deg);
+}
+
+.donutSlice {
+  transition: stroke-dasharray 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donutCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donutScore {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.donutScoreLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.donutLegend {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+}
+
+.donutLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.donutLegendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.donutLegendLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.donutLegendCount {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: auto;
 }
 
 .chartEmpty {
@@ -357,17 +458,25 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 8px 4px;
+  padding: 4px;
   width: 100%;
   overflow-y: auto;
-  max-height: 220px;
+  max-height: 190px;
 }
 
 .barRow {
   display: grid;
-  grid-template-columns: 160px 1fr 40px;
+  grid-template-columns: 150px 1fr 8px 38px;
   align-items: center;
   gap: 10px;
+  cursor: default;
+}
+
+.barStatusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  justify-self: center;
 }
 
 .barLabel {
@@ -381,7 +490,7 @@
 
 .barTrack {
   height: 6px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-border);
   border-radius: 99px;
   overflow: hidden;
 }
@@ -470,6 +579,8 @@
   padding: 28px;
   box-shadow: var(--glass-shadow);
   backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
 }
 
 .timeline {
@@ -487,7 +598,7 @@
   top: 12px;
   bottom: 12px;
   width: 1px;
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--input-border);
 }
 
 .timelineNode {
@@ -530,8 +641,8 @@
 }
 
 .nodeLocked .nodeCircle {
-  background-color: rgba(255, 255, 255, 0.02);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  background-color: var(--surface-1);
+  border: 1.5px solid var(--input-border);
   color: var(--text-muted);
 }
 
@@ -619,8 +730,39 @@
   color: var(--text-primary);
 }
 
-.viewAllBtn {
+.masteryStrip {
   margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.masteryStripTrack {
+  height: 5px;
+  background: var(--card-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.masteryStripFill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent-teal), var(--accent-cyan));
+  box-shadow: 0 0 8px rgba(0, 245, 176, 0.35);
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.masteryStripLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.viewAllBtn {
+  margin-top: auto;
+  padding-top: 20px;
   background: none;
   border: none;
   color: var(--accent-cyan);
@@ -629,19 +771,24 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   cursor: pointer;
-  padding: 0;
-  transition: opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition:
+    gap 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .viewAllBtn:hover {
-  opacity: 0.7;
+  opacity: 0.8;
+  gap: 9px;
 }
 
 .modalBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(6px);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -650,28 +797,47 @@
 }
 
 .modalCard {
-  background: #0b0f1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: var(--card-bg);
+  background-image:
+    radial-gradient(
+      circle at 0% 0%,
+      rgba(0, 240, 255, 0.07) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 100% 100%,
+      rgba(157, 78, 221, 0.08) 0%,
+      transparent 55%
+    );
+  border: 1px solid var(--border-strong);
   border-radius: 16px;
   width: 100%;
-  max-width: 480px;
-  max-height: 80vh;
+  max-width: 520px;
+  max-height: 82vh;
   display: flex;
   flex-direction: column;
   box-shadow:
     0 32px 80px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(255, 255, 255, 0.03) inset,
-    0 0 40px rgba(0, 240, 255, 0.06);
+    0 0 0 1px var(--surface-1) inset,
+    0 0 40px rgba(0, 240, 255, 0.08);
   overflow: hidden;
 }
 
 .modalHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  gap: 16px;
   padding: 24px 28px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
+}
+
+.modalHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .modalTitle {
@@ -681,76 +847,122 @@
   color: var(--text-primary);
 }
 
-.modalClose {
-  background: none;
-  border: none;
+.modalSubtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  font-size: 1rem;
+}
+
+.modalClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--input-border);
+  border-radius: 50%;
+  color: var(--text-secondary);
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 6px;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .modalClose:hover {
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--accent-cyan);
+  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.06);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.2);
 }
 
-.modalList {
-  list-style: none;
-  padding: 16px 28px;
+.modalBody {
+  padding: 20px 28px 26px;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   overflow-y: auto;
 }
 
-.modalItem {
+.modalGroup {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modalGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modalGroupDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.modalGroupLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.modalGroupCount {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+
+.modalGroupList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modalItem {
+  display: grid;
+  grid-template-columns: 1fr 72px 40px;
   align-items: center;
   gap: 12px;
 }
 
-.modalItem .learningPathText {
-  flex: 1;
-}
-
-.modalBadge {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 20px;
+.modalItemName {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.modalBadgeStrong {
-  color: var(--accent-teal);
-  background: rgba(0, 245, 176, 0.08);
-  border: 1px solid rgba(0, 245, 176, 0.25);
+.modalItemMeter {
+  height: 5px;
+  background: var(--card-border);
+  border-radius: 99px;
+  overflow: hidden;
 }
 
-.modalBadgeWeak {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+.modalItemMeterFill {
+  height: 100%;
+  border-radius: 99px;
 }
 
-.modalBadgeNeeds {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-}
-
-.modalBadgeNeutral {
+.modalItemPct {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--text-muted);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: right;
 }
 
 .activityCard {
@@ -782,12 +994,12 @@
   color: var(--text-muted);
   letter-spacing: 1px;
   padding-bottom: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--surface-2);
 }
 
 .activityTable td {
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid var(--surface-2);
   font-family: var(--font-inter), sans-serif;
   font-size: 0.84rem;
 }
@@ -851,35 +1063,6 @@
   filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.3));
 }
 
-.floatingPlayBtn {
-  position: fixed;
-  bottom: 40px;
-  right: 40px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(
-    135deg,
-    var(--accent-cyan) 0%,
-    var(--accent-purple) 100%
-  );
-  border: none;
-  color: #06070a;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.45);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 1000;
-}
-
-.floatingPlayBtn:hover {
-  transform: scale(1.08) rotate(5deg);
-  box-shadow: 0 0 30px rgba(157, 78, 221, 0.5);
-  color: #ffffff;
-}
-
 /* 3. Responsiveness styles */
 @media (max-width: 1024px) {
   .dashboardGrid {
@@ -932,9 +1115,6 @@
   font-weight: 700;
   letter-spacing: 0.5px;
   color: var(--accent-cyan);
-  background: rgba(0, 240, 255, 0.06);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  border-radius: 20px;
   padding: 4px 12px;
 }
 
@@ -966,12 +1146,12 @@
 }
 
 .recommendList::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
   border-radius: 99px;
 }
 
 .recommendList::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-thumb-hover);
 }
 
 .recommendItem {
@@ -981,7 +1161,7 @@
   gap: 16px;
   width: 100%;
   text-align: left;
-  background-color: rgba(15, 20, 32, 0.35);
+  background-color: var(--surface-2);
   border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 14px 18px;
@@ -1028,32 +1208,29 @@
   flex-shrink: 0;
 }
 
-.difficultyPill {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 20px;
+/* Difficulty dot — same glowing-dot language as every other status marker
+   in this file (.dotStrong, .barStatusDot, .modalGroupDot). Size grows with
+   level so it still reads without a label. */
+.difficultyDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .difficulty_easy {
-  color: var(--accent-teal);
-  background: rgba(0, 245, 176, 0.08);
-  border: 1px solid rgba(0, 245, 176, 0.25);
+  background-color: var(--accent-teal);
+  box-shadow: 0 0 6px rgba(0, 245, 176, 0.5);
 }
 
 .difficulty_medium {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.45);
 }
 
 .difficulty_hard {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
 }
 
 .recommendMinutes {

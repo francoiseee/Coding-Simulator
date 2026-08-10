@@ -107,7 +107,7 @@
 .accent-magenta::before { background: var(--accent-magenta); box-shadow: 0 0 12px rgba(224, 170, 255, 0.4); }
 
 .docSection:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--border-strong);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
@@ -128,7 +128,7 @@
 }
 
 .docItem {
-  border-left: 2px solid rgba(255, 255, 255, 0.05);
+  border-left: 2px solid var(--surface-2);
   padding-left: 14px;
 }
 

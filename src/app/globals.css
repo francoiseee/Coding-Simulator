@@ -1,9 +1,11 @@
 :root {
+  color-scheme: dark;
+
   --background: #06070a;
   --foreground: #ffffff;
   --font-inter: Arial, sans-serif;
   --font-outfit: sans-serif;
-  
+
   /* Theme Colors */
   --glow-purple: #1b0c30;
   --glow-cyan: #051a24;
@@ -12,19 +14,67 @@
   --accent-teal: #00f5b0;
   --accent-purple: #9d4edd;
   --accent-magenta: #e0aaff;
-  
+
   --card-bg: rgba(10, 15, 26, 0.45);
   --card-border: rgba(255, 255, 255, 0.06);
   --input-bg: rgba(15, 20, 32, 0.65);
   --input-border: rgba(255, 255, 255, 0.08);
   --input-focus-border: rgba(0, 240, 255, 0.45);
   --input-focus-glow: rgba(0, 240, 255, 0.1);
-  
+
   --text-primary: #ffffff;
   --text-secondary: #94a3b8;
   --text-muted: #57657a;
-  
+
   --glass-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8);
+
+  /* Generic surface/border steps — replace one-off rgba(255,255,255,0.0X)
+     literals scattered across component stylesheets so theming reaches them. */
+  --surface-1: rgba(255, 255, 255, 0.025);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --border-hairline: rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.11);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
+}
+
+/* Light mode — opt-in via the toggle, applied as soon as it's set (see
+   src/lib/theme.js). Every token above gets a light-surface equivalent here;
+   nothing outside this block should reference raw dark/light literals for
+   backgrounds, borders or text. */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --background: #eef1f7;
+  --foreground: #0b1220;
+
+  --glow-purple: #f1e9fb;
+  --glow-cyan: #e3f7fb;
+  --accent-cyan: #0093a8;
+  --accent-cyan-rgb: 0, 147, 168;
+  --accent-teal: #00966d;
+  --accent-purple: #7c3aed;
+  --accent-magenta: #b3189e;
+
+  --card-bg: rgba(255, 255, 255, 0.62);
+  --card-border: rgba(10, 15, 26, 0.08);
+  --input-bg: rgba(255, 255, 255, 0.75);
+  --input-border: rgba(10, 15, 26, 0.14);
+  --input-focus-border: rgba(0, 147, 168, 0.5);
+  --input-focus-glow: rgba(0, 147, 168, 0.12);
+
+  --text-primary: #0b1220;
+  --text-secondary: #4b5768;
+  --text-muted: #7c8aa0;
+
+  --glass-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.16);
+
+  --surface-1: rgba(10, 15, 26, 0.035);
+  --surface-2: rgba(10, 15, 26, 0.06);
+  --border-hairline: rgba(10, 15, 26, 0.1);
+  --border-strong: rgba(10, 15, 26, 0.16);
+  --scrollbar-thumb: rgba(10, 15, 26, 0.14);
+  --scrollbar-thumb-hover: rgba(10, 15, 26, 0.24);
 }
 
 html {
@@ -74,9 +124,9 @@ button, input {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--scrollbar-thumb-hover);
 }

@@ -1,4 +1,14 @@
 .heroPane {
+  /* This panel always sits over its own photo + dark gradient scrim
+     (.overlay below), independent of the app theme — so text/surface
+     tokens here are pinned to their dark-mode values regardless of
+     data-theme, the same way the practice workspace's editor column is. */
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --surface-1: rgba(255, 255, 255, 0.025);
+  --surface-2: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.08);
+
   position: relative;
   padding: 60px 48px;
   display: flex;
@@ -83,8 +93,8 @@
 
 .statCard {
   flex: 1;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--surface-1);
+  border: 1px solid var(--surface-2);
   border-radius: 8px;
   padding: 14px 18px;
   backdrop-filter: blur(10px);
@@ -107,8 +117,8 @@
 }
 
 .statCard:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--surface-2);
+  border-color: var(--input-border);
   transform: translateY(-2px);
 }
 

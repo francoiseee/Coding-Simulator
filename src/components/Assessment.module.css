@@ -54,7 +54,7 @@
 .progressBarWrapper {
   flex-grow: 1;
   height: 6px;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-2);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -159,7 +159,7 @@
   display: flex;
   align-items: center;
   gap: 18px;
-  background-color: rgba(15, 20, 32, 0.3);
+  background-color: var(--surface-1);
   border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 20px 24px;
@@ -172,8 +172,8 @@
 }
 
 .optionCard:hover {
-  background-color: rgba(25, 32, 50, 0.4);
-  border-color: rgba(255, 255, 255, 0.15);
+  background-color: var(--surface-2);
+  border-color: var(--border-strong);
 }
 
 .optionCardSelected {
@@ -194,8 +194,8 @@
   width: 32px;
   height: 32px;
   border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--surface-2);
+  border: 1px solid var(--card-border);
   font-family: var(--font-outfit), sans-serif;
   font-size: 0.8rem;
   font-weight: 700;
@@ -245,7 +245,7 @@
 
 .prevBtn {
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-strong);
   border-radius: 8px;
   color: var(--text-secondary);
   font-family: var(--font-outfit), sans-serif;
@@ -258,9 +258,9 @@
 }
 
 .prevBtn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: var(--border-strong);
   color: var(--text-primary);
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--surface-1);
 }
 
 .prevBtn:disabled {
@@ -284,15 +284,14 @@
 }
 
 .confirmBtn:hover:not(:disabled) {
-  background-color: #00d8e6;
-  border-color: #00d8e6;
+  filter: brightness(1.12);
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
   transform: translateY(-1px);
 }
 
 .confirmBtn:disabled {
-  background-color: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-2);
+  border-color: var(--surface-2);
   color: var(--text-muted);
   cursor: not-allowed;
   box-shadow: none;
@@ -470,8 +469,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background-color: var(--surface-2);
+  border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 4px 10px;
   font-family: var(--font-outfit), sans-serif;
@@ -498,7 +497,7 @@
   position: relative;
   text-align: center;
   padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .terminalDotWrapper {
@@ -587,7 +586,7 @@
 
 .placementCard {
   background: radial-gradient(circle at 100% 0%, rgba(157, 78, 221, 0.15) 0%, transparent 60%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--input-border);
   border-radius: 12px;
   padding: 32px;
   display: flex;
@@ -627,7 +626,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--card-border);
   padding-top: 36px;
 }
 
@@ -645,7 +644,7 @@
 }
 
 .logRow {
-  background-color: rgba(10, 15, 26, 0.35);
+  background-color: var(--surface-2);
   border-radius: 10px;
   padding: 24px;
   display: flex;
@@ -710,7 +709,7 @@
   color: var(--text-primary);
   font-weight: 600;
   font-family: monospace;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: var(--surface-2);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -760,8 +759,7 @@
 }
 
 .enterDashboardBtn:hover {
-  background-color: #00d8e6;
-  border-color: #00d8e6;
+  filter: brightness(1.12);
   box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
   transform: translateY(-1px);
 }
