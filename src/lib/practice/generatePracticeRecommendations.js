@@ -1,6 +1,6 @@
 // src/lib/practice/generatePracticeRecommendations.js
-// Phase 5 — After a diagnostic is scored, turn the student's weakest concepts
-// into concrete, assignable problem recommendations.
+// Phase 5 — After a diagnostic is scored, turn concept results into concrete,
+// assignable problem recommendations.
 //
 // This is deterministic, not AI-generated: it just matches concepts to problems
 // already tagged with that concept via problem_concepts. Runs with the
@@ -18,16 +18,31 @@
 // classify() in diagnostic/submit produces four labels:
 //   strong (>=80) | developing (60-79) | needs_practice (40-59) | weak (<40)
 //
-// `developing` is INCLUDED here. Excluding it left a real hole: a student
-// scoring 60-79% across the board — mid-level, and squarely the target
-// audience — received an empty practice path. Weakest-first ordering means
-// developing concepts still rank below genuinely weak ones; they fill out the
-// tail of the batch rather than displacing anything.
+// ALL four classifications now receive recommendations.
 //
-// Students whose every concept is `strong` also receive a batch, drawn from
-// their lowest-scoring concepts (see ALL_STRONG_FALLBACK_COUNT). An empty
-// dashboard is a worse outcome than a slightly redundant suggestion, and a
-// high scorer still benefits from continued practice.
+// The diagnostic only tests theoretical/conceptual knowledge — MCQ cannot
+// measure coding ability. A student who scores 100% on every concept has
+// proven theoretical mastery only. They still need to demonstrate they can
+// write code. Accordingly, strong concepts receive recommendations too, but
+// are deliberately served harder problems (highest progression, hard
+// difficulty preferred) to challenge practical skill, not just reinforce
+// theory.
+//
+// Weakest-first ordering means strong concepts rank at the tail of the batch
+// and never displace genuinely weak concepts.
+//
+// ---------------------------------------------------------------------------
+// Problem selection by classification
+// ---------------------------------------------------------------------------
+// Rather than hard WHERE clauses (which break if no hard problem exists for a
+// concept), a ranking function scores each candidate by how well it matches
+// the preferred progression and difficulty for the student's classification.
+// The best-matching problems win.
+//
+//   weak           → introductory progression, easy difficulty (build foundation)
+//   needs_practice → standard progression, any difficulty (reinforce concept)
+//   developing     → standard/advanced progression, medium+ difficulty
+//   strong         → advanced progression, hard difficulty (prove it in code)
 //
 // ---------------------------------------------------------------------------
 // Parent-concept fallback
@@ -65,10 +80,12 @@ const PROBLEMS_PER_CONCEPT = {
   weak: 3,
   needs_practice: 2,
   developing: 1,
+  strong: 1,
 };
 
-// How many of the lowest-scoring concepts to draw from when nothing is below
-// `strong`, so a high-scoring student still gets a practice path.
+// How many of the lowest-scoring strong concepts to draw from when nothing
+// is below `strong`. (Edge case: shouldn't happen now that strong is included,
+// but retained as a guard if all concepts are insufficient_evidence.)
 const ALL_STRONG_FALLBACK_COUNT = 3;
 const PROBLEMS_PER_FALLBACK_CONCEPT = 1;
 
@@ -76,7 +93,58 @@ const PROBLEMS_PER_FALLBACK_CONCEPT = 1;
 // unusable wall of 20+ problems.
 const MAX_RECOMMENDATIONS_PER_BATCH = 10;
 
-const TARGETED_CLASSIFICATIONS = ["weak", "needs_practice", "developing"];
+// Pool size when fetching candidates to rank — must be larger than
+// PROBLEMS_PER_CONCEPT so the ranking function has real choices.
+const CANDIDATE_POOL_SIZE = 20;
+
+const TARGETED_CLASSIFICATIONS = [
+  "weak",
+  "needs_practice",
+  "developing",
+  "strong",
+];
+
+// ---------------------------------------------------------------------------
+// Selection strategy per classification
+// ---------------------------------------------------------------------------
+// progressionOrder: preferred progression values, most-preferred first.
+// difficultyOrder:  preferred difficulty values, most-preferred first.
+// Ranking uses these to score each candidate; the best-fitting problems win.
+
+const SELECTION_STRATEGY = {
+  weak: {
+    progressionOrder: ["introductory", "standard", "advanced"],
+    difficultyOrder: ["easy", "medium", "hard"],
+  },
+  needs_practice: {
+    progressionOrder: ["standard", "introductory", "advanced"],
+    difficultyOrder: ["easy", "medium", "hard"],
+  },
+  developing: {
+    progressionOrder: ["standard", "advanced", "introductory"],
+    difficultyOrder: ["medium", "hard", "easy"],
+  },
+  strong: {
+    progressionOrder: ["advanced", "standard", "introductory"],
+    difficultyOrder: ["hard", "medium", "easy"],
+  },
+};
+
+function rankProblem(problem, strategy) {
+  const progIdx = strategy.progressionOrder.indexOf(
+    problem.progression ?? "standard",
+  );
+  const diffIdx = strategy.difficultyOrder.indexOf(
+    problem.difficulty ?? "medium",
+  );
+  // Lower index = more preferred. Negate so higher rank = better.
+  // Progression preference outweighs difficulty (×10).
+  const progScore =
+    progIdx === -1 ? -strategy.progressionOrder.length : -progIdx;
+  const diffScore =
+    diffIdx === -1 ? -strategy.difficultyOrder.length : -diffIdx;
+  return progScore * 10 + diffScore;
+}
 
 function reasonFor(classification, scorePercentage) {
   const pct = `${scorePercentage}%`;
@@ -87,44 +155,58 @@ function reasonFor(classification, scorePercentage) {
       return `You scored ${pct} on this concept in your diagnostic — targeted practice here should close the gap quickly.`;
     case "developing":
       return `You scored ${pct} on this concept — the fundamentals are there, and practice will help you apply them under interview conditions.`;
+    case "strong":
+      return `You scored ${pct} on this concept theoretically — now prove it in code. A strong MCQ score doesn't guarantee coding ability, so we're giving you a harder problem to challenge you.`;
     default:
       return `You scored ${pct} on this concept — this problem keeps it sharp.`;
   }
 }
 
 /**
- * Fetch published problems tagged with a concept. If the concept has none of
+ * Fetch published candidate problems tagged with a concept, including
+ * difficulty and progression for ranking. If the concept has no problems of
  * its own (typical for sub-concepts), fall back to its parent's problems.
- * Returns rows shaped like problem_concepts joins.
  */
-async function loadProblemsForConcept({ admin, conceptId, limit }) {
-  async function fetchFor(id, take) {
+async function loadProblemsForConcept({ admin, conceptId, strategy }) {
+  async function fetchFor(id) {
     const { data, error } = await admin
       .from("problem_concepts")
-      .select("problem_id, is_primary, problems ( id, title, status )")
+      .select(
+        "problem_id, is_primary, problems ( id, title, status, difficulty, progression )",
+      )
       .eq("concept_id", id)
-      .order("is_primary", { ascending: false })
-      .limit(take);
+      .limit(CANDIDATE_POOL_SIZE);
 
     if (error) {
       throw new Error("Could not load problems for a concept.");
     }
+
     return (data || []).filter((r) => r.problems?.status === "published");
   }
 
-  const direct = await fetchFor(conceptId, limit);
-  if (direct.length > 0) return direct;
+  const direct = await fetchFor(conceptId);
+  const pool =
+    direct.length > 0
+      ? direct
+      : await (async () => {
+          // No problems tagged directly — inherit from the parent concept, if any.
+          const { data: conceptRow, error: conceptRowError } = await admin
+            .from("concepts")
+            .select("parent_id")
+            .eq("id", conceptId)
+            .maybeSingle();
 
-  // No problems tagged directly — inherit from the parent concept, if any.
-  const { data: conceptRow, error: conceptRowError } = await admin
-    .from("concepts")
-    .select("parent_id")
-    .eq("id", conceptId)
-    .maybeSingle();
+          if (conceptRowError || !conceptRow?.parent_id) return [];
+          return fetchFor(conceptRow.parent_id);
+        })();
 
-  if (conceptRowError || !conceptRow?.parent_id) return [];
-
-  return fetchFor(conceptRow.parent_id, limit);
+  // Rank by strategy fit. is_primary acts as a tiebreaker (primary tag = slight boost).
+  return pool.sort((a, b) => {
+    const rankDiff =
+      rankProblem(b.problems, strategy) - rankProblem(a.problems, strategy);
+    if (rankDiff !== 0) return rankDiff;
+    return (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0);
+  });
 }
 
 /**
@@ -139,8 +221,9 @@ export async function generatePracticeRecommendations({
   userId,
   attemptId,
 }) {
-  // Load ALL concept results, weakest first. Filtering happens below so the
-  // all-strong fallback has the full picture to work from.
+  // Load ALL concept results, weakest first. Strong concepts sort to the tail
+  // naturally, so weak ones always get lower priority numbers (= higher urgency
+  // in the dashboard display).
   const { data: allConcepts, error: conceptError } = await admin
     .from("attempt_concept_results")
     .select(
@@ -166,8 +249,9 @@ export async function generatePracticeRecommendations({
     TARGETED_CLASSIFICATIONS.includes(c.classification),
   );
 
-  // Decide the working set: genuinely below-strong concepts, or — if there are
-  // none — the lowest-scoring strong concepts as a fallback.
+  // Fallback: if somehow everything is insufficient_evidence, draw from the
+  // lowest-scoring usable concepts. In practice this path is rare — it only
+  // fires if TARGETED_CLASSIFICATIONS doesn't cover a returned label.
   const isFallback = targeted.length === 0;
   const workingSet = isFallback
     ? usable.slice(0, ALL_STRONG_FALLBACK_COUNT)
@@ -175,7 +259,7 @@ export async function generatePracticeRecommendations({
 
   // Drop any concept whose parent also qualifies — see "Parent takes
   // precedence" above. Applied after the fallback branch so it covers both
-  // the targeted and all-strong paths.
+  // paths.
   const qualifyingIds = new Set(workingSet.map((c) => c.concept_id));
   const finalSet = workingSet.filter((c) => {
     const parentId = c.concepts?.parent_id;
@@ -194,21 +278,25 @@ export async function generatePracticeRecommendations({
   for (const concept of finalSet) {
     if (rows.length >= MAX_RECOMMENDATIONS_PER_BATCH) break;
 
+    const strategy =
+      SELECTION_STRATEGY[concept.classification] ??
+      SELECTION_STRATEGY.developing; // safe default for any unknown label
+
     const limit = isFallback
       ? PROBLEMS_PER_FALLBACK_CONCEPT
-      : PROBLEMS_PER_CONCEPT[concept.classification] || 1;
+      : (PROBLEMS_PER_CONCEPT[concept.classification] ?? 1);
 
-    const problems = await loadProblemsForConcept({
+    const ranked = await loadProblemsForConcept({
       admin,
       conceptId: concept.concept_id,
-      limit,
+      strategy,
     });
 
-    for (const p of problems || []) {
+    let taken = 0;
+    for (const p of ranked) {
       if (rows.length >= MAX_RECOMMENDATIONS_PER_BATCH) break;
-      // A problem can be tagged with several concepts. Without this guard the
-      // same problem could be recommended twice in one batch under two
-      // different concepts, which reads as a bug to the student.
+      if (taken >= limit) break;
+      // A problem tagged with several concepts could appear twice in one batch.
       if (seenProblemIds.has(p.problem_id)) continue;
       seenProblemIds.add(p.problem_id);
 
@@ -222,6 +310,7 @@ export async function generatePracticeRecommendations({
         status: "pending",
         batch_id: batchId,
       });
+      taken++;
     }
   }
 
