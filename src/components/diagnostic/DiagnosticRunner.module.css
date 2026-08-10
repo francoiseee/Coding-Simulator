@@ -24,6 +24,20 @@
   white-space: nowrap;
 }
 
+/* Autosave status badge */
+.saveStatus {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  opacity: 0.75;
+  min-width: 80px;
+  text-align: right;
+  transition: color 0.2s ease;
+}
+
 .progressBarTrack {
   flex: 1;
   height: 6px;

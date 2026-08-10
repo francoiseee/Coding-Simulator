@@ -1,18 +1,19 @@
 "use client";
 
 // src/components/diagnostic/DiagnosticRunner.jsx
-// Step 15 — Diagnostic interface.
+// Step 15 — Diagnostic interface with autosave (resume support).
 // Flow:
-//   1. On mount, POST /api/diagnostic/start  -> get attemptId
-//   2. GET /api/diagnostic/questions          -> get safe questions (no answer key)
-//   3. Render one question at a time; track the student's selected option key
-//   4. (Step 16 will POST answers to /api/diagnostic/answers — stubbed here)
-//
-// Scoring is intentionally NOT done in the browser. The client only records which
-// option key the student picked; correctness is evaluated server-side later.
+//   1. POST /api/diagnostic/start  → get attemptId; on resume, rehydrate draft answers + last index
+//   2. GET  /api/diagnostic/questions → safe questions (no answer key)
+//   3. Render one question at a time; track selected option key
+//   4. Debounced autosave: PATCH /api/diagnostic/save every 1.5 s after any answer change
+//   5. navigator.sendBeacon flush on page unload so nothing is lost mid-navigation
+//   6. POST /api/diagnostic/submit on final submit
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./DiagnosticRunner.module.css";
+
+const AUTOSAVE_DELAY_MS = 1500;
 
 export default function DiagnosticRunner({ onComplete }) {
   const [attemptId, setAttemptId] = useState(null);
@@ -21,8 +22,24 @@ export default function DiagnosticRunner({ onComplete }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [status, setStatus] = useState("loading"); // loading | ready | error | submitting | done
   const [errorMessage, setErrorMessage] = useState("");
+  const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
 
-  // Start the attempt + load questions once on mount.
+  // Refs so callbacks always see the latest values without stale closures.
+  const attemptIdRef = useRef(null);
+  const answersRef = useRef({});
+  const currentIndexRef = useRef(0);
+  const saveTimerRef = useRef(null);
+  const lastSavedAnswers = useRef(null); // JSON snapshot of last successfully saved answers
+
+  // Keep refs in sync.
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
+
+  // ── Init: start/resume attempt + load questions ──────────────────────────
   useEffect(() => {
     let cancelled = false;
 
@@ -43,8 +60,29 @@ export default function DiagnosticRunner({ onComplete }) {
           throw new Error(qData.error || "Could not load questions.");
 
         if (cancelled) return;
+
+        attemptIdRef.current = startData.attemptId;
         setAttemptId(startData.attemptId);
         setQuestions(qData.questions);
+
+        // 3. Rehydrate saved progress on resume.
+        if (
+          startData.resumed &&
+          startData.draftAnswers &&
+          Object.keys(startData.draftAnswers).length > 0
+        ) {
+          setAnswers(startData.draftAnswers);
+          answersRef.current = startData.draftAnswers;
+          lastSavedAnswers.current = JSON.stringify(startData.draftAnswers);
+        }
+        if (
+          startData.resumed &&
+          typeof startData.lastQuestionIndex === "number"
+        ) {
+          setCurrentIndex(startData.lastQuestionIndex);
+          currentIndexRef.current = startData.lastQuestionIndex;
+        }
+
         setStatus("ready");
       } catch (err) {
         if (cancelled) return;
@@ -59,24 +97,107 @@ export default function DiagnosticRunner({ onComplete }) {
     };
   }, []);
 
+  // ── Autosave: flush any pending save on unload ───────────────────────────
+  useEffect(() => {
+    const handleUnload = () => {
+      const id = attemptIdRef.current;
+      if (!id) return;
+
+      // sendBeacon is fire-and-forget; it survives tab close / navigation.
+      const payload = JSON.stringify({
+        attemptId: id,
+        answers: answersRef.current,
+        lastQuestionIndex: currentIndexRef.current,
+      });
+      navigator.sendBeacon(
+        "/api/diagnostic/save",
+        new Blob([payload], { type: "application/json" }),
+      );
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, []);
+
+  // ── Debounced autosave whenever answers change ───────────────────────────
+  const scheduleSave = useCallback((nextAnswers, nextIndex) => {
+    const id = attemptIdRef.current;
+    if (!id) return;
+
+    setSaveState("saving");
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
+    saveTimerRef.current = setTimeout(async () => {
+      // Skip the network call if nothing changed since the last successful save.
+      const snapshot = JSON.stringify(nextAnswers);
+      if (snapshot === lastSavedAnswers.current) {
+        setSaveState("saved");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/diagnostic/save", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            attemptId: id,
+            answers: nextAnswers,
+            lastQuestionIndex: nextIndex,
+          }),
+        });
+
+        if (res.ok) {
+          lastSavedAnswers.current = snapshot;
+          setSaveState("saved");
+        } else {
+          setSaveState("error");
+        }
+      } catch {
+        setSaveState("error");
+      }
+    }, AUTOSAVE_DELAY_MS);
+  }, []);
+
+  // ── Derived values ───────────────────────────────────────────────────────
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
   const answeredCount = Object.keys(answers).length;
   const isLastQuestion = currentIndex === totalQuestions - 1;
 
+  const progressPct =
+    totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
+
+  // ── Handlers ─────────────────────────────────────────────────────────────
   const selectOption = (questionId, optionKey) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionKey }));
+    setAnswers((prev) => {
+      const next = { ...prev, [questionId]: optionKey };
+      scheduleSave(next, currentIndexRef.current);
+      return next;
+    });
   };
 
   const goNext = () => {
-    if (currentIndex < totalQuestions - 1) setCurrentIndex((i) => i + 1);
+    if (currentIndex < totalQuestions - 1) {
+      const next = currentIndex + 1;
+      setCurrentIndex(next);
+      currentIndexRef.current = next;
+      scheduleSave(answersRef.current, next);
+    }
   };
 
   const goPrevious = () => {
-    if (currentIndex > 0) setCurrentIndex((i) => i - 1);
+    if (currentIndex > 0) {
+      const next = currentIndex - 1;
+      setCurrentIndex(next);
+      currentIndexRef.current = next;
+      scheduleSave(answersRef.current, next);
+    }
   };
 
   const handleSubmit = async () => {
+    // Cancel any pending autosave — final submit handles persistence.
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+
     setStatus("submitting");
     try {
       const res = await fetch("/api/diagnostic/submit", {
@@ -96,6 +217,7 @@ export default function DiagnosticRunner({ onComplete }) {
     }
   };
 
+  // ── Render states ─────────────────────────────────────────────────────────
   if (status === "loading") {
     return <p className={styles.stateWrapper}>Loading your diagnostic…</p>;
   }
@@ -123,9 +245,7 @@ export default function DiagnosticRunner({ onComplete }) {
     );
   }
 
-  const progressPct =
-    totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
-
+  // ── Main UI ───────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
       {/* Progress */}
@@ -134,6 +254,14 @@ export default function DiagnosticRunner({ onComplete }) {
           QUESTION {currentIndex + 1}/{totalQuestions} · {answeredCount}{" "}
           ANSWERED
         </span>
+
+        {/* Autosave status badge */}
+        <span className={styles.saveStatus} aria-live="polite">
+          {saveState === "saving" && "Saving…"}
+          {saveState === "saved" && "✓ Saved"}
+          {saveState === "error" && "Save failed — check connection"}
+        </span>
+
         <div className={styles.progressBarTrack}>
           <div
             className={styles.progressBarFill}
