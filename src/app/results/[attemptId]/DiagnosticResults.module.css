@@ -131,12 +131,24 @@
 }
 
 .conceptList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   list-style: none;
   padding: 0;
   margin: 0;
+}
+
+@media (max-width: 900px) {
+  .conceptList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .conceptList {
+    grid-template-columns: 1fr;
+  }
 }
 
 .conceptRow {
@@ -167,10 +179,9 @@
 
 .conceptRowHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .conceptName {
@@ -194,35 +205,23 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: 4px 10px;
-  border-radius: 20px;
   white-space: nowrap;
 }
 
 .badgeStrong {
   color: var(--accent-teal);
-  background-color: rgba(0, 245, 176, 0.08);
-  border: 1px solid rgba(0, 245, 176, 0.25);
 }
 .badgeDeveloping {
   color: var(--accent-cyan);
-  background-color: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.25);
 }
 .badgeNeedsPractice {
   color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 .badgeWeak {
   color: #f87171;
-  background-color: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .badgeInsufficient {
   color: var(--text-muted);
-  background-color: var(--surface-1);
-  border: 1px solid var(--input-border);
 }
 
 .conceptStats {

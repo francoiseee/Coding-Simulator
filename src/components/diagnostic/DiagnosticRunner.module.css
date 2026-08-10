@@ -55,10 +55,6 @@
 
 .categoryTag {
   align-self: flex-start;
-  background: rgba(157, 78, 221, 0.06);
-  border: 1px solid rgba(157, 78, 221, 0.15);
-  border-radius: 20px;
-  padding: 6px 14px;
   font-family: var(--font-outfit), sans-serif;
   font-size: 0.65rem;
   font-weight: 700;

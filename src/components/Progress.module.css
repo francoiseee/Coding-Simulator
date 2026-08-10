@@ -80,15 +80,9 @@
 /* Concept Mastery + AI Report side by side so neither needs a page scroll */
 .progressRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 28px;
   align-items: start;
-}
-
-@media (max-width: 1100px) {
-  .progressRow {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Concept Mastery Chart */

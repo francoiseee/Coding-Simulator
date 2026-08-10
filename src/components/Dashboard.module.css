@@ -125,37 +125,6 @@
   opacity: 0.85;
 }
 
-.newSimulationBtn {
-  margin-top: 8px;
-  padding: 14px;
-  background-color: var(--accent-cyan);
-  border: 1px solid var(--accent-cyan);
-  border-radius: 8px;
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #06070a;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.newSimulationBtn:hover {
-  filter: brightness(1.12);
-  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
-  transform: translateY(-1px);
-}
-
-.btnPlusIcon {
-  flex-shrink: 0;
-  display: inline-block;
-}
-
 .sidebarFooter {
   margin-top: auto;
   display: flex;
@@ -235,20 +204,22 @@
 .adaptiveSessionBox {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
-  background-color: var(--surface-1);
-  border: 1px solid var(--card-border);
+  background-color: var(--accent-cyan);
+  border: 1px solid var(--accent-cyan);
   border-radius: 8px;
   padding: 14px 20px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   min-width: 260px;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
 }
 
 .adaptiveSessionBox:hover {
-  border-color: var(--accent-cyan);
-  background-color: rgba(0, 240, 255, 0.03);
-  box-shadow: 0 0 15px rgba(0, 240, 255, 0.08);
+  filter: brightness(1.12);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+  transform: translateY(-1px);
 }
 
 .adaptiveSessionMeta {
@@ -261,19 +232,20 @@
   font-family: var(--font-outfit), monospace;
   font-size: 0.58rem;
   font-weight: 700;
-  color: var(--accent-cyan);
+  color: #06070a;
   letter-spacing: 1px;
+  opacity: 0.75;
 }
 
 .adaptiveTitle {
   font-family: var(--font-outfit), sans-serif;
   font-size: 0.9rem;
   font-weight: 750;
-  color: var(--text-primary);
+  color: #06070a;
 }
 
 .adaptiveArrow {
-  color: var(--accent-cyan);
+  color: #06070a;
   display: flex;
   align-items: center;
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -284,12 +256,6 @@
 }
 
 /* Middle Rows: Chart + Right stack */
-.middleRow {
-  display: grid;
-  grid-template-columns: 1.8fr 1.2fr;
-  gap: 30px;
-}
-
 .chartCard {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -303,17 +269,11 @@
   justify-content: space-between;
 }
 
-.cardHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
 .chartTitleWrapper {
   display: flex;
   align-items: center;
   gap: 10px;
+  margin-bottom: 20px;
 }
 
 .cardTitle {
@@ -352,20 +312,55 @@
   width: 100%;
 }
 
-.donutRow {
+.chartSplitRow {
   display: flex;
-  align-items: center;
-  gap: 24px;
-  padding-bottom: 18px;
-  margin-bottom: 14px;
-  border-bottom: 1px solid var(--card-border);
+  gap: 32px;
+  align-items: stretch;
+}
+
+.chartLeftCol {
+  flex: 1 1 55%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.chartRightCol {
+  flex: 1 1 45%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--card-border);
+  padding-left: 32px;
+}
+
+.chartRightCol .cardTitle {
+  margin-bottom: 20px;
+}
+
+.chartViewAllPill {
+  align-self: flex-end;
+}
+
+@media (max-width: 900px) {
+  .chartSplitRow {
+    flex-direction: column;
+  }
+  .chartRightCol {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid var(--card-border);
+    padding-top: 22px;
+  }
 }
 
 .donutBlock {
   position: relative;
   flex-shrink: 0;
-  width: 118px;
-  height: 118px;
+  align-self: center;
+  width: 150px;
+  height: 150px;
 }
 
 .donutSvg {
@@ -387,7 +382,7 @@
 
 .donutScore {
   font-family: var(--font-outfit), sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.4rem;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.1;
@@ -396,26 +391,25 @@
 
 .donutScoreLabel {
   font-family: var(--font-inter), sans-serif;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin-top: 1px;
+  margin-top: 2px;
 }
 
 .donutLegend {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  flex: 1;
-  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 24px;
 }
 
 .donutLegendItem {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   transition: opacity 0.2s;
 }
 
@@ -445,6 +439,7 @@
 
 .chartEmpty {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: center;
   height: 100%;
@@ -461,8 +456,6 @@
   gap: 8px;
   padding: 4px;
   width: 100%;
-  overflow-y: auto;
-  max-height: 190px;
 }
 
 .barRow {
@@ -571,17 +564,6 @@
   display: grid;
   grid-template-columns: 1.2fr 1.8fr;
   gap: 30px;
-}
-
-.learningCard {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
 }
 
 .timeline {
@@ -994,12 +976,12 @@
   font-weight: 700;
   color: var(--text-muted);
   letter-spacing: 1px;
-  padding-bottom: 16px;
+  padding: 0 24px 16px 0;
   border-bottom: 1px solid var(--surface-2);
 }
 
 .activityTable td {
-  padding: 16px 0;
+  padding: 16px 24px 16px 0;
   border-bottom: 1px solid var(--surface-2);
   font-family: var(--font-inter), sans-serif;
   font-size: 0.84rem;
@@ -1013,7 +995,7 @@
 
 .tableDate {
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.7rem;
 }
 
 .perfWrapper {
@@ -1045,8 +1027,8 @@
 }
 
 .tableIconCell {
-  text-align: right;
-  padding-right: 8px !important;
+  text-align: center;
+  padding-right: 24px !important;
 }
 
 .tableGreenIcon {
@@ -1065,7 +1047,7 @@
 }
 
 /* 3. Responsiveness styles */
-@media (max-width: 1024px) {
+@media (max-width: 860px) {
   .dashboardGrid {
     grid-template-columns: 1fr;
   }
@@ -1073,9 +1055,6 @@
     position: relative;
     top: 0;
     height: auto;
-  }
-  .middleRow {
-    grid-template-columns: 1fr;
   }
   .lowerRow {
     grid-template-columns: 1fr;

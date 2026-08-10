@@ -22,10 +22,6 @@
 
 .badge {
   align-self: flex-start;
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.25);
-  border-radius: 20px;
-  padding: 5px 14px;
   font-family: var(--font-outfit), sans-serif;
   font-size: 0.65rem;
   font-weight: 700;

@@ -118,6 +118,33 @@
   filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.4));
 }
 
+.inputWithToggle {
+  padding-right: 44px;
+}
+
+.toggleVisibility {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.toggleVisibility:hover:not(:disabled) {
+  color: var(--accent-cyan);
+}
+
+.toggleVisibility:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .submitBtn {
   display: flex;
   align-items: center;

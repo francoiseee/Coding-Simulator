@@ -18,13 +18,13 @@ export default function HeroPane() {
         
         <div className={styles.statsGrid}>
           <div className={`${styles.statCard} ${styles.statCardNodes}`}>
-            <div className={`${styles.statLabel} ${styles.statLabelNodes}`}>Nodes</div>
-            <div className={styles.statValue}>4.2k</div>
+            <div className={`${styles.statLabel} ${styles.statLabelNodes}`}>Coding Challenge</div>
+            <div className={styles.statValue}>144</div>
           </div>
-          
+
           <div className={`${styles.statCard} ${styles.statCardUptime}`}>
-            <div className={`${styles.statLabel} ${styles.statLabelUptime}`}>Uptime</div>
-            <div className={styles.statValue}>99.9%</div>
+            <div className={`${styles.statLabel} ${styles.statLabelUptime}`}>Diagnostic</div>
+            <div className={styles.statValue}>35</div>
           </div>
         </div>
       </div>

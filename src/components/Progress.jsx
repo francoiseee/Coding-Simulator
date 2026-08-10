@@ -3,22 +3,6 @@
 import { useState } from "react";
 import styles from "./Progress.module.css";
 
-// Same status language as the dashboard's Skill Growth Chart — one legend,
-// one meaning, reused everywhere a concept's classification is drawn.
-const STATUS_META = {
-  strong: { label: "Strong", color: "var(--accent-teal)" },
-  developing: { label: "Developing", color: "var(--accent-cyan)" },
-  needs_practice: { label: "Needs Practice", color: "#f59e0b" },
-  weak: { label: "Weak", color: "#ef4444" },
-  insufficient_evidence: { label: "Not Assessed", color: "#57657a" },
-};
-const getStatusMeta = (classification) =>
-  STATUS_META[classification] || STATUS_META.insufficient_evidence;
-
-const DONUT_RADIUS = 42;
-const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
-const DONUT_GAP = 3;
-
 export default function Progress({ summary, summaryStatus }) {
   const [aiPage, setAiPage] = useState(0);
 
@@ -29,26 +13,6 @@ export default function Progress({ summary, summaryStatus }) {
   const structured = aiReport?.structured;
 
   const masteredCount = concepts.filter((c) => c.classification === "strong").length;
-
-  const conceptTotal = concepts.length || 1;
-  let donutCumulative = 0;
-  const donutSlices = Object.keys(STATUS_META)
-    .map((key) => ({
-      key,
-      ...STATUS_META[key],
-      count: concepts.filter((c) => c.classification === key).length,
-    }))
-    .filter((slice) => slice.count > 0)
-    .map((slice) => {
-      const sliceLength = (slice.count / conceptTotal) * DONUT_CIRCUMFERENCE;
-      const rotation = (donutCumulative / DONUT_CIRCUMFERENCE) * 360 - 90;
-      donutCumulative += sliceLength;
-      return {
-        ...slice,
-        rotation,
-        dasharray: `${Math.max(sliceLength - DONUT_GAP, 0)} ${DONUT_CIRCUMFERENCE}`,
-      };
-    });
 
   const aiPages = structured
     ? [
@@ -163,91 +127,6 @@ export default function Progress({ summary, summaryStatus }) {
 
       {hasResults && (
         <div className={styles.progressRow}>
-          {/* Concept Mastery Chart */}
-          <section className={styles.chartCard}>
-            <h2 className={styles.cardTitle}>Concept Mastery</h2>
-            <p className={styles.cardDesc}>Your diagnostic score per concept, sorted weakest first.</p>
-
-            <div className={styles.donutRow}>
-              <div className={styles.donutBlock}>
-                <svg className={styles.donutSvg} viewBox="0 0 100 100" width="118" height="118">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r={DONUT_RADIUS}
-                    fill="none"
-                    stroke="rgba(255, 255, 255, 0.06)"
-                    strokeWidth="10"
-                  />
-                  {donutSlices.map((slice) => (
-                    <circle
-                      key={slice.key}
-                      cx="50"
-                      cy="50"
-                      r={DONUT_RADIUS}
-                      fill="none"
-                      stroke={slice.color}
-                      strokeWidth="10"
-                      strokeLinecap="round"
-                      strokeDasharray={slice.dasharray}
-                      transform={`rotate(${slice.rotation} 50 50)`}
-                      className={styles.donutSlice}
-                    >
-                      <title>
-                        {slice.label}: {slice.count} concept{slice.count === 1 ? "" : "s"}
-                      </title>
-                    </circle>
-                  ))}
-                </svg>
-                <div className={styles.donutCenter}>
-                  <span className={styles.donutScore}>{summary.overallScorePercentage}%</span>
-                  <span className={styles.donutScoreLabel}>Overall</span>
-                </div>
-              </div>
-
-              <ul className={styles.donutLegend}>
-                {Object.keys(STATUS_META).map((key) => {
-                  const meta = STATUS_META[key];
-                  const count = concepts.filter((c) => c.classification === key).length;
-                  return (
-                    <li
-                      key={key}
-                      className={styles.donutLegendItem}
-                      style={{ opacity: count > 0 ? 1 : 0.35 }}
-                    >
-                      <span className={styles.donutLegendDot} style={{ backgroundColor: meta.color }} />
-                      <span className={styles.donutLegendLabel}>{meta.label}</span>
-                      <span className={styles.donutLegendCount}>{count}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
-            <div className={styles.chartList}>
-              {concepts.map((c) => {
-                const meta = getStatusMeta(c.classification);
-                return (
-                  <div
-                    key={c.conceptId}
-                    className={styles.chartRow}
-                    title={`${c.name}: ${c.scorePercentage}% — ${c.classificationLabel}`}
-                  >
-                    <span className={styles.chartLabel}>{c.name}</span>
-                    <div className={styles.chartBarTrack}>
-                      <div
-                        className={styles.chartBarFill}
-                        style={{ width: `${c.scorePercentage}%`, backgroundColor: meta.color }}
-                      />
-                    </div>
-                    <span className={styles.chartStatusDot} style={{ backgroundColor: meta.color }} />
-                    <span className={styles.chartPct}>{c.scorePercentage}%</span>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-
           {/* AI Diagnostic Report */}
           {structured && aiPages.length > 0 && (
             <section className={styles.aiCard}>
