@@ -28,6 +28,9 @@ import {
   functionNameFromSignature,
   classNameFromSpec,
 } from "@/lib/judge0/buildHarness";
+import {
+  updateMasteryFromSubmission,
+} from "@/lib/mastery/updateConceptMastery";
 
 export async function POST(request) {
   let body;
@@ -294,7 +297,54 @@ export async function POST(request) {
     );
   }
 
-  // 6. Return verdict.
+  // 6. Update concept mastery — fires on every submission, win or lose.
+  // Non-fatal: mastery is derived data. A failure here must not fail the
+  // student's grading result.
+  try {
+    await updateMasteryFromSubmission({
+      admin,
+      userId: user.id,
+      problemId: session.problem_id,
+      scorePercentage,
+    });
+  } catch (err) {
+    console.error("Mastery update failed:", err.message);
+  }
+
+  // 7. Reclassify skill_level — only on a perfect solve.
+  // Reads the student's current average mastery across ALL concepts and maps
+  // it to beginner / intermediate / advanced. Non-fatal.
+  //
+  // Thresholds mirror the diagnostic classification:
+  //   avg mastery >= 80  → advanced
+  //   avg mastery >= 60  → intermediate
+  //   avg mastery <  60  → beginner
+  if (passedCount === totalTests) {
+    try {
+      const { data: masteryRows, error: masteryError } = await admin
+        .from("user_concept_mastery")
+        .select("mastery_score")
+        .eq("user_id", user.id);
+
+      if (!masteryError && masteryRows?.length) {
+        const avg =
+          masteryRows.reduce((sum, r) => sum + Number(r.mastery_score), 0) /
+          masteryRows.length;
+
+        const newSkillLevel =
+          avg >= 80 ? "advanced" : avg >= 60 ? "intermediate" : "beginner";
+
+        await admin
+          .from("profiles")
+          .update({ skill_level: newSkillLevel })
+          .eq("id", user.id);
+      }
+    } catch (err) {
+      console.error("Skill level reclassification failed:", err.message);
+    }
+  }
+
+  // 8. Return verdict.
   return NextResponse.json({
     submissionId: submission.id,
     passedCount,
