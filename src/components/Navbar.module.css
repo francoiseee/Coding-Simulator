@@ -154,17 +154,21 @@
   position: absolute;
   top: calc(100% + 14px);
   right: 0;
-  background: var(--card-bg);
+  background: rgba(10, 15, 26, 0.94);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), 0 0 15px rgba(0, 240, 255, 0.03);
+  box-shadow: 0 10px 14px -6px rgba(0, 0, 0, 0.35);
   width: 170px;
   padding: 6px 0;
   z-index: 1000;
   transform-origin: top right;
   animation: dropdownFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+:root[data-theme="light"] .dropdownMenu {
+  background: rgba(255, 255, 255, 0.96);
 }
 
 @keyframes dropdownFadeIn {
