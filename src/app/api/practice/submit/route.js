@@ -13,7 +13,8 @@
 //      build a harness, run it on Judge0, compare output.
 //   4. Aggregate pass/fail, runtime, errors.
 //   5. Write a graded row to `submissions` via the service-role client.
-//   6. Return per-visible-test results + overall verdict to the UI.
+//   6. Update persistent concept mastery from the graded score (non-fatal).
+//   7. Return per-visible-test results + overall verdict to the UI.
 //
 // Non-fatal philosophy: if Judge0 is unreachable, respond with a clear
 // "grading service unavailable" message rather than crashing.
@@ -28,9 +29,7 @@ import {
   functionNameFromSignature,
   classNameFromSpec,
 } from "@/lib/judge0/buildHarness";
-import {
-  updateMasteryFromSubmission,
-} from "@/lib/mastery/updateConceptMastery";
+import { updateMasteryFromSubmission } from "@/lib/mastery/updateConceptMastery";
 
 export async function POST(request) {
   let body;
@@ -311,40 +310,7 @@ export async function POST(request) {
     console.error("Mastery update failed:", err.message);
   }
 
-  // 7. Reclassify skill_level — only on a perfect solve.
-  // Reads the student's current average mastery across ALL concepts and maps
-  // it to beginner / intermediate / advanced. Non-fatal.
-  //
-  // Thresholds mirror the diagnostic classification:
-  //   avg mastery >= 80  → advanced
-  //   avg mastery >= 60  → intermediate
-  //   avg mastery <  60  → beginner
-  if (passedCount === totalTests) {
-    try {
-      const { data: masteryRows, error: masteryError } = await admin
-        .from("user_concept_mastery")
-        .select("mastery_score")
-        .eq("user_id", user.id);
-
-      if (!masteryError && masteryRows?.length) {
-        const avg =
-          masteryRows.reduce((sum, r) => sum + Number(r.mastery_score), 0) /
-          masteryRows.length;
-
-        const newSkillLevel =
-          avg >= 80 ? "advanced" : avg >= 60 ? "intermediate" : "beginner";
-
-        await admin
-          .from("profiles")
-          .update({ skill_level: newSkillLevel })
-          .eq("id", user.id);
-      }
-    } catch (err) {
-      console.error("Skill level reclassification failed:", err.message);
-    }
-  }
-
-  // 8. Return verdict.
+  // 7. Return verdict.
   return NextResponse.json({
     submissionId: submission.id,
     passedCount,

@@ -18,6 +18,9 @@
 //   - Runs PUBLIC SAMPLE test cases only; hidden tests are never touched.
 //   - Writes NOTHING to `submissions`. This is not a graded attempt.
 //   - Stamps first_run_at (submit does not).
+//   - Otherwise resolves execution_mode / class_name / per-test overrides
+//     identically to submit, so Run and Submit build the same kind of
+//     harness for a given problem (return / stdout / methods / multi_function).
 //
 // Security notes:
 //   - Ownership is verified on the cookie client before anything else.
@@ -36,8 +39,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { runOnJudge0, PYTHON_LANGUAGE_ID } from "@/lib/judge0/client";
 import {
   buildHarness,
-  normalizeForCompare,
+  compareResult,
   functionNameFromSignature,
+  classNameFromSpec,
 } from "@/lib/judge0/buildHarness";
 
 export async function POST(request) {
@@ -116,30 +120,56 @@ export async function POST(request) {
     console.error("Run: first_run_at stamp threw:", err.message);
   }
 
-  // 3. Load the function signature (service role, same as submit).
-  const { data: lang, error: langError } = await admin
-    .from("problem_languages")
-    .select("function_signature")
-    .eq("problem_id", session.problem_id)
-    .eq("language", "python")
-    .maybeSingle();
+  // 3. Load the problem's execution_mode — same resolution submit uses, so
+  // Run and Submit build the exact same kind of harness for a given problem.
+  const { data: problem, error: problemError } = await admin
+    .from("problems")
+    .select("execution_mode")
+    .eq("id", session.problem_id)
+    .single();
 
-  if (langError) {
+  if (problemError || !problem) {
     return NextResponse.json(
       { error: "Could not load problem metadata." },
       { status: 500 },
     );
   }
 
-  const functionName = functionNameFromSignature(lang?.function_signature);
-  if (!functionName) {
+  const problemMode = problem.execution_mode ?? "return";
+
+  // 4. Load function_signature and class_name from problem_languages.
+  const { data: lang, error: langError } = await admin
+    .from("problem_languages")
+    .select("function_signature, class_name")
+    .eq("problem_id", session.problem_id)
+    .eq("language", "python")
+    .maybeSingle();
+
+  if (langError) {
     return NextResponse.json(
-      { error: "This problem is not configured for function-based grading." },
+      { error: "Could not load problem language metadata." },
       { status: 500 },
     );
   }
 
-  // 4. Load PUBLIC SAMPLE test cases only.
+  const functionName = functionNameFromSignature(lang?.function_signature);
+  const className = classNameFromSpec(lang?.class_name);
+
+  // For 'return' and 'stdout' modes we must have a function name. Mirrors the
+  // same check in submit — 'methods' resolves its class per test case below,
+  // and 'multi_function' needs neither at the problem level.
+  const needsFunctionName = ["return", "stdout"].includes(problemMode);
+  if (needsFunctionName && !functionName) {
+    return NextResponse.json(
+      {
+        error:
+          "This problem is not configured for function-based grading (missing function_signature).",
+      },
+      { status: 500 },
+    );
+  }
+
+  // 5. Load PUBLIC SAMPLE test cases only.
   //
   // This is the key difference from submit. Hidden test cases are never
   // fetched here at all — not fetched and filtered, but never selected — so
@@ -166,15 +196,39 @@ export async function POST(request) {
     );
   }
 
-  // 5. Execute each sample test on Judge0.
+  // 6. Execute each sample test on Judge0.
   const results = [];
   let passedCount = 0;
   const runtimes = [];
 
   try {
     for (const tc of testCases) {
-      const args = Array.isArray(tc.input) ? tc.input : [tc.input];
-      const harness = buildHarness({ studentCode: code, functionName, args });
+      // Per-test-case mode/class override — same resolution submit uses
+      // (e.g. mixed problems like PO-01 that carry a "mode" key per row).
+      const tcInputParsed =
+        tc.input !== null && tc.input !== undefined ? tc.input : [];
+
+      const tcMode =
+        typeof tcInputParsed === "object" &&
+        !Array.isArray(tcInputParsed) &&
+        tcInputParsed.mode
+          ? tcInputParsed.mode
+          : problemMode;
+
+      const tcClassName =
+        typeof tcInputParsed === "object" &&
+        !Array.isArray(tcInputParsed) &&
+        tcInputParsed.class
+          ? tcInputParsed.class
+          : className;
+
+      const harness = buildHarness({
+        studentCode: code,
+        mode: tcMode,
+        tcInput: tcInputParsed,
+        functionName,
+        className: tcClassName,
+      });
 
       const jr = await runOnJudge0({
         sourceCode: harness,
@@ -184,20 +238,22 @@ export async function POST(request) {
       const statusId = jr.status?.id;
       const ranOk = statusId === 3;
 
-      const actual = (jr.stdout || "").trim();
-      const expected = normalizeForCompare(tc.expected_output);
-      const actualNorm = actual ? normalizeForCompare(actual) : "";
-      const passed = ranOk && actualNorm === expected;
+      const { passed, actualDisplay } = compareResult(
+        jr.stdout ?? "",
+        tc.expected_output,
+        tcMode,
+      );
+      const finalPassed = ranOk && passed;
 
-      if (passed) passedCount += 1;
+      if (finalPassed) passedCount += 1;
       if (jr.time) runtimes.push(Math.round(parseFloat(jr.time) * 1000));
 
       // These are all public samples, so full detail is safe to return.
       results.push({
         input: tc.input,
         expected: tc.expected_output,
-        actual: actual || null,
-        passed,
+        actual: actualDisplay || null,
+        passed: finalPassed,
         status: jr.status?.description || "Unknown",
         stderr: jr.stderr || jr.compile_output || null,
       });
@@ -219,7 +275,7 @@ export async function POST(request) {
     ? Math.round(runtimes.reduce((a, b) => a + b, 0) / runtimes.length)
     : null;
 
-  // 6. Return results. Note there is no submissionId: nothing was graded.
+  // 7. Return results. Note there is no submissionId: nothing was graded.
   return NextResponse.json({
     passedCount,
     totalTests: testCases.length,
