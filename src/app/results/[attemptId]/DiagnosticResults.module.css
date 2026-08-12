@@ -23,7 +23,7 @@
   position: relative;
   text-align: center;
   padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid var(--card-border);
 }
 
 .scoreTitle {
@@ -112,7 +112,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--card-border);
   padding-top: 36px;
 }
 
@@ -131,16 +131,28 @@
 }
 
 .conceptList {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
+@media (max-width: 900px) {
+  .conceptList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .conceptList {
+    grid-template-columns: 1fr;
+  }
+}
+
 .conceptRow {
-  background-color: rgba(10, 15, 26, 0.35);
+  background-color: var(--surface-2);
   border-radius: 10px;
   padding: 22px 24px;
   display: flex;
@@ -167,10 +179,9 @@
 
 .conceptRowHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 }
 
 .conceptName {
@@ -194,35 +205,23 @@
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.5px;
-  padding: 4px 10px;
-  border-radius: 20px;
   white-space: nowrap;
 }
 
 .badgeStrong {
   color: var(--accent-teal);
-  background-color: rgba(0, 245, 176, 0.08);
-  border: 1px solid rgba(0, 245, 176, 0.25);
 }
 .badgeDeveloping {
   color: var(--accent-cyan);
-  background-color: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.25);
 }
 .badgeNeedsPractice {
   color: #f59e0b;
-  background-color: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
 }
 .badgeWeak {
   color: #f87171;
-  background-color: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 .badgeInsufficient {
   color: var(--text-muted);
-  background-color: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .conceptStats {
@@ -281,6 +280,9 @@
 
 .aiReportCard {
   background-color: var(--card-bg);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(157, 78, 221, 0.07) 0%, transparent 55%),
+    radial-gradient(circle at 0% 100%, rgba(0, 240, 255, 0.05) 0%, transparent 55%);
   border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 40px 48px;
@@ -299,16 +301,13 @@
 
 .aiReportBadge {
   align-self: flex-start;
-  background: rgba(157, 78, 221, 0.08);
-  border: 1px solid rgba(157, 78, 221, 0.25);
-  border-radius: 20px;
-  padding: 5px 14px;
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
   color: var(--accent-purple);
   text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(157, 78, 221, 0.45);
 }
 
 .aiReportTitle {
@@ -316,6 +315,120 @@
   font-size: 1.4rem;
   font-weight: 750;
   color: var(--text-primary);
+}
+
+/* AI report pagination */
+.aiNav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.aiNavArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--input-border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiNavArrow:hover:not(:disabled) {
+  color: var(--accent-purple);
+  border-color: rgba(157, 78, 221, 0.4);
+  background: rgba(157, 78, 221, 0.08);
+  box-shadow: 0 0 12px rgba(157, 78, 221, 0.25);
+}
+
+.aiNavArrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.aiPageInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.aiPageText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  min-width: 0;
+}
+
+.aiPageTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.aiPageCounter {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aiPageBody {
+  min-height: 100px;
+  animation: aiPageFade 0.35s ease;
+}
+
+@keyframes aiPageFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aiDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.aiDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiDot:hover {
+  background: rgba(157, 78, 221, 0.4);
+}
+
+.aiDotActive {
+  background: var(--accent-purple);
+  box-shadow: 0 0 8px rgba(157, 78, 221, 0.6);
+  width: 20px;
+  border-radius: 4px;
 }
 
 .aiNarrative {
@@ -376,7 +489,7 @@
   font-size: 0.92rem;
   font-weight: 600;
   color: var(--accent-teal);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--card-border);
   padding-top: 20px;
 }
 

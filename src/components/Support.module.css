@@ -92,7 +92,7 @@
 }
 
 .faqItem:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-strong);
 }
 
 .faqItemOpen {
@@ -129,7 +129,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--surface-2);
   color: var(--accent-cyan);
   font-size: 1rem;
   font-weight: 700;

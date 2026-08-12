@@ -7,9 +7,7 @@ import SignUpContainer from "@/components/SignUpContainer";
 import HeroPane from "@/components/HeroPane";
 import SignUpForm from "@/components/SignUpForm";
 import Dashboard from "@/components/Dashboard";
-import Support from "@/components/Support";
 import { createClient } from "@/lib/supabase/client";
-import LandingSections from "@/components/LandingSections";
 
 export default function Home() {
   const [view, setView] = useState("auth");
@@ -87,16 +85,12 @@ export default function Home() {
         onLogOut={handleLogOut}
       />
       {view === "auth" && (
-        <>
-          <SignUpContainer>
-            <HeroPane />
-            <SignUpForm onAuthSuccess={handleAuthSuccess} />
-          </SignUpContainer>
-          <Support />
-        </>
+        <SignUpContainer>
+          <HeroPane />
+          <SignUpForm onAuthSuccess={handleAuthSuccess} />
+        </SignUpContainer>
       )}
       {view === "dashboard" && <Dashboard email={userEmail} />}
-      {view === "auth" && <LandingSections />}
     </>
   );
 }

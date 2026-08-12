@@ -42,6 +42,7 @@ export default function ResultsPage() {
   const [status, setStatus] = useState("loading"); // loading | ready | error
   const [errorMessage, setErrorMessage] = useState("");
   const [generatingReport, setGeneratingReport] = useState(false);
+  const [aiPage, setAiPage] = useState(0);
 
   const loadResults = async () => {
     try {
@@ -92,6 +93,84 @@ export default function ResultsPage() {
   const { attempt, conceptResults, aiReport } = data;
   const structured = aiReport?.structured;
 
+  const aiPages = structured
+    ? [
+        structured.narrative && {
+          key: "overview",
+          title: "Overview",
+          content: <p className={styles.aiNarrative}>{structured.narrative}</p>,
+        },
+        (structured.strengths?.length > 0 || structured.weaknesses?.length > 0) && {
+          key: "breakdown",
+          title: "Strengths & Gaps",
+          content: (
+            <div className={styles.aiReportGrid}>
+              {structured.strengths?.length > 0 && (
+                <div className={styles.aiReportBlock}>
+                  <h3 className={styles.aiBlockTitle}>
+                    What you already understand
+                  </h3>
+                  <ul className={styles.aiList}>
+                    {structured.strengths.map((s) => (
+                      <li key={s}>{s}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {structured.weaknesses?.length > 0 && (
+                <div className={styles.aiReportBlock}>
+                  <h3 className={styles.aiBlockTitle}>
+                    Where you need more practice
+                  </h3>
+                  <ul className={styles.aiList}>
+                    {structured.weaknesses.map((w) => (
+                      <li key={w}>{w}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ),
+        },
+        structured.why_struggling && {
+          key: "why",
+          title: "Why You May Be Struggling",
+          content: <p className={styles.aiBlockText}>{structured.why_struggling}</p>,
+        },
+        structured.study_order?.length > 0 && {
+          key: "study",
+          title: "What To Study First",
+          content: (
+            <ol className={styles.aiOrderedList}>
+              {structured.study_order.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ol>
+          ),
+        },
+        (structured.practice_plan || structured.encouragement) && {
+          key: "plan",
+          title: "Recommended Practice Plan",
+          content: (
+            <>
+              {structured.practice_plan && (
+                <p className={styles.aiBlockText}>{structured.practice_plan}</p>
+              )}
+              {structured.encouragement && (
+                <p className={styles.aiEncouragement}>{structured.encouragement}</p>
+              )}
+            </>
+          ),
+        },
+      ].filter(Boolean)
+    : [];
+
+  const currentAiPage = aiPages[Math.min(aiPage, aiPages.length - 1)];
+
+  const goToAiPage = (delta) => {
+    setAiPage((p) => (p + delta + aiPages.length) % aiPages.length);
+  };
+
   return (
     <div className={styles.container}>
       <section className={styles.scoreCard}>
@@ -132,7 +211,7 @@ export default function ResultsPage() {
 
       {/* AI Weakness Report — Step 24 */}
       <section className={styles.aiReportCard}>
-        {structured ? (
+        {structured && aiPages.length > 0 ? (
           <>
             <div className={styles.aiReportHeader}>
               <span className={styles.aiReportBadge}>AI-Generated Report</span>
@@ -141,72 +220,56 @@ export default function ResultsPage() {
               </h2>
             </div>
 
-            <p className={styles.aiNarrative}>{structured.narrative}</p>
+            <div className={styles.aiNav}>
+              <button
+                type="button"
+                className={styles.aiNavArrow}
+                onClick={() => goToAiPage(-1)}
+                disabled={aiPages.length < 2}
+                aria-label="Previous section"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
 
-            <div className={styles.aiReportGrid}>
-              {structured.strengths?.length > 0 && (
-                <div className={styles.aiReportBlock}>
-                  <h3 className={styles.aiBlockTitle}>
-                    What you already understand
-                  </h3>
-                  <ul className={styles.aiList}>
-                    {structured.strengths.map((s) => (
-                      <li key={s}>{s}</li>
-                    ))}
-                  </ul>
+              <div className={styles.aiPageInfo}>
+                <div className={styles.aiPageText}>
+                  <span className={styles.aiPageTitle}>{currentAiPage.title}</span>
+                  <span className={styles.aiPageCounter}>
+                    Section {aiPage + 1} of {aiPages.length}
+                  </span>
                 </div>
-              )}
+              </div>
 
-              {structured.weaknesses?.length > 0 && (
-                <div className={styles.aiReportBlock}>
-                  <h3 className={styles.aiBlockTitle}>
-                    Where you need more practice
-                  </h3>
-                  <ul className={styles.aiList}>
-                    {structured.weaknesses.map((w) => (
-                      <li key={w}>{w}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <button
+                type="button"
+                className={styles.aiNavArrow}
+                onClick={() => goToAiPage(1)}
+                disabled={aiPages.length < 2}
+                aria-label="Next section"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
             </div>
 
-            {structured.why_struggling && (
-              <div className={styles.aiReportBlock}>
-                <h3 className={styles.aiBlockTitle}>
-                  Why you may be struggling
-                </h3>
-                <p className={styles.aiBlockText}>
-                  {structured.why_struggling}
-                </p>
-              </div>
-            )}
+            <div className={styles.aiPageBody} key={currentAiPage.key}>
+              {currentAiPage.content}
+            </div>
 
-            {structured.study_order?.length > 0 && (
-              <div className={styles.aiReportBlock}>
-                <h3 className={styles.aiBlockTitle}>What to study first</h3>
-                <ol className={styles.aiOrderedList}>
-                  {structured.study_order.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ol>
-              </div>
-            )}
-
-            {structured.practice_plan && (
-              <div className={styles.aiReportBlock}>
-                <h3 className={styles.aiBlockTitle}>
-                  Recommended practice plan
-                </h3>
-                <p className={styles.aiBlockText}>{structured.practice_plan}</p>
-              </div>
-            )}
-
-            {structured.encouragement && (
-              <p className={styles.aiEncouragement}>
-                {structured.encouragement}
-              </p>
-            )}
+            <div className={styles.aiDots}>
+              {aiPages.map((p, i) => (
+                <button
+                  key={p.key}
+                  type="button"
+                  className={`${styles.aiDot} ${i === aiPage ? styles.aiDotActive : ""}`}
+                  onClick={() => setAiPage(i)}
+                  aria-label={`Go to ${p.title}`}
+                />
+              ))}
+            </div>
           </>
         ) : (
           <div className={styles.aiReportEmpty}>

@@ -66,7 +66,7 @@
 .statDivider {
   width: 1px;
   height: 40px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-border);
 }
 
 .emptyState {
@@ -75,6 +75,14 @@
   font-family: var(--font-inter), sans-serif;
   font-size: 0.92rem;
   color: var(--text-muted);
+}
+
+/* Concept Mastery + AI Report side by side so neither needs a page scroll */
+.progressRow {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  align-items: start;
 }
 
 /* Concept Mastery Chart */
@@ -86,6 +94,7 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-width: 0;
 }
 
 .cardTitle {
@@ -102,17 +111,114 @@
   margin-top: -12px;
 }
 
+.donutRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.donutBlock {
+  position: relative;
+  flex-shrink: 0;
+  width: 118px;
+  height: 118px;
+}
+
+.donutSlice {
+  transition: stroke-dasharray 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donutCenter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donutScore {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.donutScoreLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.donutLegend {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px 20px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.donutLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+}
+
+.donutLegendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.donutLegendLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.donutLegendCount {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-left: auto;
+}
+
 .chartList {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .chartRow {
   display: grid;
-  grid-template-columns: 200px 1fr 44px;
+  grid-template-columns: minmax(0, 150px) 1fr 8px 40px;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+}
+
+.chartStatusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  justify-self: center;
+  flex-shrink: 0;
 }
 
 .chartLabel {
@@ -126,7 +232,7 @@
 
 .chartBarTrack {
   height: 8px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--card-border);
   border-radius: 99px;
   overflow: hidden;
 }
@@ -145,33 +251,13 @@
   text-align: right;
 }
 
-.legend {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.legendItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.legendDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
 
 /* AI Report */
 .aiCard {
-  background: var(--card-bg);
+  background-color: var(--card-bg);
+  background-image:
+    radial-gradient(circle at 100% 0%, rgba(157, 78, 221, 0.07) 0%, transparent 55%),
+    radial-gradient(circle at 0% 100%, rgba(0, 240, 255, 0.05) 0%, transparent 55%);
   border: 1px solid var(--card-border);
   border-radius: 16px;
   padding: 32px 36px;
@@ -188,16 +274,127 @@
 
 .aiBadge {
   align-self: flex-start;
-  background: rgba(157, 78, 221, 0.08);
-  border: 1px solid rgba(157, 78, 221, 0.25);
-  border-radius: 20px;
-  padding: 5px 14px;
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
   color: var(--accent-purple);
   text-transform: uppercase;
+  text-shadow: 0 0 14px rgba(157, 78, 221, 0.45);
+}
+
+/* AI report pagination */
+.aiNav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.aiNavArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--input-border);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiNavArrow:hover:not(:disabled) {
+  color: var(--accent-purple);
+  border-color: rgba(157, 78, 221, 0.4);
+  background: rgba(157, 78, 221, 0.08);
+  box-shadow: 0 0 12px rgba(157, 78, 221, 0.25);
+}
+
+.aiNavArrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.aiPageInfo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.aiPageText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: center;
+  min-width: 0;
+}
+
+.aiPageTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.92rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.aiPageCounter {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.aiPageBody {
+  min-height: 100px;
+  animation: aiPageFade 0.35s ease;
+}
+
+@keyframes aiPageFade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aiDots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.aiDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.aiDot:hover {
+  background: rgba(157, 78, 221, 0.4);
+}
+
+.aiDotActive {
+  background: var(--accent-purple);
+  box-shadow: 0 0 8px rgba(157, 78, 221, 0.6);
+  width: 20px;
+  border-radius: 4px;
 }
 
 .aiNarrative {
@@ -211,7 +408,7 @@
 
 .aiGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 24px;
 }
 
@@ -254,7 +451,7 @@
   font-size: 0.9rem;
   font-weight: 600;
   color: var(--accent-teal);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--card-border);
   padding-top: 20px;
 }
 
@@ -268,10 +465,7 @@
 
 @media (max-width: 640px) {
   .chartRow {
-    grid-template-columns: 120px 1fr 36px;
-  }
-  .aiGrid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 100px) 1fr 8px 36px;
   }
   .statsBanner {
     padding: 20px 16px;
