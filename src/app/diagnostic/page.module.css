@@ -4,4 +4,21 @@
   text-align: center;
   font-family: var(--font-inter), sans-serif;
   color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loginBtn {
+  align-self: center;
+  background-color: transparent;
+  border: 1.5px solid var(--accent-cyan);
+  border-radius: 8px;
+  color: var(--accent-cyan);
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 12px 28px;
+  cursor: pointer;
 }

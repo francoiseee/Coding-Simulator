@@ -8,19 +8,27 @@ import styles from "./page.module.css";
 
 export default function DiagnosticPage() {
   const router = useRouter();
-  const [phase, setPhase] = useState("checking"); // "checking" | "welcome" | "diagnostic"
+  const [phase, setPhase] = useState("checking"); // "checking" | "welcome" | "diagnostic" | "error"
   const [initialName, setInitialName] = useState("");
 
   // On load, check whether this student already has a saved nickname and an
   // in-progress attempt — if so, skip straight to the diagnostic instead of
   // making them sit through onboarding again. If they have a saved nickname
   // but no in-progress attempt yet, still show Welcome but prefill the name.
+  // If they're not signed in at all, show an inline error instead of
+  // letting them reach the Welcome/onboarding screen.
   useEffect(() => {
     let cancelled = false;
 
     async function checkStatus() {
       try {
         const res = await fetch("/api/diagnostic/status");
+
+        if (res.status === 401) {
+          if (!cancelled) setPhase("error");
+          return;
+        }
+
         const data = await res.json();
         if (cancelled) return;
 
@@ -34,7 +42,7 @@ export default function DiagnosticPage() {
           setPhase("welcome");
         }
       } catch {
-        if (!cancelled) setPhase("welcome");
+        if (!cancelled) setPhase("error");
       }
     }
 
@@ -55,6 +63,21 @@ export default function DiagnosticPage() {
 
   if (phase === "checking") {
     return <p className={styles.stateWrapper}>Loading…</p>;
+  }
+
+  if (phase === "error") {
+    return (
+      <div className={styles.stateWrapper}>
+        <p>You must be signed in to access the diagnostic.</p>
+        <button
+          type="button"
+          className={styles.loginBtn}
+          onClick={() => router.push("/")}
+        >
+          Go to login
+        </button>
+      </div>
+    );
   }
 
   if (phase === "welcome") {
