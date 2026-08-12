@@ -4,8 +4,8 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import styles from "./Welcome.module.css";
 
-export default function Welcome({ onReady }) {
-  const [name, setName] = useState("");
+export default function Welcome({ onReady, initialName = "" }) {
+  const [name, setName] = useState(initialName);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const supabase = createClient();
@@ -53,7 +53,16 @@ export default function Welcome({ onReady }) {
         <div className={styles.infoBlock}>
           <div className={styles.infoItem}>
             <span className={styles.infoIcon}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <path d="M9 2h6a1 1 0 0 1 1 1v1h1a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1z" />
                 <line x1="8" y1="11" x2="16" y2="11" />
                 <line x1="8" y1="15" x2="16" y2="15" />
@@ -69,10 +78,25 @@ export default function Welcome({ onReady }) {
           </div>
           <div className={styles.infoItem}>
             <span className={styles.infoIcon}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="12" cy="12" r="9" />
                 <circle cx="12" cy="12" r="5" />
-                <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="1"
+                  fill="currentColor"
+                  stroke="none"
+                />
               </svg>
             </span>
             <div>
@@ -88,7 +112,16 @@ export default function Welcome({ onReady }) {
           </div>
           <div className={styles.infoItem}>
             <span className={styles.infoIcon}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
                 <circle cx="12" cy="12" r="9" />
                 <polyline points="8 12 11 15 16 9" />
               </svg>

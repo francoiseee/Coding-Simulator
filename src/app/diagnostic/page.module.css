@@ -1,0 +1,7 @@
+.stateWrapper {
+  max-width: 480px;
+  margin: 160px auto;
+  text-align: center;
+  font-family: var(--font-inter), sans-serif;
+  color: var(--text-secondary);
+}

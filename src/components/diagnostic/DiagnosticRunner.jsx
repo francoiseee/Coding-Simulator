@@ -9,6 +9,11 @@
 //   4. Debounced autosave: PATCH /api/diagnostic/save every 1.5 s after any answer change
 //   5. navigator.sendBeacon flush on page unload so nothing is lost mid-navigation
 //   6. POST /api/diagnostic/submit on final submit
+//
+// Step 15b — Question navigator + missing-answers modal.
+//   - A numbered strip lets the student jump to any question directly.
+//   - If they try to submit with gaps, a modal lists exactly which question
+//     numbers are unanswered and jumps them straight there on click.
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./DiagnosticRunner.module.css";
@@ -23,6 +28,7 @@ export default function DiagnosticRunner({ onComplete }) {
   const [status, setStatus] = useState("loading"); // loading | ready | error | submitting | done
   const [errorMessage, setErrorMessage] = useState("");
   const [saveState, setSaveState] = useState("idle"); // idle | saving | saved | error
+  const [showMissingModal, setShowMissingModal] = useState(false);
 
   // Refs so callbacks always see the latest values without stale closures.
   const attemptIdRef = useRef(null);
@@ -167,6 +173,12 @@ export default function DiagnosticRunner({ onComplete }) {
   const progressPct =
     totalQuestions > 0 ? ((currentIndex + 1) / totalQuestions) * 100 : 0;
 
+  // Questions the student hasn't answered yet, in order — used by both the
+  // navigator strip and the "missing answers" modal below.
+  const unansweredQuestions = questions
+    .map((q, idx) => ({ index: idx, id: q.id }))
+    .filter(({ id }) => !(id in answers));
+
   // ── Handlers ─────────────────────────────────────────────────────────────
   const selectOption = (questionId, optionKey) => {
     setAnswers((prev) => {
@@ -192,6 +204,23 @@ export default function DiagnosticRunner({ onComplete }) {
       currentIndexRef.current = next;
       scheduleSave(answersRef.current, next);
     }
+  };
+
+  const jumpToQuestion = (index) => {
+    setCurrentIndex(index);
+    currentIndexRef.current = index;
+    scheduleSave(answersRef.current, index);
+    setShowMissingModal(false);
+  };
+
+  const handleSubmitClick = () => {
+    // Instead of just disabling the button, tell the student exactly which
+    // questions they still need to answer and let them jump straight there.
+    if (unansweredQuestions.length > 0) {
+      setShowMissingModal(true);
+      return;
+    }
+    handleSubmit();
   };
 
   const handleSubmit = async () => {
@@ -270,6 +299,31 @@ export default function DiagnosticRunner({ onComplete }) {
         </div>
       </div>
 
+      {/* Question navigator — jump to any question directly, unanswered ones flagged */}
+      <div
+        className={styles.navigatorStrip}
+        role="tablist"
+        aria-label="Question navigator"
+      >
+        {questions.map((q, idx) => {
+          const isAnswered = q.id in answers;
+          const isCurrent = idx === currentIndex;
+          return (
+            <button
+              key={q.id}
+              type="button"
+              role="tab"
+              aria-selected={isCurrent}
+              aria-label={`Question ${idx + 1}${isAnswered ? "" : " (unanswered)"}`}
+              onClick={() => jumpToQuestion(idx)}
+              className={`${styles.navigatorDot} ${isAnswered ? styles.navigatorDotAnswered : styles.navigatorDotUnanswered} ${isCurrent ? styles.navigatorDotCurrent : ""}`}
+            >
+              {idx + 1}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Question */}
       <div className={styles.questionCard}>
         {currentQuestion.difficulty && (
@@ -328,13 +382,57 @@ export default function DiagnosticRunner({ onComplete }) {
           <button
             type="button"
             className={styles.submitBtn}
-            onClick={handleSubmit}
-            disabled={answeredCount < totalQuestions || status === "submitting"}
+            onClick={handleSubmitClick}
+            disabled={status === "submitting"}
           >
             {status === "submitting" ? "Submitting…" : "Submit diagnostic"}
           </button>
         )}
       </div>
+
+      {/* Missing-answers modal — shown when the student tries to submit with gaps */}
+      {showMissingModal && (
+        <div
+          className={styles.modalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="missingModalTitle"
+          onClick={() => setShowMissingModal(false)}
+        >
+          <div
+            className={styles.modalCard}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 id="missingModalTitle" className={styles.modalTitle}>
+              {unansweredQuestions.length} question
+              {unansweredQuestions.length === 1 ? "" : "s"} left unanswered
+            </h4>
+            <p className={styles.modalSubtext}>
+              Tap a question below to jump straight to it.
+            </p>
+            <ul className={styles.modalMissedList}>
+              {unansweredQuestions.map(({ index }) => (
+                <li key={index}>
+                  <button
+                    type="button"
+                    className={styles.modalMissedChip}
+                    onClick={() => jumpToQuestion(index)}
+                  >
+                    Question {index + 1}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className={styles.modalCloseBtn}
+              onClick={() => setShowMissingModal(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
