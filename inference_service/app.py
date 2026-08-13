@@ -53,6 +53,14 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+# The ml/ package lives one level up (repo root), alongside train_model.py.
+# Adding it to sys.path lets this service import the EXACT SAME
+# estimate_complexity() function train_model.py trains against — deliberately
+# not reimplemented here, so training-time and inference-time complexity
+# buckets can never silently drift apart from each other.
+sys.path.insert(0, str(Path(__file__).parent.parent.resolve()))
+from ml.complexity import estimate_complexity, NOT_IMPLEMENTED_SENTINEL  # noqa: E402
+
 # ─── Model loading ──────────────────────────────────────────────────────────
 
 MODEL_DIR = Path(os.environ.get("MODEL_DIR", Path(__file__).parent / ".." / "out")).resolve()
@@ -205,6 +213,16 @@ class PredictResponse(BaseModel):
     warning: Optional[str] = None
 
 
+class ComplexityRequest(BaseModel):
+    source_code: str = Field(..., min_length=1, description="Raw Python source of the student's solution")
+
+
+class ComplexityResponse(BaseModel):
+    complexity_score: int
+    parsed_ok: bool
+    warning: Optional[str] = None
+
+
 class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
@@ -233,6 +251,35 @@ def health():
         rule_version=meta.get("rule_version"),
         n_rows_total=meta.get("n_rows_total"),
     )
+
+
+@app.post("/complexity", response_model=ComplexityResponse)
+def complexity(req: ComplexityRequest):
+    """
+    Wraps ml.complexity.estimate_complexity() directly — same function,
+    same bucket logic, same limitations documented in that module's
+    docstring. This endpoint exists ONLY so a non-Python caller (the
+    Next.js picker) can get a bucket without reimplementing the AST logic
+    and risking it drifting from what train_model.py actually trained on.
+    """
+    score = estimate_complexity(req.source_code)
+    if score == NOT_IMPLEMENTED_SENTINEL:
+        # This should be rare in practice — the picker calls this with the
+        # source of an already-graded submission, which by definition
+        # parsed successfully when it ran on Judge0. Still handled
+        # explicitly rather than silently returning a fake bucket: the
+        # caller must decide what to do (e.g. skip the RF call and fall
+        # back to a rule), not have this service guess on its behalf.
+        return ComplexityResponse(
+            complexity_score=score,
+            parsed_ok=False,
+            warning=(
+                "Source code could not be parsed. This is the same sentinel "
+                "used in training (NOT_IMPLEMENTED_SENTINEL=-999) — the "
+                "caller should not feed this value into /predict."
+            ),
+        )
+    return ComplexityResponse(complexity_score=score, parsed_ok=True)
 
 
 @app.post("/predict", response_model=PredictResponse)
