@@ -13,8 +13,7 @@
 //      build a harness, run it on Judge0, compare output.
 //   4. Aggregate pass/fail, runtime, errors.
 //   5. Write a graded row to `submissions` via the service-role client.
-//   6. Update persistent concept mastery from the graded score (non-fatal).
-//   7. Return per-visible-test results + overall verdict to the UI.
+//   6. Return per-visible-test results + overall verdict to the UI.
 //
 // Non-fatal philosophy: if Judge0 is unreachable, respond with a clear
 // "grading service unavailable" message rather than crashing.
@@ -29,7 +28,7 @@ import {
   functionNameFromSignature,
   classNameFromSpec,
 } from "@/lib/judge0/buildHarness";
-import { updateMasteryFromSubmission } from "@/lib/mastery/updateConceptMastery";
+import { checkCircuitBreaker } from "@/lib/adaptive/selectNextDifficulty";
 
 export async function POST(request) {
   let body;
@@ -296,21 +295,30 @@ export async function POST(request) {
     );
   }
 
-  // 6. Update concept mastery — fires on every submission, win or lose.
-  // Non-fatal: mastery is derived data. A failure here must not fail the
-  // student's grading result.
+  // 5b. Circuit breaker check — OBSERVABILITY ONLY, no adaptive engine exists
+  // yet to act on this (Steps 35-46). Logs what the breaker WOULD do so real
+  // Group 1 timing data is available before FAST_FAIL_WINDOW_MS / STREAK are
+  // tuned for real. Never blocks or changes the response to the student.
+  // See Codely_Decision_ExpertSignOff_Aug2026.docx, Section 3.3, Risk 1.
   try {
-    await updateMasteryFromSubmission({
+    const breakerResult = await checkCircuitBreaker({
       admin,
       userId: user.id,
       problemId: session.problem_id,
-      scorePercentage,
     });
+    if (breakerResult.shouldStepDown) {
+      console.log(
+        `[circuit-breaker] WOULD step down user ${user.id} from ` +
+          `${breakerResult.fromDifficulty} to ${breakerResult.overrideDifficulty} ` +
+          `on problem ${session.problem_id}. ${breakerResult.reason}`,
+      );
+    }
   } catch (err) {
-    console.error("Mastery update failed:", err.message);
+    // Never let observability break grading.
+    console.error("Circuit breaker check failed (non-fatal):", err.message);
   }
 
-  // 7. Return verdict.
+  // 6. Return verdict.
   return NextResponse.json({
     submissionId: submission.id,
     passedCount,

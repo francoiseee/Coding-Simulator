@@ -222,7 +222,7 @@ def build_feature_rows(
     agg["attempted_at"] = pd.to_datetime(agg["first_timestamp"], utc=True)
 
     # Complexity from last submission's code.
-    print("\nEstimating time complexity from source code …")
+    print("\nEstimating procedural complexity from source code …")
     complexity_df = estimate_complexity_for_last_submission(submits, code_df)
     agg = agg.merge(complexity_df, on=["SubjectID", "ProblemID"], how="left")
     agg["complexity_score"] = agg["complexity_score"].fillna(NOT_IMPLEMENTED_SENTINEL)

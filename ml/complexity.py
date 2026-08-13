@@ -1,11 +1,20 @@
 """
-complexity.py — Feature 4: estimated time complexity.
+complexity.py — Feature 4: estimated procedural complexity.
 
-STATUS: IMPLEMENTED. Pending AI expert review of the method itself (see
-Codely_Decision_Feature4.md open items) before any run trained on this feature
-is reported as final. The pipeline can now run end to end, including saving a
-model — that guard was about the STUB, not about review sign-off. Treat any
-model trained before review as internal validation, not a defensible result.
+Renamed from "Time Complexity Estimator" to "Procedural Complexity Estimator"
+per Mr. Arnaz De Jesus's expert review sign-off (08 Aug 2026): the method is
+structural/procedural static analysis (loop nesting, recursion shape, sort
+calls), not true asymptotic time-complexity analysis, and the new name
+reflects that more accurately. See Codely_Decision_ExpertSignOff_Aug2026.docx.
+This is a naming change only — the method, bucket definitions, and documented
+limitations below are unchanged.
+
+STATUS: IMPLEMENTED AND REVIEWED. Approved as-is by Mr. Arnaz De Jesus on
+08 Aug 2026 (see Codely_Decision_ExpertSignOff_Aug2026.docx). REVIEWED_BY_EXPERT
+in ml/config.py was flipped to True on 12 Aug 2026 covering this feature and
+the M0 two-class model together. A trained model saved from this point forward
+carries that sign-off; a model saved before 12 Aug 2026 should be treated as
+internal validation only, not a defensible result.
 
 METHOD
 ------
@@ -93,9 +102,11 @@ the limitations section — do not let a panelist discover them first:
 
 DO NOT SHIP A TRAINED MODEL BUILT ON THE STUB.
 That guard in train_model.py checked IS_IMPLEMENTED, which is now True because
-the interface is genuinely implemented. It does not mean the AI expert has
-signed off on the method — track that separately via the decision record's
-open items before treating a trained model as final for the paper.
+the interface is genuinely implemented. Separately, REVIEWED_BY_EXPERT in
+ml/config.py gates whether a model is allowed to save at all — that flag is
+now True as of 12 Aug 2026, recording the expert sign-off referenced at the
+top of this file. Anything saved before that date predates review and should
+not be treated as final for the paper.
 """
 
 from __future__ import annotations
@@ -271,7 +282,7 @@ def _bucket_from_source(source_code: str) -> int:
 
 def estimate_complexity(source_code: str) -> int:
     """
-    Estimate the time complexity of a student's solution.
+    Estimate the procedural complexity of a student's solution.
 
     Returns an ordinal bucket 0-3 (higher = more complex), or
     NOT_IMPLEMENTED_SENTINEL when no real value is available (empty/non-string

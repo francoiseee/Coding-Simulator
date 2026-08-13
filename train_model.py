@@ -50,6 +50,7 @@ from sklearn.model_selection import GroupShuffleSplit
 from ml import complexity
 from ml.config import (
     DIFFICULTY_ORDER,
+    EXPERT_REVIEW_DATE,
     EXPERT_REVIEW_NOTE,
     FEATURE_COLUMNS,
     GROUP_COLUMN,
@@ -265,7 +266,7 @@ def main():
     # Guard: refuse to train on a stub feature.
     if not complexity.IS_IMPLEMENTED:
         print("\n" + "!" * 62)
-        print("BLOCKED: feature 4 (time complexity) is not implemented.")
+        print("BLOCKED: feature 4 (procedural complexity) is not implemented.")
         print("!" * 62)
         print("\ncomplexity.estimate_complexity() returns a constant sentinel, so")
         print("complexity_score carries no information. Training now would produce")
@@ -357,6 +358,9 @@ def main():
 
     meta = {
         "trained_at": datetime.now(timezone.utc).isoformat(),
+        "reviewed_by_expert": REVIEWED_BY_EXPERT,
+        "expert_review_date": EXPERT_REVIEW_DATE,
+        "expert_review_note": EXPERT_REVIEW_NOTE,
         "rule_version": RULE_VERSION,
         "random_state": RANDOM_STATE,
         "test_size_students": TEST_SIZE,

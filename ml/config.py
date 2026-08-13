@@ -82,7 +82,7 @@ FEATURE_COLUMNS = [
     "correctness_rate",      # 1. submissions.score_percentage (best attempt)
     "runtime_ms",            # 2. mean runtime across test cases
     "attempts",              # 3. submission count for this problem attempt
-    "complexity_score",      # 4. estimated time complexity — NOT YET BUILT
+    "complexity_score",      # 4. estimated procedural complexity (ml/complexity.py)
     "prev_difficulty_ord",   # 5. difficulty of the preceding problem, ordinal
 ]
 
@@ -109,12 +109,19 @@ DATA_CUTOFF_ISO = "2026-08-06T00:00:00+00:00"
 # to write a .joblib / metadata file while this is False. Flip it only after
 # the review happens, and fill in the two lines below when you do — that
 # record is what makes "reviewed" checkable later rather than just claimed.
-REVIEWED_BY_EXPERT = False
-EXPERT_REVIEW_DATE = None      # e.g. "2026-08-14"
+REVIEWED_BY_EXPERT = True
+EXPERT_REVIEW_DATE = "2026-08-12"      # M0 two-class sign-off (email). Complexity
+                                        # Estimator (F4) itself was signed off 2026-08-08.
 EXPERT_REVIEW_NOTE = (
-    "Pending as of 7 Aug 2026 — complexity.py's loop-nesting + recursion + "
-    "sort-detection method has not yet been reviewed by Mr. de Jesus. "
-    "See Codely_Decision_Feature4.md open items."
+    "Reviewed by Mr. Arnaz De Jesus (Shore360 Agency). Complexity Estimator "
+    "(F4) approved as-is 08 Aug 2026 (renamed 'Procedural Complexity Estimator' "
+    "per his note). M0 two-class architecture, and F4's 0.093 contribution to "
+    "it, approved as-is 12 Aug 2026. Two items were CONDITIONALLY approved and "
+    "remain open as separate action items, not blockers on this flag: (1) "
+    "labeling rule thresholds (WELL/STRUGGLED) — bounce rates must be actively "
+    "monitored during Group 1; (2) M0 metrics as baseline — the Easy-to-Medium "
+    "bias must be explicitly documented in Ch. 4/5 before reporting. See "
+    "Codely_Decision_ExpertSignOff_Aug2026.docx for full record and action items."
 )
 
 # ─── Random Forest hyperparameters ────────────────────────────────────────────
