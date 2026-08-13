@@ -314,6 +314,7 @@
 
 .chartSplitRow {
   display: flex;
+  flex-direction: column;
   gap: 32px;
   align-items: stretch;
 }
@@ -331,8 +332,10 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border-left: 1px solid var(--card-border);
-  padding-left: 32px;
+  border-left: none;
+  padding-left: 0;
+  border-top: 1px solid var(--card-border);
+  padding-top: 22px;
 }
 
 .chartRightCol .cardTitle {
@@ -341,18 +344,6 @@
 
 .chartViewAllPill {
   align-self: flex-end;
-}
-
-@media (max-width: 900px) {
-  .chartSplitRow {
-    flex-direction: column;
-  }
-  .chartRightCol {
-    border-left: none;
-    padding-left: 0;
-    border-top: 1px solid var(--card-border);
-    padding-top: 22px;
-  }
 }
 
 .donutBlock {

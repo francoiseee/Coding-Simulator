@@ -5,11 +5,11 @@ import styles from "./Progress.module.css";
 
 export default function Progress({ summary, summaryStatus }) {
   const [aiPage, setAiPage] = useState(0);
-  const [activeTab, setActiveTab] = useState("progress"); // "progress" | "mastery"
+  const [activeTab, setActiveTab] = useState("progress"); // "progress" | "diagnostic"
 
   const hasResults = summaryStatus === "ready" && summary?.hasCompletedDiagnostic;
   const concepts = summary?.concepts ?? [];
-  const masteryConcepts = summary?.masteryConcepts ?? [];
+  const allConcepts = summary?.allConcepts ?? [];
   const tier = summary?.tier ?? "Not Yet Assessed";
   const aiReport = summary?.aiReport ?? null;
   const structured = aiReport?.structured;
@@ -138,10 +138,10 @@ export default function Progress({ summary, summaryStatus }) {
           </button>
           <button
             type="button"
-            className={`${styles.tabButton} ${activeTab === "mastery" ? styles.tabButtonActive : ""}`}
-            onClick={() => setActiveTab("mastery")}
+            className={`${styles.tabButton} ${activeTab === "diagnostic" ? styles.tabButtonActive : ""}`}
+            onClick={() => setActiveTab("diagnostic")}
           >
-            Current Mastery
+            Diagnostic Results
           </button>
         </div>
       )}
@@ -219,61 +219,56 @@ export default function Progress({ summary, summaryStatus }) {
         </div>
       )}
 
-      {hasResults && activeTab === "mastery" && (
+      {hasResults && activeTab === "diagnostic" && (
         <div className={styles.progressRow}>
           <section className={styles.chartCard}>
             <div>
-              <h2 className={styles.cardTitle}>Current Mastery</h2>
+              <h2 className={styles.cardTitle}>Diagnostic Results</h2>
               <p className={styles.cardDesc}>
-                Your live mastery estimate per concept — updates as you practice.
+                Your per-concept results from the latest diagnostic.
               </p>
             </div>
 
-            {masteryConcepts.length === 0 && (
+            {allConcepts.length === 0 && (
               <p className={styles.aiEmpty}>
-                Complete your diagnostic to start building your mastery profile.
+                Complete your diagnostic to see your results.
               </p>
             )}
 
-            {masteryConcepts.length > 0 && (
+            {allConcepts.length > 0 && (
               <div className={styles.chartList}>
-                {masteryConcepts.map((m) => {
-                  const masteryColor =
-                    m.masteryScore > 70
+                {allConcepts.map((c) => {
+                  const barColor =
+                    c.classification === "strong"
                       ? "var(--accent-teal)"
-                      : m.masteryScore >= 50
-                        ? "#f59e0b"
-                        : "#ef4444";
+                      : c.classification === "weak"
+                        ? "#ef4444"
+                        : c.classification === "needs_practice"
+                          ? "#f59e0b"
+                          : "var(--accent-cyan)";
                   return (
                     <div
-                      key={m.conceptId}
-                      className={styles.masteryRow}
-                      title={`${m.name}: ${Math.round(m.masteryScore)}%`}
+                      key={c.conceptId}
+                      className={styles.chartRow}
+                      title={`${c.name}: ${c.scorePercentage}%`}
                     >
-                      <span className={styles.chartLabel}>{m.name}</span>
+                      <span className={styles.chartLabel}>{c.name}</span>
                       <div className={styles.chartBarTrack}>
                         <div
                           className={styles.chartBarFill}
                           style={{
-                            width: `${m.masteryScore}%`,
-                            backgroundColor: masteryColor,
+                            width: `${c.scorePercentage}%`,
+                            backgroundColor: barColor,
                           }}
                         />
                       </div>
+                      <span
+                        className={styles.chartStatusDot}
+                        style={{ backgroundColor: barColor }}
+                      />
                       <span className={styles.chartPct}>
-                        {Math.round(m.masteryScore)}%
+                        {c.scorePercentage}%
                       </span>
-                      <div className={styles.masteryMeta}>
-                        {m.practiced && (
-                          <span className={styles.masteryBadge}>Practiced</span>
-                        )}
-                        {m.diagnosticBaseline != null &&
-                          m.masteryScore !== m.diagnosticBaseline && (
-                            <span className={styles.masteryDelta}>
-                              from {Math.round(m.diagnosticBaseline)}%
-                            </span>
-                          )}
-                      </div>
                     </div>
                   );
                 })}

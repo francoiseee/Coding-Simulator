@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styles from "./Dashboard.module.css";
+import progressStyles from "./Progress.module.css";
+import MasteryBarRow from "./MasteryBarRow";
 import Progress from "./Progress";
 import Recommendation from "./Recommendation";
 import Support from "./Support";
@@ -14,7 +16,6 @@ export default function Dashboard({ email }) {
   const [summary, setSummary] = useState(null);
   const [summaryStatus, setSummaryStatus] = useState("loading"); // loading | ready | error
   const [showAllConcepts, setShowAllConcepts] = useState(false);
-  const [showChartDetails, setShowChartDetails] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -58,14 +59,14 @@ export default function Dashboard({ email }) {
     summaryStatus === "ready" && summary?.hasCompletedDiagnostic;
   const weakest = summary?.weakest ?? [];
   const allConcepts = summary?.allConcepts ?? [];
+  const masteryConcepts = summary?.masteryConcepts ?? [];
   const recommendedProblems = summary?.recommendedProblems ?? [];
   // Pick a real "focus" concept for the learning path — the single weakest area.
   const focusConcept = weakest[0];
 
   const goToProblem = (slug) => router.push(`/practice/${slug}`);
 
-  // Status colors double as the meter fill and the donut slice — one legend,
-  // one meaning, reused everywhere a concept's classification is drawn.
+  // Status colors reused everywhere a concept's classification is drawn.
   const STATUS_META = {
     strong: { label: "Strong", color: "var(--accent-teal)" },
     developing: { label: "Developing", color: "var(--accent-cyan)" },
@@ -73,35 +74,9 @@ export default function Dashboard({ email }) {
     weak: { label: "Weak", color: "#ef4444" },
     insufficient_evidence: { label: "Not Assessed", color: "#57657a" },
   };
-  const getStatusMeta = (classification) =>
-    STATUS_META[classification] || STATUS_META.insufficient_evidence;
-
-  // Donut geometry: one ring, one gap width, slices ordered to match the
-  // legend below it so color always lands next to its label.
-  const DONUT_RADIUS = 42;
-  const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
-  const DONUT_GAP = 3;
   const conceptTotal = allConcepts.length || 1;
-  let donutCumulative = 0;
-  const donutSlices = Object.keys(STATUS_META)
-    .map((key) => ({
-      key,
-      ...STATUS_META[key],
-      count: allConcepts.filter((c) => c.classification === key).length,
-    }))
-    .filter((slice) => slice.count > 0)
-    .map((slice) => {
-      const sliceLength = (slice.count / conceptTotal) * DONUT_CIRCUMFERENCE;
-      const rotation = (donutCumulative / DONUT_CIRCUMFERENCE) * 360 - 90;
-      donutCumulative += sliceLength;
-      return {
-        ...slice,
-        rotation,
-        dasharray: `${Math.max(sliceLength - DONUT_GAP, 0)} ${DONUT_CIRCUMFERENCE}`,
-      };
-    });
 
-  // Same status buckets as the donut, reused to group the "All Concepts"
+  // Same status buckets used to group the "All Concepts"
   // modal so it reads as one system with the chart instead of a flat list.
   const conceptGroups = Object.keys(STATUS_META)
     .map((key) => ({
@@ -329,10 +304,10 @@ export default function Dashboard({ email }) {
                 </div>
               </div>
 
-              {/* Skill Growth Chart + Learning Path — one card, split in two */}
+              {/* Current Mastery + Learning Path — one card, split in two */}
               <article className={styles.chartCard}>
                 <div className={styles.chartSplitRow}>
-                  {/* Left: donut + view all + legend */}
+                  {/* Left: live mastery bars, one row per tracked concept */}
                   <div className={styles.chartLeftCol}>
                     <div className={styles.chartTitleWrapper}>
                       <svg
@@ -349,94 +324,24 @@ export default function Dashboard({ email }) {
                         <path d="M23 6l-9.5 9.5-5-5L1 18" />
                         <polyline points="17 6 23 6 23 12" />
                       </svg>
-                      <h3 className={styles.cardTitle}>Skill Growth Chart</h3>
+                      <h3 className={styles.cardTitle}>Current Mastery</h3>
                     </div>
 
-                    {!hasResults ? (
+                    <div className={styles.dropdownPill}>
+                      {masteryConcepts.length > 0 ? "Live estimate" : "No Data Yet"}
+                    </div>
+
+                    {masteryConcepts.length === 0 ? (
                       <div className={styles.chartEmpty}>
-                        Complete your diagnostic to see your skill breakdown.
+                        Complete your diagnostic to start building your mastery
+                        profile.
                       </div>
                     ) : (
-                      <>
-                        <div className={styles.donutBlock}>
-                          <svg
-                            className={styles.donutSvg}
-                            viewBox="0 0 100 100"
-                            width="150"
-                            height="150"
-                          >
-                            <circle
-                              cx="50"
-                              cy="50"
-                              r={DONUT_RADIUS}
-                              fill="none"
-                              stroke="rgba(255, 255, 255, 0.06)"
-                              strokeWidth="10"
-                            />
-                            {donutSlices.map((slice) => (
-                              <circle
-                                key={slice.key}
-                                cx="50"
-                                cy="50"
-                                r={DONUT_RADIUS}
-                                fill="none"
-                                stroke={slice.color}
-                                strokeWidth="10"
-                                strokeLinecap="round"
-                                strokeDasharray={slice.dasharray}
-                                transform={`rotate(${slice.rotation} 50 50)`}
-                                className={styles.donutSlice}
-                              >
-                                <title>
-                                  {slice.label}: {slice.count} concept
-                                  {slice.count === 1 ? "" : "s"}
-                                </title>
-                              </circle>
-                            ))}
-                          </svg>
-                          <div className={styles.donutCenter}>
-                            <span className={styles.donutScore}>
-                              {summary.overallScorePercentage}%
-                            </span>
-                            <span className={styles.donutScoreLabel}>Overall</span>
-                          </div>
-                        </div>
-
-                        <ul className={styles.donutLegend}>
-                          {Object.keys(STATUS_META).map((key) => {
-                            const meta = STATUS_META[key];
-                            const count = allConcepts.filter(
-                              (c) => c.classification === key,
-                            ).length;
-                            return (
-                              <li
-                                key={key}
-                                className={styles.donutLegendItem}
-                                style={{ opacity: count > 0 ? 1 : 0.35 }}
-                              >
-                                <span
-                                  className={styles.donutLegendDot}
-                                  style={{ backgroundColor: meta.color }}
-                                />
-                                <span className={styles.donutLegendLabel}>
-                                  {meta.label}
-                                </span>
-                                <span className={styles.donutLegendCount}>
-                                  {count}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-
-                        <button
-                          type="button"
-                          className={`${styles.dropdownPill} ${styles.chartViewAllPill}`}
-                          onClick={() => setShowChartDetails(true)}
-                        >
-                          View all
-                        </button>
-                      </>
+                      <div className={progressStyles.chartList}>
+                        {masteryConcepts.map((m) => (
+                          <MasteryBarRow key={m.conceptId} concept={m} />
+                        ))}
+                      </div>
                     )}
                   </div>
 
@@ -535,88 +440,6 @@ export default function Dashboard({ email }) {
                     )}
                   </div>
                 </div>
-
-                {showChartDetails &&
-                    hasResults &&
-                    typeof document !== "undefined" &&
-                    createPortal(
-                      <div
-                        className={styles.modalBackdrop}
-                        onClick={() => setShowChartDetails(false)}
-                      >
-                        <div
-                          className={styles.modalCard}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className={styles.modalHeader}>
-                            <div className={styles.modalHeaderText}>
-                              <h3 className={styles.modalTitle}>
-                                Latest Diagnostic
-                              </h3>
-                              <p className={styles.modalSubtitle}>
-                                {allConcepts.length} concepts ·{" "}
-                                {summary.overallScorePercentage}% overall
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              className={styles.modalClose}
-                              onClick={() => setShowChartDetails(false)}
-                              aria-label="Close"
-                            >
-                              <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <line x1="18" y1="6" x2="6" y2="18" />
-                                <line x1="6" y1="6" x2="18" y2="18" />
-                              </svg>
-                            </button>
-                          </div>
-                          <div className={styles.modalBody}>
-                            <div className={styles.barChart}>
-                              {allConcepts.map((c) => {
-                                const meta = getStatusMeta(c.classification);
-                                return (
-                                  <div
-                                    key={c.conceptId}
-                                    className={styles.barRow}
-                                    title={`${c.name}: ${c.scorePercentage}% — ${c.classificationLabel}`}
-                                  >
-                                    <span className={styles.barLabel}>
-                                      {c.name}
-                                    </span>
-                                    <div className={styles.barTrack}>
-                                      <div
-                                        className={styles.barFill}
-                                        style={{
-                                          width: `${c.scorePercentage}%`,
-                                          backgroundColor: meta.color,
-                                        }}
-                                      />
-                                    </div>
-                                    <span
-                                      className={styles.barStatusDot}
-                                      style={{ backgroundColor: meta.color }}
-                                    />
-                                    <span className={styles.barPct}>
-                                      {c.scorePercentage}%
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      </div>,
-                      document.body,
-                    )}
 
                 {showAllConcepts &&
                   typeof document !== "undefined" &&
