@@ -227,6 +227,15 @@ export default function Progress({ summary, summaryStatus }) {
               <p className={styles.cardDesc}>
                 Your per-concept results from the latest diagnostic.
               </p>
+              {summary?.latestAttempt?.completedAt && (
+                <p className={styles.diagnosticDate}>
+                  Taken {new Date(summary.latestAttempt.completedAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+              )}
             </div>
 
             {allConcepts.length === 0 && (

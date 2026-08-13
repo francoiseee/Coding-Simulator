@@ -144,6 +144,15 @@
   margin-top: 0;
 }
 
+.diagnosticDate {
+  display: block;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+  margin-top: 0.25rem;
+}
+
 .donutRow {
   display: flex;
   flex-wrap: wrap;
