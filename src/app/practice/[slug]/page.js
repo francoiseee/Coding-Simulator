@@ -432,9 +432,11 @@ export default function PracticeProblemPage() {
         {inst.answer.isSkipped ? "(skipped)" : inst.answer.answerText}
       </p>
       <div className={styles.reflectFeedbackBox}>
-        <span className={styles.reflectScore}>
-          Understanding: {inst.answer.aiScore} / 5
-        </span>
+        {inst.answer.aiScore != null && (
+          <span className={styles.reflectScore}>
+            Understanding: {inst.answer.aiScore} / 5
+          </span>
+        )}
         {inst.answer.aiFeedback && (
           <p className={styles.reflectFeedback}>{inst.answer.aiFeedback}</p>
         )}
@@ -853,6 +855,34 @@ export default function PracticeProblemPage() {
                   }
                 >
                   Skip
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reflection review — shows AI feedback before the verdict */}
+      {reflectState === "reviewing" && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.reflectModal}>
+            <div className={styles.reflectModalContent}>
+              <p className={styles.reflectModalLabel}>
+                Feedback on your reasoning
+              </p>
+              {reflectInstances
+                .filter((inst) => inst.isAnswered)
+                .map((inst) => renderEvaluated(inst))}
+              <div className={styles.reflectActions}>
+                <button
+                  type="button"
+                  className={styles.reflectSubmitBtn}
+                  onClick={() => {
+                    setReflectState("idle");
+                    runGrading();
+                  }}
+                >
+                  Continue to results →
                 </button>
               </div>
             </div>
