@@ -176,6 +176,11 @@ export default function PracticeProblemPage() {
     setRunState("running");
     setRunResult(null);
     setRunError("");
+    // Clear any prior graded result so the terminal reflects this run, not a
+    // stale submission. The run branches render only while submitState is idle.
+    setSubmitResult(null);
+    setSubmitState("idle");
+    setSubmitError("");
     try {
       const res = await fetch("/api/practice/run", {
         method: "POST",
@@ -282,7 +287,13 @@ export default function PracticeProblemPage() {
         `/api/practice/reflect?sessionId=${sessionId}`,
       );
       const refreshedData = await refreshed.json();
-      if (refreshed.ok && refreshedData.instances?.length) {
+      const evaluated = (refreshedData.instances || []).filter(
+        (i) => i.isEvaluated,
+      );
+      // Only pause to show feedback if Step 34 actually produced a score. If it
+      // degraded (no evaluated answers), don't show an empty feedback modal —
+      // proceed straight to grading.
+      if (refreshed.ok && evaluated.length > 0) {
         setReflectInstances(refreshedData.instances);
         setReflectState("reviewing");
         return;
@@ -533,23 +544,38 @@ export default function PracticeProblemPage() {
           </button>
         </nav>
 
-        <button
-          type="button"
-          className={styles.submitBtn}
-          onClick={handleRunClick}
-          disabled={
-            submitState === "running" ||
-            reflectState === "loading" ||
-            reflectState === "asking" ||
-            reflectState === "saving"
-          }
-        >
-          {submitState === "running"
-            ? "Running…"
-            : reflectState === "loading"
-              ? "Loading…"
-              : "Submit Code"}
-        </button>
+        <div className={styles.actionButtons}>
+          <button
+            type="button"
+            className={styles.runBtn}
+            onClick={handleRunCode}
+            disabled={
+              runState === "running" ||
+              submitState === "running" ||
+              reflectState === "asking" ||
+              reflectState === "saving"
+            }
+          >
+            {runState === "running" ? "Running…" : "Run Code"}
+          </button>
+          <button
+            type="button"
+            className={styles.submitBtn}
+            onClick={handleRunClick}
+            disabled={
+              submitState === "running" ||
+              reflectState === "loading" ||
+              reflectState === "asking" ||
+              reflectState === "saving"
+            }
+          >
+            {submitState === "running"
+              ? "Running…"
+              : reflectState === "loading"
+                ? "Loading…"
+                : "Submit Code"}
+          </button>
+        </div>
 
         <div className={styles.sidebarFooter}>
           <button
@@ -705,15 +731,48 @@ export default function PracticeProblemPage() {
           <div className={styles.terminalHeader}>
             <span className={styles.terminalTitle}>OUTPUT TERMINAL</span>
             <span className={styles.terminalStatus}>
-              {submitState === "running" ? "Running…" : "Ready"}
+              {submitState === "running" || runState === "running"
+                ? "Running…"
+                : "Ready"}
             </span>
           </div>
           <div className={styles.terminalBody}>
-            {submitState === "idle" && (
+            {submitState === "idle" && runState === "idle" && (
               <span className={styles.terminalPlaceholder}>
-                Submit your code to see test results here.
+                Run your code against the sample tests, or submit for grading.
               </span>
             )}
+
+            {/* Run (ungraded) output — sample tests only. */}
+            {submitState === "idle" && runState === "running" && (
+              <span className={styles.terminalLine}>Running sample tests…</span>
+            )}
+            {submitState === "idle" && runState === "error" && (
+              <span className={styles.terminalError}>{runError}</span>
+            )}
+            {submitState === "idle" && runState === "done" && runResult && (
+              <div className={styles.terminalResults}>
+                <span className={styles.terminalRunLabel}>
+                  RUN (UNGRADED) — {runResult.passedCount}/
+                  {runResult.totalTests} PASSED ON SAMPLE TESTS
+                </span>
+                {runResult.results.map((r, i) => (
+                  <div
+                    key={i}
+                    className={`${styles.terminalLine} ${r.passed ? styles.terminalPass : styles.terminalFail}`}
+                  >
+                    <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
+                    <span>
+                      Test {i + 1}: input {formatInput(r.input)} → expected{" "}
+                      {formatValue(r.expected)}
+                      {!r.passed && r.actual != null ? `, got ${r.actual}` : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Submit (graded) output. */}
             {submitState === "running" && (
               <span className={styles.terminalLine}>Running tests…</span>
             )}
@@ -849,6 +908,51 @@ export default function PracticeProblemPage() {
                   }
                 >
                   Skip
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reflection feedback (reviewing) — shows the Step 34 evaluation of the
+          answer the student just submitted, BEFORE the grading verdict. The
+          only place this feedback is ever surfaced. Continue proceeds to grade. */}
+      {reflectState === "reviewing" && (
+        <div className={styles.modalBackdrop}>
+          <div className={styles.reflectModal}>
+            <div className={styles.reflectModalIcon}>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M9 11l3 3L22 4" />
+                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+              </svg>
+            </div>
+            <div className={styles.reflectModalContent}>
+              <p className={styles.reflectModalLabel}>
+                Feedback on your reasoning
+              </p>
+              {reflectInstances
+                .filter((inst) => inst.isEvaluated)
+                .map((inst) => renderEvaluated(inst))}
+              <div className={styles.reflectActions}>
+                <button
+                  type="button"
+                  className={styles.reflectSubmitBtn}
+                  onClick={async () => {
+                    setReflectState("idle");
+                    await runGrading();
+                  }}
+                >
+                  Continue to results
                 </button>
               </div>
             </div>

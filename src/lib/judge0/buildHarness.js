@@ -370,45 +370,67 @@ export function compareResult(stdout, expectedOutput, mode) {
   }
 
   // JSON-normalised comparison for return / methods / multi_function.
+  // stdout is JSON text (json.dumps); expectedOutput is a native jsonb value.
   return {
-    passed: normalizeForCompare(stdout) === normalizeForCompare(expectedOutput),
+    passed:
+      canonicalizeForCompare(stdout, true) ===
+      canonicalizeForCompare(expectedOutput, false),
     actualDisplay: (stdout ?? "").trim(),
   };
 }
 
 /**
- * Normalize a value for comparison by round-tripping through JSON with
- * object keys sorted recursively. Sorting keys makes the comparison
- * order-independent for dicts (e.g. an inverted index where
- * {"cat":...,"the":...} and {"the":...,"cat":...} are the same result).
- * Array order is preserved, since list order is usually semantically
- * meaningful; problems where it isn't already canonicalise via a
- * 'sort_lists' then-step in the harness.
+ * Normalize a value for comparison by round-tripping through JSON.
  * Both the harness stdout and the expected_output are compared this way
  * (except stdout mode, which uses raw string comparison via compareResult).
  */
-export function normalizeForCompare(value) {
-  const sortKeys = (v) => {
-    if (Array.isArray(v)) {
-      return v.map(sortKeys);
+/**
+ * Canonicalize a value to a comparable JSON form.
+ *
+ * The two sides of a comparison arrive in DIFFERENT shapes, so they must be
+ * canonicalized differently:
+ *
+ *   - `actual` (Judge0 stdout) is always JSON TEXT, because the harness emits
+ *     results via json.dumps(). A string result therefore arrives quoted:
+ *     "H*LL* W*RLD".  Pass fromStdout=true so it is JSON.parsed back to a
+ *     native value first.
+ *
+ *   - `expected_output` is a jsonb column, so the Supabase client already hands
+ *     us the native JS value (the string  H*LL* W*RLD  with no quote chars, or
+ *     the number 42, or a list).  Pass fromStdout=false so it is used as-is.
+ *
+ * Both are then JSON.stringified once, yielding the same canonical form for
+ * equal values. This is correct even for look-alike strings: a function that
+ * returns the STRING "42" emits "42" on stdout (parses back to the string
+ * "42"), and its expected_output is the JS string "42" — both canonicalize to
+ * "\"42\"", distinct from the NUMBER 42 which canonicalizes to "42".
+ */
+export function canonicalizeForCompare(value, fromStdout) {
+  if (fromStdout) {
+    if (typeof value !== "string") return JSON.stringify(value);
+    const trimmed = value.trim();
+    try {
+      // Normal path: harness stdout is valid JSON text.
+      return JSON.stringify(JSON.parse(trimmed));
+    } catch {
+      // Defensive: stdout wasn't JSON (e.g. a raw print in a return-mode
+      // problem). Treat it as the literal string it is.
+      return JSON.stringify(trimmed);
     }
-    if (v !== null && typeof v === "object") {
-      return Object.keys(v)
-        .sort()
-        .reduce((acc, k) => {
-          acc[k] = sortKeys(v[k]);
-          return acc;
-        }, {});
-    }
-    return v;
-  };
-
-  try {
-    const parsed = typeof value === "string" ? JSON.parse(value) : value;
-    return JSON.stringify(sortKeys(parsed));
-  } catch {
-    return String(value).trim();
   }
+  // Expected side: already a native JS value from jsonb. Stringify directly.
+  // Do NOT JSON.parse strings here — that would turn the STRING "42" into the
+  // NUMBER 42 and reintroduce the type mismatch.
+  return JSON.stringify(value);
+}
+
+/**
+ * @deprecated Kept for callers that compare two already-native values. Prefer
+ * canonicalizeForCompare with an explicit side. Treats input as an
+ * expected-style native value.
+ */
+export function normalizeForCompare(value) {
+  return canonicalizeForCompare(value, false);
 }
 
 /**
