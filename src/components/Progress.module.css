@@ -77,6 +77,36 @@
   color: var(--text-muted);
 }
 
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.tabButton {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 12px 4px;
+  margin-bottom: -1px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.tabButton:hover {
+  color: var(--text-secondary);
+}
+
+.tabButtonActive {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+}
+
 /* Concept Mastery + AI Report side by side so neither needs a page scroll */
 .progressRow {
   display: grid;
@@ -98,17 +128,20 @@
 }
 
 .cardTitle {
+  display: block;
   font-family: var(--font-outfit), sans-serif;
   font-size: 1.15rem;
   font-weight: 750;
   color: var(--text-primary);
+  margin: 0 0 4px 0;
 }
 
 .cardDesc {
+  display: block;
   font-family: var(--font-inter), sans-serif;
   font-size: 0.82rem;
   color: var(--text-muted);
-  margin-top: -12px;
+  margin-top: 0;
 }
 
 .donutRow {
@@ -249,6 +282,41 @@
   font-weight: 700;
   color: var(--text-muted);
   text-align: right;
+}
+
+.masteryRow {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) 1fr 40px auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.masteryMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: end;
+}
+
+.masteryBadge {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-teal);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 99px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.masteryDelta {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 
@@ -466,6 +534,9 @@
 @media (max-width: 640px) {
   .chartRow {
     grid-template-columns: minmax(0, 100px) 1fr 8px 36px;
+  }
+  .masteryRow {
+    grid-template-columns: minmax(0, 100px) 1fr 36px auto;
   }
   .statsBanner {
     padding: 20px 16px;

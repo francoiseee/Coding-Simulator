@@ -5,9 +5,11 @@ import styles from "./Progress.module.css";
 
 export default function Progress({ summary, summaryStatus }) {
   const [aiPage, setAiPage] = useState(0);
+  const [activeTab, setActiveTab] = useState("progress"); // "progress" | "mastery"
 
   const hasResults = summaryStatus === "ready" && summary?.hasCompletedDiagnostic;
   const concepts = summary?.concepts ?? [];
+  const masteryConcepts = summary?.masteryConcepts ?? [];
   const tier = summary?.tier ?? "Not Yet Assessed";
   const aiReport = summary?.aiReport ?? null;
   const structured = aiReport?.structured;
@@ -126,6 +128,25 @@ export default function Progress({ summary, summaryStatus }) {
       )}
 
       {hasResults && (
+        <div className={styles.tabBar}>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeTab === "progress" ? styles.tabButtonActive : ""}`}
+            onClick={() => setActiveTab("progress")}
+          >
+            My Progress
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeTab === "mastery" ? styles.tabButtonActive : ""}`}
+            onClick={() => setActiveTab("mastery")}
+          >
+            Current Mastery
+          </button>
+        </div>
+      )}
+
+      {hasResults && activeTab === "progress" && (
         <div className={styles.progressRow}>
           {/* AI Diagnostic Report */}
           {structured && aiPages.length > 0 && (
@@ -195,6 +216,70 @@ export default function Progress({ summary, summaryStatus }) {
               </p>
             </section>
           )}
+        </div>
+      )}
+
+      {hasResults && activeTab === "mastery" && (
+        <div className={styles.progressRow}>
+          <section className={styles.chartCard}>
+            <div>
+              <h2 className={styles.cardTitle}>Current Mastery</h2>
+              <p className={styles.cardDesc}>
+                Your live mastery estimate per concept — updates as you practice.
+              </p>
+            </div>
+
+            {masteryConcepts.length === 0 && (
+              <p className={styles.aiEmpty}>
+                Complete your diagnostic to start building your mastery profile.
+              </p>
+            )}
+
+            {masteryConcepts.length > 0 && (
+              <div className={styles.chartList}>
+                {masteryConcepts.map((m) => {
+                  const masteryColor =
+                    m.masteryScore > 70
+                      ? "var(--accent-teal)"
+                      : m.masteryScore >= 50
+                        ? "#f59e0b"
+                        : "#ef4444";
+                  return (
+                    <div
+                      key={m.conceptId}
+                      className={styles.masteryRow}
+                      title={`${m.name}: ${Math.round(m.masteryScore)}%`}
+                    >
+                      <span className={styles.chartLabel}>{m.name}</span>
+                      <div className={styles.chartBarTrack}>
+                        <div
+                          className={styles.chartBarFill}
+                          style={{
+                            width: `${m.masteryScore}%`,
+                            backgroundColor: masteryColor,
+                          }}
+                        />
+                      </div>
+                      <span className={styles.chartPct}>
+                        {Math.round(m.masteryScore)}%
+                      </span>
+                      <div className={styles.masteryMeta}>
+                        {m.practiced && (
+                          <span className={styles.masteryBadge}>Practiced</span>
+                        )}
+                        {m.diagnosticBaseline != null &&
+                          m.masteryScore !== m.diagnosticBaseline && (
+                            <span className={styles.masteryDelta}>
+                              from {Math.round(m.diagnosticBaseline)}%
+                            </span>
+                          )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       )}
     </div>

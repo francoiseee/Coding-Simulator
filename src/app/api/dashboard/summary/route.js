@@ -97,6 +97,7 @@ export async function GET() {
       strongest: [],
       weakest: [],
       recommendedProblems: [],
+      masteryConcepts: [],
       overallScorePercentage: null,
       tier: "Not Yet Assessed",
     });
@@ -148,6 +149,47 @@ export async function GET() {
   const weakest = needsWork.slice(0, 3);
   const strongest = [...judged].reverse().slice(0, 3);
   const allConcepts = concepts; // all 16, weakest first
+
+  // Live concept mastery — the EWMA estimate that both diagnostic and practice
+  // feed into. Distinct from attempt_concept_results, which is a fixed snapshot
+  // of the diagnostic. last_practiced_at != null means the concept has been
+  // exercised through coding practice beyond its diagnostic baseline.
+  const { data: masteryRows, error: masteryError } = await supabase
+    .from("user_concept_mastery")
+    .select(`
+      concept_id,
+      mastery_score,
+      evidence_count,
+      last_practiced_at,
+      updated_at,
+      concepts ( name, category )
+    `)
+    .order("mastery_score", { ascending: true });
+
+  if (masteryError) {
+    return NextResponse.json(
+      { error: "Could not load concept mastery." },
+      { status: 500 },
+    );
+  }
+
+  // Diagnostic baseline per concept, so the UI can show baseline vs. current.
+  const baselineByConcept = new Map(
+    concepts.map((c) => [c.conceptId, c.scorePercentage]),
+  );
+
+  const masteryConcepts = (masteryRows || []).map((m) => ({
+    conceptId: m.concept_id,
+    name: m.concepts?.name ?? null,
+    category: m.concepts?.category ?? null,
+    masteryScore: Number(m.mastery_score),
+    evidenceCount: m.evidence_count,
+    practiced: m.last_practiced_at != null,
+    diagnosticBaseline:
+      baselineByConcept.has(m.concept_id)
+        ? Number(baselineByConcept.get(m.concept_id))
+        : null,
+  }));
 
   // Latest batch of practice recommendations, if any (Phase 5). RLS already
   // restricts this to the caller's own rows.
@@ -244,6 +286,7 @@ export async function GET() {
     weakest,
     allConcepts,
     recommendedProblems,
+    masteryConcepts,
     aiReport,
     suggestedFocus,
     // True when every judged concept is already `strong` — the UI should
