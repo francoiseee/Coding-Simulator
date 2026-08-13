@@ -20,6 +20,33 @@ import { useParams, useRouter } from "next/navigation";
 import MonacoEditor from "@monaco-editor/react";
 import styles from "./PracticeProblem.module.css";
 
+// Formats a sample-test value for human reading.
+// Test `input` is stored as an array of ARGUMENTS. A single-argument problem is
+// therefore stored double-wrapped, e.g. [[["Alice",[90,85,92]]]]. We unwrap the
+// outer arguments array so the student sees the actual argument, and pretty-print
+// with spaces after commas/colons so nested structures don't read as one blob.
+function formatValue(value) {
+  const json = JSON.stringify(value);
+  if (json === undefined) return "None";
+  // Add a space after every comma and colon that isn't inside a string.
+  let out = "";
+  let inStr = false;
+  for (let i = 0; i < json.length; i += 1) {
+    const ch = json[i];
+    if (ch === '"' && json[i - 1] !== "\\") inStr = !inStr;
+    out += ch;
+    if (!inStr && (ch === "," || ch === ":")) out += " ";
+  }
+  return out;
+}
+
+// Unwraps the arguments array. If there is exactly one argument, show it directly;
+// if several, show them comma-separated as the student would pass them.
+function formatInput(input) {
+  const args = Array.isArray(input) ? input : [input];
+  return args.map((a) => formatValue(a)).join(", ");
+}
+
 const AUTOSAVE_DELAY_MS = 1500;
 
 export default function PracticeProblemPage() {
@@ -149,11 +176,6 @@ export default function PracticeProblemPage() {
     setRunState("running");
     setRunResult(null);
     setRunError("");
-    // Clear any previous graded verdict so the terminal shows this run's
-    // results, not a stale Submit result sitting underneath it.
-    setSubmitResult(null);
-    setSubmitState("idle");
-    setSubmitError("");
     try {
       const res = await fetch("/api/practice/run", {
         method: "POST",
@@ -416,7 +438,22 @@ export default function PracticeProblemPage() {
   }
 
   const hints = Array.isArray(problem.hints) ? problem.hints : [];
-  const examples = Array.isArray(problem.examples) ? problem.examples : [];
+  // `problem.examples` is stored as { raw: "Input: ...\nOutput: ..." } — a single
+  // preformatted string. Older/seeded rows may instead be an array of
+  // { input, output } objects, or null. Normalize all three to a raw string we
+  // can render in a <pre>. `null`/missing yields an empty string (section hidden).
+  const exampleRaw = (() => {
+    const ex = problem.examples;
+    if (!ex) return "";
+    if (typeof ex === "string") return ex;
+    if (Array.isArray(ex)) {
+      return ex
+        .map((e) => `Input: ${e.input}\nOutput: ${e.output}`)
+        .join("\n\n");
+    }
+    if (typeof ex === "object" && typeof ex.raw === "string") return ex.raw;
+    return "";
+  })();
 
   // Everything in the gate has been answered already — offer to continue
   // rather than a submit button that would 409.
@@ -432,11 +469,9 @@ export default function PracticeProblemPage() {
         {inst.answer.isSkipped ? "(skipped)" : inst.answer.answerText}
       </p>
       <div className={styles.reflectFeedbackBox}>
-        {inst.answer.aiScore != null && (
-          <span className={styles.reflectScore}>
-            Understanding: {inst.answer.aiScore} / 5
-          </span>
-        )}
+        <span className={styles.reflectScore}>
+          Understanding: {inst.answer.aiScore} / 5
+        </span>
         {inst.answer.aiFeedback && (
           <p className={styles.reflectFeedback}>{inst.answer.aiFeedback}</p>
         )}
@@ -498,39 +533,23 @@ export default function PracticeProblemPage() {
           </button>
         </nav>
 
-        <div className={styles.actionButtons}>
-          <button
-            type="button"
-            className={styles.runBtn}
-            onClick={handleRunCode}
-            disabled={
-              runState === "running" ||
-              submitState === "running" ||
-              reflectState === "loading" ||
-              reflectState === "asking" ||
-              reflectState === "saving"
-            }
-          >
-            {runState === "running" ? "Running…" : "Run Code"}
-          </button>
-          <button
-            type="button"
-            className={styles.submitBtn}
-            onClick={handleRunClick}
-            disabled={
-              submitState === "running" ||
-              reflectState === "loading" ||
-              reflectState === "asking" ||
-              reflectState === "saving"
-            }
-          >
-            {submitState === "running"
-              ? "Running…"
-              : reflectState === "loading"
-                ? "Loading…"
-                : "Submit Code"}
-          </button>
-        </div>
+        <button
+          type="button"
+          className={styles.submitBtn}
+          onClick={handleRunClick}
+          disabled={
+            submitState === "running" ||
+            reflectState === "loading" ||
+            reflectState === "asking" ||
+            reflectState === "saving"
+          }
+        >
+          {submitState === "running"
+            ? "Running…"
+            : reflectState === "loading"
+              ? "Loading…"
+              : "Submit Code"}
+        </button>
 
         <div className={styles.sidebarFooter}>
           <button
@@ -652,17 +671,10 @@ export default function PracticeProblemPage() {
 
             <p className={styles.instructionsBody}>{problem.statement}</p>
 
-            {examples.length > 0 && (
+            {exampleRaw && (
               <div className={styles.instructionsSection}>
                 <h3 className={styles.instructionsSectionTitle}>Examples</h3>
-                {examples.map((ex, i) => (
-                  <div key={i} className={styles.exampleRow}>
-                    <code className={styles.exampleIn}>Input: {ex.input}</code>
-                    <code className={styles.exampleOut}>
-                      Output: {ex.output}
-                    </code>
-                  </div>
-                ))}
+                <pre className={styles.exampleRaw}>{exampleRaw}</pre>
               </div>
             )}
 
@@ -693,32 +705,23 @@ export default function PracticeProblemPage() {
           <div className={styles.terminalHeader}>
             <span className={styles.terminalTitle}>OUTPUT TERMINAL</span>
             <span className={styles.terminalStatus}>
-              {submitState === "running" || runState === "running"
-                ? "Running…"
-                : "Ready"}
+              {submitState === "running" ? "Running…" : "Ready"}
             </span>
           </div>
           <div className={styles.terminalBody}>
-            {submitState === "idle" && runState === "idle" && (
+            {submitState === "idle" && (
               <span className={styles.terminalPlaceholder}>
-                Run or submit your code to see test results here.
+                Submit your code to see test results here.
               </span>
             )}
-            {(submitState === "running" || runState === "running") && (
+            {submitState === "running" && (
               <span className={styles.terminalLine}>Running tests…</span>
             )}
             {submitState === "error" && (
               <span className={styles.terminalError}>{submitError}</span>
             )}
-            {submitState === "idle" && runState === "error" && (
-              <span className={styles.terminalError}>{runError}</span>
-            )}
             {submitState === "done" && submitResult && (
               <div className={styles.terminalResults}>
-                <div className={styles.terminalRunLabel}>
-                  SUBMIT RESULT — {submitResult.passedCount}/
-                  {submitResult.totalTests} PASSED
-                </div>
                 {submitResult.results.map((r, i) => (
                   <div
                     key={i}
@@ -727,8 +730,8 @@ export default function PracticeProblemPage() {
                     <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
                     {r.visibility === "public_sample" ? (
                       <span>
-                        Test {i + 1}: in {JSON.stringify(r.input)} → expected{" "}
-                        {JSON.stringify(r.expected)}
+                        Test {i + 1}: input {formatInput(r.input)} → expected{" "}
+                        {formatValue(r.expected)}
                         {!r.passed && r.actual != null
                           ? `, got ${r.actual}`
                           : ""}
@@ -738,28 +741,6 @@ export default function PracticeProblemPage() {
                         Hidden test {i + 1} {r.passed ? "passed" : "failed"}
                       </span>
                     )}
-                  </div>
-                ))}
-              </div>
-            )}
-            {submitState === "idle" && runState === "done" && runResult && (
-              <div className={styles.terminalResults}>
-                <div className={styles.terminalRunLabel}>
-                  RUN (UNGRADED) — {runResult.passedCount}/
-                  {runResult.totalTests} PASSED ON SAMPLE TESTS
-                </div>
-                {runResult.results.map((r, i) => (
-                  <div
-                    key={i}
-                    className={`${styles.terminalLine} ${r.passed ? styles.terminalPass : styles.terminalFail}`}
-                  >
-                    <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
-                    <span>
-                      Test {i + 1}: in {JSON.stringify(r.input)} → expected{" "}
-                      {JSON.stringify(r.expected)}
-                      {!r.passed && r.actual != null ? `, got ${r.actual}` : ""}
-                      {!r.passed && r.stderr ? ` — ${r.stderr}` : ""}
-                    </span>
                   </div>
                 ))}
               </div>
@@ -784,8 +765,21 @@ export default function PracticeProblemPage() {
             <p className={styles.problemBlockLabel}>TEST SUITE READY</p>
             {sampleTests.map((t, i) => (
               <div key={i} className={styles.sampleRow}>
-                <code>in: {JSON.stringify(t.input)}</code>
-                <code>→ {JSON.stringify(t.expected_output)}</code>
+                <span className={styles.sampleCaseLabel}>Example {i + 1}</span>
+                <div className={styles.sampleField}>
+                  <span className={styles.sampleFieldLabel}>Input</span>
+                  <code className={styles.sampleFieldValue}>
+                    {formatInput(t.input)}
+                  </code>
+                </div>
+                <div className={styles.sampleField}>
+                  <span className={styles.sampleFieldLabel}>
+                    Expected output
+                  </span>
+                  <code className={styles.sampleFieldValue}>
+                    {formatValue(t.expected_output)}
+                  </code>
+                </div>
               </div>
             ))}
             <div className={styles.testSuiteFooter}>
@@ -855,34 +849,6 @@ export default function PracticeProblemPage() {
                   }
                 >
                   Skip
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reflection review — shows AI feedback before the verdict */}
-      {reflectState === "reviewing" && (
-        <div className={styles.modalBackdrop}>
-          <div className={styles.reflectModal}>
-            <div className={styles.reflectModalContent}>
-              <p className={styles.reflectModalLabel}>
-                Feedback on your reasoning
-              </p>
-              {reflectInstances
-                .filter((inst) => inst.isAnswered)
-                .map((inst) => renderEvaluated(inst))}
-              <div className={styles.reflectActions}>
-                <button
-                  type="button"
-                  className={styles.reflectSubmitBtn}
-                  onClick={() => {
-                    setReflectState("idle");
-                    runGrading();
-                  }}
-                >
-                  Continue to results →
                 </button>
               </div>
             </div>

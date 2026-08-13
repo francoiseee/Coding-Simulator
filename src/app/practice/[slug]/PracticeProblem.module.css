@@ -497,20 +497,19 @@
   color: var(--text-muted);
 }
 
-.exampleRow {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  padding: 8px 10px;
-}
-
-.exampleIn,
-.exampleOut {
-  font-family: monospace;
+.exampleRaw {
+  font-family: "SF Mono", "Fira Code", monospace;
   font-size: 0.75rem;
+  line-height: 1.6;
   color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.5px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: normal;
+  overflow-wrap: anywhere;
 }
 
 .constraints {
@@ -546,22 +545,50 @@
 .sampleRow {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  font-family: monospace;
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  gap: 8px;
   background: rgba(255, 255, 255, 0.02);
-  padding: 8px 10px;
-  border-radius: 6px;
-  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px 12px;
+  border-radius: 8px;
   min-width: 0;
 }
 
-.sampleRow code {
+.sampleCaseLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sampleField {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sampleFieldLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+}
+
+.sampleFieldValue {
+  font-family: "SF Mono", "Fira Code", monospace;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 6px 8px;
+  border-radius: 5px;
   white-space: pre-wrap;
-  word-break: break-all;
-  overflow-wrap: break-word;
+  word-break: normal;
+  overflow-wrap: anywhere;
   display: block;
+  min-width: 0;
 }
 
 .testSuiteFooter {
@@ -715,6 +742,47 @@
 .reflectSkipBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+/* Reflection feedback (Step 34 evaluation, shown read-only) */
+.reflectAnswered {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.reflectFeedbackBox {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.reflectScore {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.reflectFeedback {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.reflectGaps {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
 }
 
 /* Challenge Solved modal */
