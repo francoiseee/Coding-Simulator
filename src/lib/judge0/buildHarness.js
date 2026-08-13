@@ -377,16 +377,35 @@ export function compareResult(stdout, expectedOutput, mode) {
 }
 
 /**
- * Normalize a value for comparison by round-tripping through JSON.
+ * Normalize a value for comparison by round-tripping through JSON with
+ * object keys sorted recursively. Sorting keys makes the comparison
+ * order-independent for dicts (e.g. an inverted index where
+ * {"cat":...,"the":...} and {"the":...,"cat":...} are the same result).
+ * Array order is preserved, since list order is usually semantically
+ * meaningful; problems where it isn't already canonicalise via a
+ * 'sort_lists' then-step in the harness.
  * Both the harness stdout and the expected_output are compared this way
  * (except stdout mode, which uses raw string comparison via compareResult).
  */
 export function normalizeForCompare(value) {
-  try {
-    if (typeof value === "string") {
-      return JSON.stringify(JSON.parse(value));
+  const sortKeys = (v) => {
+    if (Array.isArray(v)) {
+      return v.map(sortKeys);
     }
-    return JSON.stringify(value);
+    if (v !== null && typeof v === "object") {
+      return Object.keys(v)
+        .sort()
+        .reduce((acc, k) => {
+          acc[k] = sortKeys(v[k]);
+          return acc;
+        }, {});
+    }
+    return v;
+  };
+
+  try {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    return JSON.stringify(sortKeys(parsed));
   } catch {
     return String(value).trim();
   }

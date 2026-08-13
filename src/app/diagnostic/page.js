@@ -11,12 +11,12 @@ export default function DiagnosticPage() {
   const [phase, setPhase] = useState("checking"); // "checking" | "welcome" | "diagnostic" | "error"
   const [initialName, setInitialName] = useState("");
 
-  // On load, check whether this student already has a saved nickname and an
-  // in-progress attempt — if so, skip straight to the diagnostic instead of
-  // making them sit through onboarding again. If they have a saved nickname
-  // but no in-progress attempt yet, still show Welcome but prefill the name.
-  // If they're not signed in at all, show an inline error instead of
-  // letting them reach the Welcome/onboarding screen.
+  // On load, check the student's diagnostic status:
+  // - Not signed in → inline error.
+  // - Already completed → redirect to their results (no retakes).
+  // - Saved nickname + in-progress attempt → skip onboarding, resume.
+  // - Saved nickname, no in-progress attempt → show Welcome, prefill name.
+  // - Otherwise → show Welcome.
   useEffect(() => {
     let cancelled = false;
 
@@ -36,6 +36,13 @@ export default function DiagnosticPage() {
           setInitialName(data.displayName);
         }
 
+        // Already finished the diagnostic — send them to their results and
+        // never show onboarding again. Stays in "checking" so no Welcome flash.
+        if (res.ok && data.hasCompletedAttempt && data.completedAttemptId) {
+          router.replace(`/results/${data.completedAttemptId}`);
+          return;
+        }
+
         if (res.ok && data.displayName && data.hasInProgressAttempt) {
           setPhase("diagnostic");
         } else {
@@ -50,7 +57,7 @@ export default function DiagnosticPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [router]);
 
   const handleComplete = (data) => {
     const attemptId = data?.attemptId;

@@ -10,14 +10,19 @@ import Dashboard from "@/components/Dashboard";
 import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
-  const [view, setView] = useState("auth");
+  const [view, setView] = useState("loading"); // "loading" | "auth" | "dashboard"
   const [userEmail, setUserEmail] = useState("");
   const supabase = createClient();
   const router = useRouter();
 
-  // Restore session on load
+  // Restore session on load. Stay in "loading" until we know the answer so we
+  // never flash the login page before redirecting an authenticated user.
   useEffect(() => {
+    let cancelled = false;
+
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (cancelled) return;
+
       if (session) {
         setUserEmail(session.user.email);
         const { data: profile } = await supabase
@@ -25,11 +30,15 @@ export default function Home() {
           .select("onboarding_status")
           .eq("id", session.user.id)
           .single();
+        if (cancelled) return;
+
         if (!profile || profile.onboarding_status === "new") {
           router.push("/diagnostic");
         } else {
           setView("dashboard");
         }
+      } else {
+        setView("auth");
       }
     });
 
@@ -42,7 +51,10 @@ export default function Home() {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleAuthSuccess = async (email, action) => {
@@ -76,6 +88,10 @@ export default function Home() {
     setView("auth");
     setUserEmail("");
   };
+
+  if (view === "loading") {
+    return null;
+  }
 
   return (
     <>
