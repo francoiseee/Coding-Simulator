@@ -97,7 +97,6 @@ export default function Home() {
     <>
       <Navbar
         isAuthenticated={view !== "auth"}
-        showSearch={view === "dashboard"}
         onLogOut={handleLogOut}
       />
       {view === "auth" && (
