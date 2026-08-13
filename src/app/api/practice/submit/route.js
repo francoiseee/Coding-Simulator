@@ -132,7 +132,7 @@ export async function POST(request) {
 
   const { data: testCases, error: tcError } = await admin
     .from("test_cases")
-    .select("input, expected_output, visibility, display_order")
+    .select("id, input, expected_output, visibility, display_order")
     .eq("problem_id", session.problem_id)
     .order("display_order", { ascending: true });
 
@@ -145,6 +145,12 @@ export async function POST(request) {
 
   // 3. Run each test case through Judge0.
   const results = [];
+  // Per-test-case detail for submission_test_results — separate from
+  // `results` above, which is the client-facing (visibility-filtered)
+  // response shape. This one is server-side only and always complete,
+  // regardless of test visibility, since it's an audit record, not a
+  // response payload.
+  const testCaseRows = [];
   let passedCount = 0;
   let totalRuntimeMs = 0;
   let maxMemoryKb = 0;
@@ -236,6 +242,23 @@ export async function POST(request) {
             }
           : {}),
       });
+
+      // Full detail regardless of visibility — this is a server-side audit
+      // row, not something served to the client (submission_test_results is
+      // never selected from a client-facing route).
+      testCaseRows.push({
+        test_case_id: tc.id,
+        passed: finalPassed,
+        actual_output: {
+          stdout: jr.stdout ?? null,
+          stderr: jr.stderr ?? null,
+          compile_output: jr.compile_output ?? null,
+          display: actualDisplay ?? null,
+        },
+        runtime_ms: jr.time ? Math.round(parseFloat(jr.time) * 1000) : null,
+        memory_kb: jr.memory ?? null,
+        judge_status: jr.status?.description ?? null,
+      });
     }
   } catch (err) {
     console.error("Judge0 execution failed:", err.message);
@@ -292,6 +315,32 @@ export async function POST(request) {
     return NextResponse.json(
       { error: "Could not record the submission." },
       { status: 500 },
+    );
+  }
+
+  // 5a. Per-test-case audit rows (Step 36 completion — submission_test_results
+  // was previously never written to). Non-fatal: the submission itself is
+  // already recorded and graded successfully at this point; losing the
+  // per-test-case detail is a real loss for later analysis, but it must
+  // never turn an otherwise-successful grading response into a 500.
+  try {
+    const rowsToInsert = testCaseRows.map((row) => ({
+      submission_id: submission.id,
+      ...row,
+    }));
+    const { error: testResultsError } = await admin
+      .from("submission_test_results")
+      .insert(rowsToInsert);
+    if (testResultsError) {
+      console.error(
+        "submission_test_results insert failed (non-fatal):",
+        testResultsError.message,
+      );
+    }
+  } catch (err) {
+    console.error(
+      "submission_test_results insert threw (non-fatal):",
+      err.message,
     );
   }
 
