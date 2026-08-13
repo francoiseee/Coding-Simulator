@@ -1,11 +1,188 @@
-.page {
-  display: grid;
-  grid-template-columns: 200px 1fr 300px;
+.appShell {
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base, #06070a);
   font-family: var(--font-inter), sans-serif;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 20px;
+  background: rgb(10, 15, 26);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.topbarLogo {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.topbarLogoImage {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+}
+
+.profileWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.topbarAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.topbarAvatar:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.35);
+}
+
+.topbarAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Profile dropdown — mirrors Navbar.module.css so it matches the dashboard. */
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  background: rgba(10, 15, 26, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 14px -6px rgba(0, 0, 0, 0.35);
+  width: 170px;
+  padding: 6px 0;
+  z-index: 1000;
+  transform-origin: top right;
+  animation: dropdownFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+:root[data-theme="light"] .dropdownMenu {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.dropdownHeader {
+  padding: 8px 16px 6px 16px;
+  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 4px;
+}
+
+.dropdownTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.themeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px 10px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.themeLabel {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border: 1px solid var(--border-hairline);
+  border-radius: 50%;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.themeToggle:hover {
+  color: var(--accent-cyan);
+  border-color: rgba(0, 240, 255, 0.35);
+  background: rgba(0, 240, 255, 0.06);
+}
+
+.dropdownItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #ff5555;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 550;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dropdownItem:hover {
+  background: rgba(255, 85, 85, 0.1);
+  color: #ff6b6b;
+}
+
+.logoutIcon {
+  transition: transform 0.2s ease;
+}
+
+.dropdownItem:hover .logoutIcon {
+  transform: translateX(2px);
+}
+
+.page {
+  display: grid;
+  grid-template-columns: 340px 1fr 320px;
+  flex: 1;
+  overflow: hidden;
   min-width: 0;
+  min-height: 0;
 }
 
 .loadingScreen {
@@ -37,89 +214,24 @@
   flex-direction: column;
   background: rgba(255, 255, 255, 0.02);
   border-right: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 24px 16px;
   overflow: hidden;
   min-height: 0;
 }
 
-.sidebarBrand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 20px;
-}
-
-.brandIcon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-cyan);
-  flex-shrink: 0;
-}
-
-.brandTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.brandSub {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-  font-family: monospace;
-  margin-top: 2px;
-}
-
-.sidebarNav {
+.sidebarScroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-height: 0;
-}
-
-.navItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  border: none;
-  background: none;
-  color: var(--text-muted);
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.8rem;
-  cursor: pointer;
-  text-align: left;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.navItem:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-primary);
-}
-
-.navItemActive {
-  background: rgba(0, 240, 255, 0.06);
-  color: var(--accent-cyan);
-  border-left: 2px solid var(--accent-cyan);
 }
 
 .actionButtons {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 24px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
@@ -175,32 +287,6 @@
   cursor: not-allowed;
 }
 
-.sidebarFooter {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.footerLink {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 0.75rem;
-  cursor: pointer;
-  padding: 6px 4px;
-  transition: color 0.15s ease;
-}
-
-.footerLink:hover {
-  color: var(--text-secondary);
-}
-
 /* ── Center Editor ── */
 .centerPane {
   display: grid;
@@ -250,50 +336,10 @@
   color: var(--accent-teal);
 }
 
-.instructionsPane {
-  flex: 1;
-  overflow-y: auto;
-  padding: 28px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.instructionsTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 1.2rem;
-  font-weight: 750;
-  color: var(--text-primary);
-  line-height: 1.3;
-}
-
 .instructionsMeta {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.instructionsBody {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.88rem;
-  line-height: 1.75;
-  color: var(--text-secondary);
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
-
-.instructionsSection {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.instructionsSectionTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: 0.2px;
 }
 
 .editor {
@@ -374,29 +420,21 @@
   margin-bottom: 4px;
 }
 
-/* ── Right Pane ── */
+/* ── Right Pane: Reflective question ── */
 .rightPane {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   background: rgba(255, 255, 255, 0.01);
   min-width: 0;
 }
 
-.challengeHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  position: sticky;
-  top: 0;
-  background: var(--bg-base, #06070a);
-  z-index: 1;
+.reflectPaneHeader {
+  padding: 20px 20px 4px;
+  flex-shrink: 0;
 }
 
-.challengeTitle {
+.reflectPaneTitle {
   font-family: var(--font-outfit), sans-serif;
   font-size: 0.72rem;
   font-weight: 800;
@@ -404,13 +442,122 @@
   color: var(--accent-cyan);
 }
 
+.reflectPaneSubLabel {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+}
+
+.reflectPaneBody {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reflectCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.reflectCardLabel {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent-teal);
+}
+
+.reflectCardQuote {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  font-style: italic;
+  word-wrap: break-word;
+}
+
+.reflectEmptyState {
+  margin-top: 32px;
+  padding: 0 4px;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.challengeHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  background: var(--bg-base, #06070a);
+  z-index: 1;
+}
+
+.challengeHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.backBtn:hover {
+  background: rgba(0, 240, 255, 0.08);
+  border-color: rgba(0, 240, 255, 0.3);
+  color: var(--accent-cyan);
+}
+
+.challengeTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--accent-cyan);
+  white-space: nowrap;
+}
+
 .challengeStatus {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.65rem;
+  gap: 5px;
+  flex-shrink: 0;
+  font-size: 0.6rem;
   color: var(--text-muted);
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .statusDot {
@@ -604,6 +751,15 @@
   color: var(--accent-teal);
 }
 
+.hiddenTestNote {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
 /* ── Modals ── */
 .modalBackdrop {
   position: fixed;
@@ -614,48 +770,6 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-}
-
-/* Reflection modal */
-.reflectModal {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 28px 32px;
-  max-width: 520px;
-  width: 100%;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-}
-
-.reflectModalIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: rgba(0, 240, 255, 0.08);
-  border: 1px solid rgba(0, 240, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent-cyan);
-  flex-shrink: 0;
-}
-
-.reflectModalContent {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.reflectModalLabel {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-  letter-spacing: 0.5px;
 }
 
 .reflectItem {
@@ -675,20 +789,32 @@
 }
 
 .reflectInput {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px;
+  min-height: 110px;
   color: var(--text-primary);
   font-family: var(--font-inter), sans-serif;
   font-size: 0.85rem;
+  line-height: 1.5;
   resize: vertical;
   outline: none;
   transition: border-color 0.2s;
 }
 
+.reflectInput::placeholder {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
 .reflectInput:focus {
   border-color: var(--accent-cyan);
+}
+.reflectInput:disabled {
+  opacity: 0.6;
 }
 .reflectError {
   font-size: 0.78rem;
@@ -697,25 +823,31 @@
 
 .reflectActions {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   gap: 10px;
 }
 
 .reflectSubmitBtn {
-  flex: 1;
-  padding: 10px;
-  background: var(--accent-cyan);
-  color: #06070a;
-  border: none;
-  border-radius: 8px;
+  padding: 11px 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  color: var(--text-primary);
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .reflectSubmitBtn:hover:not(:disabled) {
-  opacity: 0.85;
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.28);
 }
 .reflectSubmitBtn:disabled {
   opacity: 0.4;
@@ -723,25 +855,23 @@
 }
 
 .reflectSkipBtn {
-  padding: 10px 16px;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
+  border: none;
+  padding: 2px 6px;
   color: var(--text-muted);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   cursor: pointer;
-  transition:
-    border-color 0.2s,
-    color 0.2s;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .reflectSkipBtn:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.25);
-  color: var(--text-primary);
+  color: var(--text-secondary);
 }
 .reflectSkipBtn:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  text-decoration: none;
 }
 
 /* Reflection feedback (Step 34 evaluation, shown read-only) */

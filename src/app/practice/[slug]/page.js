@@ -17,7 +17,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import MonacoEditor from "@monaco-editor/react";
+import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "@/lib/theme";
 import styles from "./PracticeProblem.module.css";
 
 // Formats a sample-test value for human reading.
@@ -52,10 +55,35 @@ const AUTOSAVE_DELAY_MS = 1500;
 export default function PracticeProblemPage() {
   const { slug } = useParams();
   const router = useRouter();
+  const supabase = createClient();
+  const { theme, toggleTheme } = useTheme();
+
+  // Profile dropdown in the top bar — mirrors the one on the dashboard Navbar
+  // (theme toggle + log off) so behavior is consistent across the app.
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target)
+      ) {
+        setShowProfileMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
 
   const [problem, setProblem] = useState(null);
   const [sampleTests, setSampleTests] = useState([]);
-  const [activeTab, setActiveTab] = useState("editor"); // "editor" | "instructions"
+  const [hiddenTestCount, setHiddenTestCount] = useState(0);
   const [sessionId, setSessionId] = useState(null);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState("loading"); // loading | ready | error
@@ -117,6 +145,7 @@ export default function PracticeProblemPage() {
         if (cancelled) return;
         setProblem(pData.problem);
         setSampleTests(pData.sampleTests || []);
+        setHiddenTestCount(pData.hiddenTestCount || 0);
         setSessionId(sData.sessionId);
         // Resume saved code if present, else fall back to starter code.
         setCode(sData.currentCode || pData.starterCode || "");
@@ -497,52 +526,235 @@ export default function PracticeProblemPage() {
   );
 
   return (
-    <div className={styles.page}>
-      {/* Left Sidebar */}
-      <aside className={styles.sidebar}>
-        <div className={styles.sidebarBrand}>
-          <div className={styles.brandIcon}>
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="16 18 22 12 16 6" />
-              <polyline points="8 6 2 12 8 18" />
-            </svg>
-          </div>
-          <div>
-            <p className={styles.brandTitle}>Python Project</p>
-            <p className={styles.brandSub}>Active Session</p>
-          </div>
-        </div>
+    <div className={styles.appShell}>
+      {/* Top header */}
+      <header className={styles.topbar}>
+        <Link href="/" className={styles.topbarLogo}>
+          <img
+            src="/images/Codely_Transparent.png"
+            alt="Codely"
+            className={styles.topbarLogoImage}
+          />
+        </Link>
 
-        <nav className={styles.sidebarNav}>
+        <div className={styles.profileWrapper} ref={profileMenuRef}>
           <button
             type="button"
-            className={`${styles.navItem} ${styles.navItemActive}`}
+            className={styles.topbarAvatar}
+            onClick={() => setShowProfileMenu((v) => !v)}
+            title="Profile Menu"
           >
-            <svg
-              width="15"
-              height="15"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="4 17 10 11 4 5" />
-              <line x1="12" y1="19" x2="20" y2="19" />
-            </svg>
-            IDE Editor
+            <img src="/images/user-avatar.svg" alt="User Profile" />
           </button>
-        </nav>
+
+          {showProfileMenu && (
+            <div className={styles.dropdownMenu}>
+              <div className={styles.dropdownHeader}>
+                <p className={styles.dropdownTitle}>User Session</p>
+              </div>
+
+              <div className={styles.themeRow}>
+                <span className={styles.themeLabel}>Theme</span>
+                <button
+                  type="button"
+                  className={styles.themeToggle}
+                  onClick={toggleTheme}
+                  title={
+                    theme === "dark"
+                      ? "Switch to light mode"
+                      : "Switch to dark mode"
+                  }
+                  aria-label="Toggle theme"
+                >
+                  {theme === "dark" ? (
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <circle cx="12" cy="12" r="4" />
+                      <line x1="12" y1="2" x2="12" y2="4" />
+                      <line x1="12" y1="20" x2="12" y2="22" />
+                      <line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+                      <line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+                      <line x1="2" y1="12" x2="4" y2="12" />
+                      <line x1="20" y1="12" x2="22" y2="12" />
+                      <line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+                      <line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+                    </svg>
+                  ) : (
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className={styles.dropdownItem}
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  handleLogOut();
+                }}
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={styles.logoutIcon}
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span>Log Off</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <div className={styles.page}>
+        {/* Left Sidebar */}
+        <aside className={styles.sidebar}>
+          <div className={styles.challengeHeader}>
+            <div className={styles.challengeHeaderLeft}>
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={() => router.push("/")}
+                title="Back to dashboard"
+                aria-label="Back to dashboard"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <span className={styles.challengeTitle}>PYTHON CHALLENGE</span>
+            </div>
+            <span className={styles.challengeStatus}>
+              <span className={styles.statusDot} />
+              ACTIVE SESSION
+            </span>
+          </div>
+
+        <div className={styles.sidebarScroll}>
+          {/* Instructions */}
+          <div className={styles.problemBlock}>
+            <p className={styles.problemBlockLabel}>PROBLEM</p>
+            <h2 className={styles.problemTitle}>{problem.title}</h2>
+            <div className={styles.instructionsMeta}>
+              <span
+                className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}
+              >
+                {problem.difficulty}
+              </span>
+              {problem.estimatedMinutes && (
+                <span className={styles.estimate}>
+                  ~{problem.estimatedMinutes} min
+                </span>
+              )}
+            </div>
+
+            <p className={styles.statement}>{problem.statement}</p>
+
+            {exampleRaw && (
+              <div className={styles.examplesBlock}>
+                <span className={styles.examplesLabel}>EXAMPLES</span>
+                <pre className={styles.exampleRaw}>{exampleRaw}</pre>
+              </div>
+            )}
+
+            {problem.constraints && (
+              <div className={styles.constraintsBlock}>
+                <span className={styles.examplesLabel}>CONSTRAINTS</span>
+                <p className={styles.constraints}>{problem.constraints}</p>
+              </div>
+            )}
+
+            {hints.length > 0 && (
+              <details className={styles.hintsBlock}>
+                <summary className={styles.hintsSummary}>
+                  Show hints ({hints.length})
+                </summary>
+                <ul className={styles.hintsList}>
+                  {hints.map((h, i) => (
+                    <li key={i}>{h}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+          </div>
+
+          {/* Sample tests */}
+          {sampleTests.length > 0 && (
+            <div className={styles.testSuiteBlock}>
+              <p className={styles.problemBlockLabel}>TEST SUITE READY</p>
+              {sampleTests.map((t, i) => (
+                <div key={i} className={styles.sampleRow}>
+                  <span className={styles.sampleCaseLabel}>
+                    Example {i + 1}
+                  </span>
+                  <div className={styles.sampleField}>
+                    <span className={styles.sampleFieldLabel}>Input</span>
+                    <code className={styles.sampleFieldValue}>
+                      {formatInput(t.input)}
+                    </code>
+                  </div>
+                  <div className={styles.sampleField}>
+                    <span className={styles.sampleFieldLabel}>
+                      Expected output
+                    </span>
+                    <code className={styles.sampleFieldValue}>
+                      {formatValue(t.expected_output)}
+                    </code>
+                  </div>
+                </div>
+              ))}
+              {hiddenTestCount > 0 && (
+                <p className={styles.hiddenTestNote}>
+                  There {hiddenTestCount === 1 ? "is" : "are"}{" "}
+                  {hiddenTestCount} hidden test{" "}
+                  {hiddenTestCount === 1 ? "case" : "cases"} that will also
+                  run when you submit.
+                </p>
+              )}
+              <div className={styles.testSuiteFooter}>
+                <span>Python 3.12</span>
+                <span className={styles.envStable}>● Environment Stable</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className={styles.actionButtons}>
           <button
@@ -576,73 +788,12 @@ export default function PracticeProblemPage() {
                 : "Submit Code"}
           </button>
         </div>
-
-        <div className={styles.sidebarFooter}>
-          <button
-            type="button"
-            className={styles.footerLink}
-            onClick={() => router.push("/")}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-            </svg>
-            Support
-          </button>
-          <button
-            type="button"
-            className={styles.footerLink}
-            onClick={() => router.push("/")}
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-            </svg>
-            Documentation
-          </button>
-        </div>
       </aside>
 
       {/* Center: Editor */}
       <main className={styles.centerPane}>
         <div className={styles.editorTabs}>
-          <span
-            className={
-              activeTab === "editor" ? styles.editorTabActive : styles.editorTab
-            }
-            onClick={() => setActiveTab("editor")}
-            style={{ cursor: "pointer" }}
-          >
-            solution.py
-          </span>
-          <span
-            className={
-              activeTab === "instructions"
-                ? styles.editorTabActive
-                : styles.editorTab
-            }
-            onClick={() => setActiveTab("instructions")}
-            style={{ cursor: "pointer" }}
-          >
-            Instructions
-          </span>
+          <span className={styles.editorTabActive}>solution.py</span>
           <div className={styles.editorTabActions}>
             <span className={styles.saveIndicator}>
               {saveState === "saving" && "Saving…"}
@@ -651,80 +802,33 @@ export default function PracticeProblemPage() {
           </div>
         </div>
 
-        {activeTab === "editor" ? (
-          <div className={styles.editor}>
-            <MonacoEditor
-              height="100%"
-              language="python"
-              theme="vs-dark"
-              value={code}
-              onChange={onCodeChange}
-              options={{
-                fontSize: 13,
-                fontFamily: "'Fira Code', 'Cascadia Code', monospace",
-                fontLigatures: true,
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                wordWrap: "on",
-                tabSize: 4,
-                insertSpaces: true,
-                lineNumbers: "on",
-                renderLineHighlight: "line",
-                automaticLayout: true,
-                padding: { top: 16, bottom: 16 },
-                scrollbar: {
-                  verticalScrollbarSize: 4,
-                  horizontalScrollbarSize: 4,
-                },
-              }}
-            />
-          </div>
-        ) : (
-          <div className={styles.instructionsPane}>
-            <h2 className={styles.instructionsTitle}>{problem.title}</h2>
-            <div className={styles.instructionsMeta}>
-              <span
-                className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}
-              >
-                {problem.difficulty}
-              </span>
-              {problem.estimatedMinutes && (
-                <span className={styles.estimate}>
-                  ~{problem.estimatedMinutes} min
-                </span>
-              )}
-            </div>
-
-            <p className={styles.instructionsBody}>{problem.statement}</p>
-
-            {exampleRaw && (
-              <div className={styles.instructionsSection}>
-                <h3 className={styles.instructionsSectionTitle}>Examples</h3>
-                <pre className={styles.exampleRaw}>{exampleRaw}</pre>
-              </div>
-            )}
-
-            {problem.constraints && (
-              <div className={styles.instructionsSection}>
-                <h3 className={styles.instructionsSectionTitle}>Constraints</h3>
-                <p className={styles.instructionsBody}>{problem.constraints}</p>
-              </div>
-            )}
-
-            {hints.length > 0 && (
-              <details className={styles.hintsBlock}>
-                <summary className={styles.hintsSummary}>
-                  Show hints ({hints.length})
-                </summary>
-                <ul className={styles.hintsList}>
-                  {hints.map((h, i) => (
-                    <li key={i}>{h}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </div>
-        )}
+        <div className={styles.editor}>
+          <MonacoEditor
+            height="100%"
+            language="python"
+            theme="vs-dark"
+            value={code}
+            onChange={onCodeChange}
+            options={{
+              fontSize: 13,
+              fontFamily: "'Fira Code', 'Cascadia Code', monospace",
+              fontLigatures: true,
+              minimap: { enabled: false },
+              scrollBeyondLastLine: false,
+              wordWrap: "on",
+              tabSize: 4,
+              insertSpaces: true,
+              lineNumbers: "on",
+              renderLineHighlight: "line",
+              automaticLayout: true,
+              padding: { top: 16, bottom: 16 },
+              scrollbar: {
+                verticalScrollbarSize: 4,
+                horizontalScrollbarSize: 4,
+              },
+            }}
+          />
+        </div>
 
         {/* Output terminal */}
         <div className={styles.terminal}>
@@ -808,87 +912,51 @@ export default function PracticeProblemPage() {
         </div>
       </main>
 
-      {/* Right: Problem panel */}
+      {/* Right: Reflective question panel — inline, not a modal. Shows the
+          pre-submit gate, its feedback, and the post-fail invitation in place
+          depending on which reflection state is active; otherwise idle copy. */}
       <aside className={styles.rightPane}>
-        <div className={styles.challengeHeader}>
-          <span className={styles.challengeTitle}>PYTHON CHALLENGE</span>
-          <span className={styles.challengeStatus}>
-            <span className={styles.statusDot} />
-            ACTIVE SESSION
-          </span>
+        <div className={styles.reflectPaneHeader}>
+          <span className={styles.reflectPaneTitle}>REFLECTIVE QUESTION</span>
         </div>
 
-        {/* Sample tests */}
-        {sampleTests.length > 0 && (
-          <div className={styles.testSuiteBlock}>
-            <p className={styles.problemBlockLabel}>TEST SUITE READY</p>
-            {sampleTests.map((t, i) => (
-              <div key={i} className={styles.sampleRow}>
-                <span className={styles.sampleCaseLabel}>Example {i + 1}</span>
-                <div className={styles.sampleField}>
-                  <span className={styles.sampleFieldLabel}>Input</span>
-                  <code className={styles.sampleFieldValue}>
-                    {formatInput(t.input)}
-                  </code>
-                </div>
-                <div className={styles.sampleField}>
-                  <span className={styles.sampleFieldLabel}>
-                    Expected output
-                  </span>
-                  <code className={styles.sampleFieldValue}>
-                    {formatValue(t.expected_output)}
-                  </code>
-                </div>
-              </div>
-            ))}
-            <div className={styles.testSuiteFooter}>
-              <span>Python 3.12</span>
-              <span className={styles.envStable}>● Environment Stable</span>
-            </div>
-          </div>
-        )}
-      </aside>
+        <div className={styles.reflectPaneBody}>
+          {reflectState === "loading" && (
+            <p className={styles.reflectEmptyState}>Loading questions…</p>
+          )}
 
-      {/* Reflective question modal */}
-      {reflectState === "asking" && (
-        <div className={styles.modalBackdrop}>
-          <div className={styles.reflectModal}>
-            <div className={styles.reflectModalIcon}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-              </svg>
-            </div>
-            <div className={styles.reflectModalContent}>
-              <p className={styles.reflectModalLabel}>HR Check-in</p>
-              {reflectInstances.map((inst) => (
-                <div key={inst.id} className={styles.reflectItem}>
-                  <p className={styles.reflectQuestion}>
-                    {inst.rendered_text}
-                    {inst.is_required && (
-                      <span className={styles.reflectRequired}> *</span>
-                    )}
-                  </p>
-                  <textarea
-                    className={styles.reflectInput}
-                    value={reflectAnswers[inst.id] || ""}
-                    onChange={(e) => onReflectChange(inst.id, e.target.value)}
-                    rows={3}
-                    placeholder="Type your answer…"
-                  />
-                </div>
-              ))}
+          {(reflectState === "asking" || reflectState === "saving") && (
+            <>
+              {reflectInstances
+                .filter((inst) => !inst.isAnswered)
+                .map((inst) => (
+                  <div key={inst.id} className={styles.reflectCard}>
+                    <span className={styles.reflectCardLabel}>
+                      PROBLEM STATEMENT
+                    </span>
+                    <p className={styles.reflectCardQuote}>
+                      &ldquo;{inst.rendered_text}&rdquo;
+                      {inst.is_required && (
+                        <span className={styles.reflectRequired}> *</span>
+                      )}
+                    </p>
+                    <textarea
+                      className={styles.reflectInput}
+                      value={reflectAnswers[inst.id] || ""}
+                      onChange={(e) =>
+                        onReflectChange(inst.id, e.target.value)
+                      }
+                      rows={4}
+                      placeholder="TYPE ANSWER HERE …"
+                      disabled={reflectState === "saving"}
+                    />
+                  </div>
+                ))}
+
               {reflectError && (
                 <span className={styles.reflectError}>{reflectError}</span>
               )}
+
               <div className={styles.reflectActions}>
                 <button
                   type="button"
@@ -896,7 +964,7 @@ export default function PracticeProblemPage() {
                   onClick={() => submitReflection(false)}
                   disabled={reflectState === "saving"}
                 >
-                  {reflectState === "saving" ? "Saving…" : "Submit & Continue"}
+                  {reflectState === "saving" ? "LOCKING…" : "LOCK ANSWER"}
                 </button>
                 <button
                   type="button"
@@ -910,34 +978,14 @@ export default function PracticeProblemPage() {
                   Skip
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
+            </>
+          )}
 
-      {/* Reflection feedback (reviewing) — shows the Step 34 evaluation of the
-          answer the student just submitted, BEFORE the grading verdict. The
-          only place this feedback is ever surfaced. Continue proceeds to grade. */}
-      {reflectState === "reviewing" && (
-        <div className={styles.modalBackdrop}>
-          <div className={styles.reflectModal}>
-            <div className={styles.reflectModalIcon}>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9 11l3 3L22 4" />
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-              </svg>
-            </div>
-            <div className={styles.reflectModalContent}>
-              <p className={styles.reflectModalLabel}>
+          {/* Feedback on the just-submitted reflection, shown BEFORE the
+              grading verdict — the only place this evaluation is surfaced. */}
+          {reflectState === "reviewing" && (
+            <>
+              <p className={styles.reflectPaneSubLabel}>
                 Feedback on your reasoning
               </p>
               {reflectInstances
@@ -952,13 +1000,80 @@ export default function PracticeProblemPage() {
                     await runGrading();
                   }}
                 >
-                  Continue to results
+                  CONTINUE TO RESULTS
                 </button>
               </div>
-            </div>
-          </div>
+            </>
+          )}
+
+          {/* Post-fail invitation — never gates anything, so Skip just
+              dismisses it without saving. */}
+          {reflectState === "idle" &&
+            (postFailState === "asking" || postFailState === "saving") && (
+              <>
+                {postFailInstances.map((inst) => (
+                  <div key={inst.id} className={styles.reflectCard}>
+                    <span className={styles.reflectCardLabel}>
+                      PROBLEM STATEMENT
+                    </span>
+                    <p className={styles.reflectCardQuote}>
+                      &ldquo;{inst.rendered_text}&rdquo;
+                    </p>
+                    <textarea
+                      className={styles.reflectInput}
+                      value={postFailAnswers[inst.id] || ""}
+                      onChange={(e) =>
+                        onPostFailChange(inst.id, e.target.value)
+                      }
+                      rows={4}
+                      placeholder="TYPE ANSWER HERE …"
+                      disabled={postFailState === "saving"}
+                    />
+                  </div>
+                ))}
+
+                {postFailError && (
+                  <span className={styles.reflectError}>{postFailError}</span>
+                )}
+
+                <div className={styles.reflectActions}>
+                  <button
+                    type="button"
+                    className={styles.reflectSubmitBtn}
+                    onClick={submitPostFailReflection}
+                    disabled={postFailState === "saving"}
+                  >
+                    {postFailState === "saving" ? "LOCKING…" : "LOCK ANSWER"}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.reflectSkipBtn}
+                    onClick={() => setPostFailState("idle")}
+                    disabled={postFailState === "saving"}
+                  >
+                    Skip
+                  </button>
+                </div>
+              </>
+            )}
+
+          {reflectState === "idle" && postFailState === "done" && (
+            <p className={styles.reflectEmptyState}>
+              Thanks for reflecting — your notes were saved.
+            </p>
+          )}
+
+          {reflectState === "idle" &&
+            postFailState === "idle" &&
+            postFailInstances.length === 0 && (
+              <p className={styles.reflectEmptyState}>
+                Reflective questions will appear here when you submit your
+                code.
+              </p>
+            )}
         </div>
-      )}
+      </aside>
+      </div>
 
       {/* Challenge Solved modal */}
       {submitState === "done" && submitResult?.allPassed && (

@@ -1,0 +1,224 @@
+/* ─── Shared section shell ──────────────────────────────────────────────── */
+
+.section {
+  width: 100%;
+  padding: 100px 20px;
+  position: relative;
+  scroll-margin-top: 40px;
+}
+
+.sectionInner {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.sectionEmbedded {
+  width: 100%;
+  padding: 0;
+}
+
+.sectionInnerEmbedded {
+  width: 100%;
+  max-width: 900px;
+  margin: 0;
+}
+
+.headingEmbedded {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 1.8rem;
+  font-weight: 750;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 12px;
+}
+
+.introEmbedded {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 900px) {
+  .introEmbedded {
+    white-space: normal;
+  }
+}
+
+/* ─── Section header (standalone/landing use) ──────────────────────────── */
+
+.sectionHeader {
+  margin-bottom: 56px;
+}
+
+.sectionTag {
+  display: inline-block;
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-bottom: 16px;
+}
+
+.sectionTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 2rem;
+  font-weight: 750;
+  line-height: 1.2;
+  color: var(--text-primary);
+  letter-spacing: -0.5px;
+  margin-bottom: 14px;
+}
+
+.sectionSubtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+  max-width: 560px;
+}
+
+/* ─── Terms grid ────────────────────────────────────────────────────────── */
+
+.termsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.termsSection {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px 28px 24px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Accent top bar */
+.termsSection::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 12px 12px 0 0;
+}
+
+.accent-cyan::before {
+  background: var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+.accent-teal::before {
+  background: var(--accent-teal);
+  box-shadow: 0 0 12px rgba(0, 245, 176, 0.4);
+}
+.accent-purple::before {
+  background: var(--accent-purple);
+  box-shadow: 0 0 12px rgba(157, 78, 221, 0.4);
+}
+.accent-magenta::before {
+  background: var(--accent-magenta);
+  box-shadow: 0 0 12px rgba(224, 170, 255, 0.4);
+}
+
+.termsSection:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.termsSectionHeading {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.termsItems {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.termsItem {
+  border-left: 2px solid var(--surface-2);
+  padding-left: 14px;
+}
+
+.termsItemHeading {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.termsItemBody {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ─── Consent footnote ──────────────────────────────────────────────────── */
+
+.consentCard {
+  margin-top: 24px;
+  background: rgba(0, 240, 255, 0.04);
+  border: 1px solid rgba(0, 240, 255, 0.14);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.consentTitle {
+  font-family: var(--font-outfit), sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: 6px;
+}
+
+.consentText {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 760px) {
+  .section {
+    padding: 72px 16px;
+  }
+
+  .termsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionTitle {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .termsSection {
+    padding: 22px 18px 20px;
+  }
+}

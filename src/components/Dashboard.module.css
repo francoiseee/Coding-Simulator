@@ -5,6 +5,8 @@
   padding: 120px 40px 80px 40px;
   min-height: 100vh;
   box-sizing: border-box;
+  border-left: 1px solid var(--card-border);
+  border-right: 1px solid var(--card-border);
 }
 
 .dashboardGrid {
@@ -256,6 +258,19 @@
 }
 
 /* Middle Rows: Chart + Right stack */
+.middleRow {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .middleRow {
+    grid-template-columns: 1fr;
+  }
+}
+
 .chartCard {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -267,6 +282,18 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.cardHeader .chartTitleWrapper {
+  margin-bottom: 0;
 }
 
 .chartTitleWrapper {
@@ -298,6 +325,8 @@
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s;
 }
 
@@ -310,6 +339,17 @@
 .chartWrapper {
   position: relative;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.donutRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
 }
 
 .chartSplitRow {
@@ -441,59 +481,6 @@
   padding: 40px;
 }
 
-.barChart {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px;
-  width: 100%;
-}
-
-.barRow {
-  display: grid;
-  grid-template-columns: 150px 1fr 8px 38px;
-  align-items: center;
-  gap: 10px;
-  cursor: default;
-}
-
-.barStatusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  justify-self: center;
-}
-
-.barLabel {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.barTrack {
-  height: 6px;
-  background: var(--card-border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-
-.barFill {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.barPct {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-align: right;
-}
-
 .milestoneCard {
   background: radial-gradient(
     circle at 50% 50%,
@@ -557,114 +544,10 @@
   gap: 30px;
 }
 
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
-  margin-top: 28px;
-  position: relative;
-}
-
-.timeline::before {
-  content: "";
-  position: absolute;
-  left: 13px;
-  top: 12px;
-  bottom: 12px;
-  width: 1px;
-  background-color: var(--input-border);
-}
-
-.timelineNode {
-  display: flex;
-  gap: 18px;
-  position: relative;
-}
-
-.nodeCircle {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  z-index: 1;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.nodeCompleted .nodeCircle {
-  background-color: var(--accent-teal);
-  border: 1px solid var(--accent-teal);
-  color: #06070a;
-  box-shadow: 0 0 10px rgba(0, 245, 176, 0.25);
-}
-
-.nodeSelected .nodeCircle {
-  background-color: #06070a;
-  border: 2.5px solid var(--accent-cyan);
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.3);
-}
-
-.innerDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: var(--accent-cyan);
-  box-shadow: 0 0 6px var(--accent-cyan);
-}
-
-.nodeLocked .nodeCircle {
-  background-color: var(--surface-1);
-  border: 1.5px solid var(--input-border);
-  color: var(--text-muted);
-}
-
-.nodeBody {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.nodeTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.9rem;
-  font-weight: 750;
-  color: var(--text-primary);
-}
-
-.nodeCompleted .nodeTitle {
-  color: var(--text-primary);
-}
-
-.nodeSelected .nodeTitle {
-  color: var(--accent-cyan);
-  text-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
-}
-
-.nodeLocked .nodeTitle {
-  color: var(--text-muted);
-}
-
 .nodeDesc {
   font-family: var(--font-inter), sans-serif;
   font-size: 0.78rem;
   color: var(--text-secondary);
-}
-
-.learningPathList {
-  list-style: none;
-  padding: 0;
-  margin: 8px 0 0 0;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.learningPathItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
 }
 
 .learningPathDot {
@@ -704,9 +587,39 @@
   color: var(--text-primary);
 }
 
+.learningCard {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.learningCard .cardTitle {
+  margin-bottom: 22px;
+}
+
+.learningPathList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.learningPathItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
 .masteryStrip {
-  margin-top: 20px;
-  padding-top: 16px;
+  margin-top: 22px;
+  padding-top: 18px;
   border-top: 1px solid var(--card-border);
   display: flex;
   flex-direction: column;
@@ -735,19 +648,19 @@
 }
 
 .viewAllBtn {
-  margin-top: auto;
-  padding-top: 20px;
+  margin-top: 16px;
   background: none;
   border: none;
   color: var(--accent-cyan);
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  align-self: flex-start;
   transition:
     gap 0.2s ease,
     opacity 0.2s ease;
@@ -787,7 +700,7 @@
   border-radius: 16px;
   width: 100%;
   max-width: 520px;
-  max-height: 82vh;
+  max-height: 94vh;
   display: flex;
   flex-direction: column;
   box-shadow:
@@ -1066,152 +979,3 @@
   }
 }
 
-/* --- Recommended Practice (Phase 5 wiring) --- */
-
-.recommendCard {
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.recommendCount {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  color: var(--accent-cyan);
-  padding: 4px 12px;
-}
-
-.recommendSub {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
-
-.recommendList {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  max-height: 400px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.recommendList::-webkit-scrollbar {
-  width: 4px;
-}
-
-.recommendList::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.recommendList::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 99px;
-}
-
-.recommendList::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-.recommendItem {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  background-color: var(--surface-2);
-  border: 1px solid var(--input-border);
-  border-radius: 8px;
-  padding: 14px 18px;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  font-family: inherit;
-  color: inherit;
-}
-
-.recommendItem:hover {
-  background-color: rgba(0, 240, 255, 0.04);
-  border-color: var(--accent-cyan);
-  transform: translateX(2px);
-}
-
-.recommendItemMain {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.recommendItemTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.recommendItemReason {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 420px;
-}
-
-.recommendItemMeta {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
-
-/* Difficulty dot — same glowing-dot language as every other status marker
-   in this file (.dotStrong, .barStatusDot, .modalGroupDot). Size grows with
-   level so it still reads without a label. */
-.difficultyDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.difficulty_easy {
-  background-color: var(--accent-teal);
-  box-shadow: 0 0 6px rgba(0, 245, 176, 0.5);
-}
-
-.difficulty_medium {
-  background-color: #f59e0b;
-  box-shadow: 0 0 6px rgba(245, 158, 11, 0.45);
-}
-
-.difficulty_hard {
-  background-color: #ef4444;
-  box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
-}
-
-.recommendMinutes {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-
-@media (max-width: 640px) {
-  .recommendItemReason {
-    display: none;
-  }
-}

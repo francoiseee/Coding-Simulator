@@ -1,15 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import styles from "./Recommendation.module.css";
 
-export default function Recommendation({ hasResults, recommendedProblems }) {
-  const router = useRouter();
-  const goToProblem = (slug) => router.push(`/practice/${slug}`);
+export default function Recommendation({
+  recommendedProblems = [],
+  onSelectProblem,
+}) {
+  const hasProblems = recommendedProblems.length > 0;
 
   return (
-    <div className={styles.recommendationWrapper}>
-      <header className={styles.recommendationHeader}>
+    <div className={styles.wrapper}>
+      <header className={styles.header}>
         <h1 className={styles.title}>Recommendation</h1>
         <p className={styles.subtitle}>
           Practice problems targeted at your weakest concepts from the
@@ -17,47 +18,45 @@ export default function Recommendation({ hasResults, recommendedProblems }) {
         </p>
       </header>
 
-      {!hasResults ? (
+      {!hasProblems && (
         <div className={styles.emptyState}>
-          <p>Complete your diagnostic to get personalized recommendations.</p>
+          <p>
+            Complete your diagnostic to get problems recommended for your
+            weakest concepts.
+          </p>
         </div>
-      ) : recommendedProblems.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>No recommendations yet — check back after your next diagnostic.</p>
-        </div>
-      ) : (
-        <article className={styles.recommendCard}>
+      )}
+
+      {hasProblems && (
+        <section className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Recommended Practice</h3>
-            <span className={styles.recommendCount}>
+            <h2 className={styles.cardTitle}>Recommended Practice</h2>
+            <span className={styles.count}>
               {recommendedProblems.length} problems
             </span>
           </div>
 
-          <ul className={styles.recommendList}>
+          <ul className={styles.list}>
             {recommendedProblems.map((rp) => (
               <li key={rp.recommendationId}>
                 <button
                   type="button"
-                  className={styles.recommendItem}
-                  onClick={() => goToProblem(rp.slug)}
+                  className={styles.item}
+                  onClick={() => onSelectProblem?.(rp.slug)}
                 >
-                  <div className={styles.recommendItemMain}>
-                    <span className={styles.recommendItemTitle}>
-                      {rp.title}
-                    </span>
-                    <span className={styles.recommendItemReason}>
+                  <div className={styles.itemMain}>
+                    <span className={styles.itemTitle}>{rp.title}</span>
+                    <span className={styles.itemReason}>
                       {rp.conceptName ? `${rp.conceptName} · ` : ""}
                       {rp.reason}
                     </span>
                   </div>
-                  <div className={styles.recommendItemMeta}>
+                  <div className={styles.itemMeta}>
                     <span
                       className={`${styles.difficultyDot} ${styles["difficulty_" + rp.difficulty]}`}
-                      title={`Difficulty: ${rp.difficulty}`}
                     />
                     {rp.estimatedMinutes ? (
-                      <span className={styles.recommendMinutes}>
+                      <span className={styles.minutes}>
                         ~{rp.estimatedMinutes}m
                       </span>
                     ) : null}
@@ -66,7 +65,7 @@ export default function Recommendation({ hasResults, recommendedProblems }) {
               </li>
             ))}
           </ul>
-        </article>
+        </section>
       )}
     </div>
   );

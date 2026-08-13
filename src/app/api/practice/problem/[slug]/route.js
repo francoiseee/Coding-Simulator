@@ -10,6 +10,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(request, { params }) {
   const { slug } = await params;
@@ -51,6 +52,16 @@ export async function GET(request, { params }) {
     .eq('problem_id', problem.id)
     .order('display_order', { ascending: true });
 
+  // Count-only query via the admin client so the student sees how many
+  // hidden tests exist without RLS having to expose their content — a
+  // head request never returns rows, only the count.
+  const admin = createAdminClient();
+  const { count: hiddenTestCount } = await admin
+    .from('test_cases')
+    .select('id', { count: 'exact', head: true })
+    .eq('problem_id', problem.id)
+    .neq('visibility', 'public_sample');
+
   return NextResponse.json({
     problem: {
       id: problem.id,
@@ -66,5 +77,6 @@ export async function GET(request, { params }) {
     starterCode: lang?.starter_code ?? '',
     functionSignature: lang?.function_signature ?? null,
     sampleTests: sampleTests ?? [],
+    hiddenTestCount: hiddenTestCount ?? 0,
   });
 }
