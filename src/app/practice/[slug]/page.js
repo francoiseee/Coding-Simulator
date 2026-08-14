@@ -885,11 +885,23 @@ export default function PracticeProblemPage() {
                     className={`${styles.terminalLine} ${r.passed ? styles.terminalPass : styles.terminalFail}`}
                   >
                     <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
-                    <span>
-                      Test {i + 1}: input {formatInput(r.input)} → expected{" "}
+                    <div className={styles.terminalResultHeader}>
+                      Test {i + 1}
+                    </div>
+                    <div className={styles.terminalResultDetail}>
+                      <span className={styles.terminalResultLabel}>Input:</span>{" "}
+                      {formatInput(r.input)}
+                    </div>
+                    <div className={styles.terminalResultDetail}>
+                      <span className={styles.terminalResultLabel}>Expected:</span>{" "}
                       {formatValue(r.expected)}
-                      {!r.passed && r.actual != null ? `, got ${r.actual}` : ""}
-                    </span>
+                    </div>
+                    {!r.passed && r.actual != null && (
+                      <div className={styles.terminalResultDetail}>
+                        <span className={styles.terminalResultLabel}>Got:</span>{" "}
+                        {r.actual}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -911,13 +923,25 @@ export default function PracticeProblemPage() {
                   >
                     <span>{r.passed ? "[PASS]" : "[FAIL]"}</span>
                     {r.visibility === "public_sample" ? (
-                      <span>
-                        Test {i + 1}: input {formatInput(r.input)} → expected{" "}
-                        {formatValue(r.expected)}
-                        {!r.passed && r.actual != null
-                          ? `, got ${r.actual}`
-                          : ""}
-                      </span>
+                      <>
+                        <div className={styles.terminalResultHeader}>
+                          Test {i + 1}
+                        </div>
+                        <div className={styles.terminalResultDetail}>
+                          <span className={styles.terminalResultLabel}>Input:</span>{" "}
+                          {formatInput(r.input)}
+                        </div>
+                        <div className={styles.terminalResultDetail}>
+                          <span className={styles.terminalResultLabel}>Expected:</span>{" "}
+                          {formatValue(r.expected)}
+                        </div>
+                        {!r.passed && r.actual != null && (
+                          <div className={styles.terminalResultDetail}>
+                            <span className={styles.terminalResultLabel}>Got:</span>{" "}
+                            {r.actual}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <span>
                         Hidden test {i + 1} {r.passed ? "passed" : "failed"}
