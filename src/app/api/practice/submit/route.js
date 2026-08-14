@@ -29,6 +29,7 @@ import {
   classNameFromSpec,
 } from "@/lib/judge0/buildHarness";
 import { checkCircuitBreaker } from "@/lib/adaptive/selectNextDifficulty";
+import { updateMasteryFromSubmission } from "@/lib/mastery/updateConceptMastery";
 
 export async function POST(request) {
   let body;
@@ -344,7 +345,24 @@ export async function POST(request) {
     );
   }
 
-  // 5b. Circuit breaker check — OBSERVABILITY ONLY, no adaptive engine exists
+  // 5b. Update live concept mastery (Skill Growth Chart, Learning Path, and
+  // the adaptive picker's weakest-topic selection all read from this) so a
+  // graded practice submission actually moves the student's standing, not
+  // just the diagnostic snapshot from before they practiced. Non-fatal for
+  // the same reason as the audit rows above: the submission is already
+  // scored and saved by this point.
+  try {
+    await updateMasteryFromSubmission({
+      admin,
+      userId: user.id,
+      problemId: session.problem_id,
+      scorePercentage,
+    });
+  } catch (err) {
+    console.error("updateMasteryFromSubmission failed (non-fatal):", err.message);
+  }
+
+  // 5c. Circuit breaker check — OBSERVABILITY ONLY, no adaptive engine exists
   // yet to act on this (Steps 35-46). Logs what the breaker WOULD do so real
   // Group 1 timing data is available before FAST_FAIL_WINDOW_MS / STREAK are
   // tuned for real. Never blocks or changes the response to the student.

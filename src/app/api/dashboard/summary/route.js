@@ -99,6 +99,7 @@ export async function GET() {
       recommendedProblems: [],
       masteryConcepts: [],
       overallScorePercentage: null,
+      overallMasteryPercentage: null,
       tier: "Not Yet Assessed",
     });
   }
@@ -124,36 +125,26 @@ export async function GET() {
     );
   }
 
-  const concepts = conceptRows.map((c) => ({
+  // Fixed snapshot of the diagnostic — used below as the baseline / fallback,
+  // but NOT shown directly wherever live mastery is available (see `concepts`
+  // below). Showing this alone would mean a solved practice problem never
+  // moves any dashboard stat, since this table is only ever written once, at
+  // diagnostic submission time.
+  const diagnosticConcepts = conceptRows.map((c) => ({
     conceptId: c.concept_id,
     slug: c.concepts?.slug,
     name: c.concepts?.name,
     category: c.concepts?.category,
     scorePercentage: c.score_percentage,
     classification: c.classification,
-    // Surfaced so the UI can render an honest label instead of deriving one
-    // from sort position, and can show how much evidence backs the estimate.
-    classificationLabel:
-      CLASSIFICATION_LABELS[c.classification] || c.classification,
     questionsRelevant: c.questions_relevant,
-    hasEnoughEvidence: c.classification !== "insufficient_evidence",
   }));
 
-  // Only concepts the attempt could actually judge are eligible for headline
-  // guidance — see the note at the top of this file.
-  const judged = concepts.filter((c) => c.hasEnoughEvidence);
-
-  // "Needs work" means genuinely below `strong`, not merely lowest-ranked.
-  const needsWork = judged.filter((c) => c.classification !== "strong");
-
-  const weakest = needsWork.slice(0, 3);
-  const strongest = [...judged].reverse().slice(0, 3);
-  const allConcepts = concepts; // all 16, weakest first
-
   // Live concept mastery — the EWMA estimate that both diagnostic and practice
-  // feed into. Distinct from attempt_concept_results, which is a fixed snapshot
-  // of the diagnostic. last_practiced_at != null means the concept has been
-  // exercised through coding practice beyond its diagnostic baseline.
+  // feed into (see updateMasteryFromAttempt / updateMasteryFromSubmission in
+  // src/lib/mastery/updateConceptMastery.js). last_practiced_at != null means
+  // the concept has been exercised through coding practice beyond its
+  // diagnostic baseline.
   const { data: masteryRows, error: masteryError } = await supabase
     .from("user_concept_mastery")
     .select(`
@@ -173,9 +164,76 @@ export async function GET() {
     );
   }
 
+  const masteryByConceptId = new Map(
+    (masteryRows || []).map((m) => [
+      m.concept_id,
+      { scorePercentage: Number(m.mastery_score), evidenceCount: Number(m.evidence_count) || 0 },
+    ]),
+  );
+
+  // Same thresholds used for the diagnostic's own classify() in
+  // src/app/api/diagnostic/submit/route.js, applied to the live mastery
+  // score so a concept's classification stays consistent whichever source
+  // (diagnostic snapshot or live mastery) is currently backing it.
+  function classifyScore(scorePct) {
+    if (scorePct >= 80) return "strong";
+    if (scorePct >= 60) return "developing";
+    if (scorePct >= 40) return "needs_practice";
+    return "weak";
+  }
+
+  // The dashboard's headline concept stats (Skill Growth Chart, Learning
+  // Path, weakest/strongest) should reflect the student's CURRENT standing,
+  // not just their diagnostic result — otherwise a correctly solved practice
+  // problem never changes anything on the dashboard. Prefer live mastery per
+  // concept; fall back to the diagnostic snapshot only for concepts with no
+  // mastery row yet (evidence_count filters in updateMasteryFromAttempt can
+  // leave insufficient-evidence concepts without one).
+  const concepts = diagnosticConcepts.map((c) => {
+    const live = masteryByConceptId.get(c.conceptId);
+    const scorePercentage = live ? live.scorePercentage : c.scorePercentage;
+    const classification = live ? classifyScore(live.scorePercentage) : c.classification;
+    return {
+      conceptId: c.conceptId,
+      slug: c.slug,
+      name: c.name,
+      category: c.category,
+      scorePercentage,
+      classification,
+      // Surfaced so the UI can render an honest label instead of deriving one
+      // from sort position, and can show how much evidence backs the estimate.
+      classificationLabel: CLASSIFICATION_LABELS[classification] || classification,
+      questionsRelevant: c.questionsRelevant,
+      hasEnoughEvidence: classification !== "insufficient_evidence",
+    };
+  });
+
+  // Only concepts the attempt could actually judge are eligible for headline
+  // guidance — see the note at the top of this file.
+  const judged = concepts.filter((c) => c.hasEnoughEvidence);
+
+  // "Needs work" means genuinely below `strong`, not merely lowest-ranked.
+  const needsWork = judged.filter((c) => c.classification !== "strong");
+
+  const weakest = needsWork.slice(0, 3);
+  const strongest = [...judged].reverse().slice(0, 3);
+  const allConcepts = concepts; // all 16, weakest first
+
+  // The Skill Growth Chart's donut is built from `allConcepts` (live-aware,
+  // see above), so its center number must be too — otherwise the ring moves
+  // when a practice problem is solved but the number in the middle doesn't.
+  // Averaged across all 16 concepts, same as the ring's per-concept basis.
+  const overallMasteryPercentage = concepts.length
+    ? Math.round(
+        (concepts.reduce((sum, c) => sum + c.scorePercentage, 0) /
+          concepts.length) *
+          100,
+      ) / 100
+    : null;
+
   // Diagnostic baseline per concept, so the UI can show baseline vs. current.
   const baselineByConcept = new Map(
-    concepts.map((c) => [c.conceptId, c.scorePercentage]),
+    diagnosticConcepts.map((c) => [c.conceptId, c.scorePercentage]),
   );
 
   const masteryConcepts = (masteryRows || []).map((m) => ({
@@ -289,6 +347,7 @@ export async function GET() {
     masteryConcepts,
     aiReport,
     suggestedFocus,
+    overallMasteryPercentage,
     // True when every judged concept is already `strong` — the UI should
     // congratulate rather than invent a weakness.
     allConceptsStrong: judged.length > 0 && needsWork.length === 0,

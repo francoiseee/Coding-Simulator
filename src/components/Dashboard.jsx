@@ -70,8 +70,9 @@ export default function Dashboard({ email }) {
   const weakest = summary?.weakest ?? [];
   const allConcepts = summary?.allConcepts ?? [];
   const recommendedProblems = summary?.recommendedProblems ?? [];
-  // Pick a real "focus" concept — the single weakest area.
-  const focusConcept = weakest[0];
+  // Server-computed so the card's label always agrees with where clicking it
+  // actually goes (see suggestedFocus in /api/dashboard/summary/route.js).
+  const suggestedFocus = summary?.suggestedFocus ?? null;
 
   // Skill Growth donut — counts per classification feed both the ring
   // segments and the legend, so they can never drift out of sync.
@@ -122,18 +123,12 @@ export default function Dashboard({ email }) {
 
   // Calls the LIVE adaptive picker (cold-start rule -> circuit breaker -> RF
   // model -> weakest-topic problem selection; see
-  // src/lib/adaptive/pickNextDifficulty.js and selectNextProblem.js) rather
-  // than statically reusing recommendedProblems[0] from the diagnostic-based
-  // summary. Falls back to that static recommendation, then to the
-  // diagnostic itself, only if the network call fails outright — the
-  // endpoint's own fail-safe design (see Section 10 of the session summary)
-  // means a 200 with a real problem is the overwhelmingly common case; this
-  // catch is for genuine connectivity failures, not expected business logic.
+  // src/lib/adaptive/pickNextDifficulty.js and selectNextProblem.js). Used
+  // only as a fallback when there's no specific recommended problem to name
+  // (suggestedFocus.kind === "concept") — this picker's own topic-selection
+  // strategy does NOT correspond to any single displayed concept, so it must
+  // never be reached while the card is showing a specific suggestion.
   const startAdaptivePractice = async () => {
-    if (!hasResults) {
-      goToDiagnostic();
-      return;
-    }
     setAdaptiveLoading(true);
     try {
       const res = await fetch("/api/practice/next-problem");
@@ -156,6 +151,22 @@ export default function Dashboard({ email }) {
     } finally {
       setAdaptiveLoading(false);
     }
+  };
+
+  // The card must take the student exactly where its own label says it will:
+  // if the label names a specific problem (suggestedFocus.kind === "problem"),
+  // go straight there. Only fall back to the generic adaptive picker when
+  // there's no specific problem to name yet.
+  const startSuggestedFocus = () => {
+    if (!hasResults) {
+      goToDiagnostic();
+      return;
+    }
+    if (suggestedFocus?.kind === "problem") {
+      goToProblem(suggestedFocus.problemSlug);
+      return;
+    }
+    startAdaptivePractice();
   };
 
   return (
@@ -343,8 +354,8 @@ export default function Dashboard({ email }) {
                   <p className={styles.welcomeDesc}>
                     {hasResults
                       ? `You scored ${summary.overallScorePercentage}% on your diagnostic. ${
-                          focusConcept
-                            ? `${focusConcept.name} is your biggest opportunity to improve right now.`
+                          suggestedFocus
+                            ? `${suggestedFocus.title} is your biggest opportunity to improve right now.`
                             : ""
                         }`
                       : "You haven't completed your diagnostic yet. Take it to see your personalized skill breakdown."}
@@ -353,7 +364,7 @@ export default function Dashboard({ email }) {
 
                 <div
                   className={styles.adaptiveSessionBox}
-                  onClick={startAdaptivePractice}
+                  onClick={startSuggestedFocus}
                   role="button"
                   tabIndex={0}
                   aria-busy={adaptiveLoading}
@@ -371,8 +382,10 @@ export default function Dashboard({ email }) {
                       {adaptiveLoading
                         ? "Finding your next problem…"
                         : hasResults
-                          ? focusConcept
-                            ? `${focusConcept.name} Practice`
+                          ? suggestedFocus
+                            ? suggestedFocus.kind === "problem"
+                              ? suggestedFocus.title
+                              : `${suggestedFocus.title} Practice`
                             : "Continue Practicing"
                           : "Take the Diagnostic"}
                     </h5>
@@ -479,7 +492,7 @@ export default function Dashboard({ email }) {
                           </svg>
                           <div className={styles.donutCenter}>
                             <span className={styles.donutScore}>
-                              {summary.overallScorePercentage}%
+                              {summary.overallMasteryPercentage}%
                             </span>
                             <span className={styles.donutScoreLabel}>
                               Overall
@@ -531,7 +544,7 @@ export default function Dashboard({ email }) {
                                   </h3>
                                   <span className={styles.modalSubtitle}>
                                     {allConcepts.length} concepts ·{" "}
-                                    {summary.overallScorePercentage}% overall
+                                    {summary.overallMasteryPercentage}% overall
                                   </span>
                                 </div>
                                 <button
