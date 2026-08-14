@@ -806,7 +806,26 @@ export default function PracticeProblemPage() {
           <MonacoEditor
             height="100%"
             language="python"
-            theme="vs-dark"
+            theme={theme === "dark" ? "codely-dark" : "codely-light"}
+            beforeMount={(monaco) => {
+              // Stock vs-dark/vs are Monaco's defaults and don't relate to the
+              // app palette — vs-dark's #1e1e1e is actually lighter than the
+              // navbar. Anchor the editor background to --background instead,
+              // which is deliberately darker (dark mode) / more muted (light
+              // mode) than the navbar's flat rgb(10,15,26)/rgb(255,255,255).
+              monaco.editor.defineTheme("codely-dark", {
+                base: "vs-dark",
+                inherit: true,
+                rules: [],
+                colors: { "editor.background": "#06070a" },
+              });
+              monaco.editor.defineTheme("codely-light", {
+                base: "vs",
+                inherit: true,
+                rules: [],
+                colors: { "editor.background": "#eef1f7" },
+              });
+            }}
             value={code}
             onChange={onCodeChange}
             options={{

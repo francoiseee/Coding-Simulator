@@ -382,16 +382,12 @@
   margin-bottom: 20px;
 }
 
-.chartViewAllPill {
-  align-self: flex-end;
-}
-
 .donutBlock {
   position: relative;
   flex-shrink: 0;
   align-self: center;
-  width: 150px;
-  height: 150px;
+  width: 190px;
+  height: 190px;
 }
 
 .donutSvg {
@@ -413,7 +409,7 @@
 
 .donutScore {
   font-family: var(--font-outfit), sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1.1;
@@ -432,16 +428,10 @@
 
 .donutLegend {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 24px;
-}
-
-.donutLegendItem {
-  display: flex;
+  grid-template-columns: auto minmax(0, 1fr) auto auto minmax(0, 1fr) auto;
+  column-gap: 8px;
+  row-gap: 10px;
   align-items: center;
-  gap: 8px;
-  min-width: 0;
-  transition: opacity 0.2s;
 }
 
 .donutLegendDot {
@@ -451,6 +441,10 @@
   flex-shrink: 0;
 }
 
+.donutLegendDotRight {
+  margin-left: 40px;
+}
+
 .donutLegendLabel {
   font-family: var(--font-inter), sans-serif;
   font-size: 0.76rem;
@@ -458,6 +452,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: left;
 }
 
 .donutLegendCount {
@@ -465,7 +460,7 @@
   font-size: 0.76rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-left: auto;
+  text-align: left;
 }
 
 .chartEmpty {

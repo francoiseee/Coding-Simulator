@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styles from "./Dashboard.module.css";
@@ -107,14 +107,8 @@ export default function Dashboard({ email }) {
       color: "#ef4444",
       count: classificationCounts.weak || 0,
     },
-    {
-      key: "insufficient_evidence",
-      label: "Not Assessed",
-      color: "rgba(255, 255, 255, 0.18)",
-      count: classificationCounts.insufficient_evidence || 0,
-    },
   ];
-  const DONUT_RADIUS = 60;
+  const DONUT_RADIUS = 76;
   const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
   const donutTotal = allConcepts.length || 1;
   let donutCumulative = 0;
@@ -227,7 +221,7 @@ export default function Dashboard({ email }) {
                 <path d="M7 10l3 2-3 2" />
                 <path d="M12 14h5" />
               </svg>
-              <span>Simulations</span>
+              <span>Dashboard</span>
             </button>
 
             <button
@@ -431,9 +425,17 @@ export default function Dashboard({ email }) {
                     <h3 className={styles.cardTitle}>Skill Growth Chart</h3>
                   </div>
 
-                  <div className={styles.dropdownPill}>
-                    {hasResults ? "Latest Diagnostic" : "No Data Yet"}
-                  </div>
+                  {hasResults ? (
+                    <button
+                      type="button"
+                      className={styles.dropdownPill}
+                      onClick={() => setShowAllConcepts(true)}
+                    >
+                      View all
+                    </button>
+                  ) : (
+                    <div className={styles.dropdownPill}>No Data Yet</div>
+                  )}
                 </div>
 
                 <div className={styles.chartWrapper}>
@@ -447,19 +449,19 @@ export default function Dashboard({ email }) {
                         <div className={styles.donutBlock}>
                           <svg
                             className={styles.donutSvg}
-                            viewBox="0 0 150 150"
-                            width="150"
-                            height="150"
+                            viewBox="0 0 190 190"
+                            width="190"
+                            height="190"
                           >
                             <circle
-                              cx="75"
-                              cy="75"
+                              cx="95"
+                              cy="95"
                               r={DONUT_RADIUS}
                               fill="none"
                               stroke="rgba(255, 255, 255, 0.06)"
-                              strokeWidth="18"
+                              strokeWidth="20"
                             />
-                            <g transform="rotate(-90 75 75)">
+                            <g transform="rotate(-90 95 95)">
                               {DONUT_SEGMENTS.filter((s) => s.count > 0).map(
                                 (s) => {
                                   const dash =
@@ -475,12 +477,12 @@ export default function Dashboard({ email }) {
                                     <circle
                                       key={s.key}
                                       className={styles.donutSlice}
-                                      cx="75"
-                                      cy="75"
+                                      cx="95"
+                                      cy="95"
                                       r={DONUT_RADIUS}
                                       fill="none"
                                       stroke={s.color}
-                                      strokeWidth="18"
+                                      strokeWidth="20"
                                       strokeDasharray={`${visibleDash} ${DONUT_CIRCUMFERENCE}`}
                                       strokeDashoffset={offset}
                                       strokeLinecap="round"
@@ -501,10 +503,12 @@ export default function Dashboard({ email }) {
                         </div>
 
                         <div className={styles.donutLegend}>
-                          {DONUT_SEGMENTS.map((s) => (
-                            <div key={s.key} className={styles.donutLegendItem}>
+                          {DONUT_SEGMENTS.map((s, i) => (
+                            <Fragment key={s.key}>
                               <span
-                                className={styles.donutLegendDot}
+                                className={`${styles.donutLegendDot} ${
+                                  i % 2 === 1 ? styles.donutLegendDotRight : ""
+                                }`}
                                 style={{ background: s.color }}
                               />
                               <span className={styles.donutLegendLabel}>
@@ -513,18 +517,10 @@ export default function Dashboard({ email }) {
                               <span className={styles.donutLegendCount}>
                                 {s.count}
                               </span>
-                            </div>
+                            </Fragment>
                           ))}
                         </div>
                       </div>
-
-                      <button
-                        type="button"
-                        className={`${styles.dropdownPill} ${styles.chartViewAllPill}`}
-                        onClick={() => setShowAllConcepts(true)}
-                      >
-                        View all
-                      </button>
 
                       {showAllConcepts &&
                         typeof document !== "undefined" &&

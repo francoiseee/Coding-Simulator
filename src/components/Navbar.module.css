@@ -11,12 +11,8 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  background-color: rgb(10, 15, 26);
+  background-color: var(--background);
   border-bottom: 1px solid var(--card-border);
-}
-
-:root[data-theme="light"] .navbar {
-  background-color: rgb(255, 255, 255);
 }
 
 .logo {
