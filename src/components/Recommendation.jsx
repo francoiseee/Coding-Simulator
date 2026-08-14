@@ -23,7 +23,7 @@ export default function Recommendation({
         <div className={styles.emptyState}>
           <p>
             {hasDiagnostic
-              ? "You've completed all your recommended practice! Check My Progress to see your growth, or explore more concepts from Simulations."
+              ? "You've completed your diagnostic-based recommendations! Head back to your Dashboard — the SUGGESTED FOCUS card there adapts in real time based on your practice and will keep giving you a next problem to work on."
               : "Complete your diagnostic to get problems recommended for your weakest concepts."}
           </p>
         </div>
