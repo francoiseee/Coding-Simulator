@@ -360,6 +360,18 @@
   text-shadow: 0 0 14px rgba(157, 78, 221, 0.45);
 }
 
+.aiSourceNote {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.aiSourceNote strong {
+  color: var(--accent-purple);
+  font-weight: 700;
+}
+
 /* AI report pagination */
 .aiNav {
   display: flex;

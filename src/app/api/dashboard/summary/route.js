@@ -74,7 +74,7 @@ export async function GET() {
   // Most recent completed attempt, if any.
   const { data: attempt, error: attemptError } = await supabase
     .from("diagnostic_attempts")
-    .select("id, raw_score, score_percentage, completed_at")
+    .select("id, raw_score, score_percentage, completed_at, time_spent_seconds")
     .eq("status", "completed")
     .order("completed_at", { ascending: false })
     .limit(1)
@@ -87,6 +87,88 @@ export async function GET() {
     );
   }
 
+  // Recent Activity feed — every graded practice submission (solved or not),
+  // newest first. Fetched here (before the no-diagnostic early return) so
+  // practice history still shows up even for a student without a completed
+  // diagnostic. RLS restricts this to the caller's own submissions.
+  // coding_sessions.started_at is joined in so "time spent" can be derived as
+  // graded_at - started_at (when the student opened this problem to when this
+  // submission was graded) — there's no dedicated duration column to read.
+  const { data: recentSubmissions, error: recentSubsError } = await supabase
+    .from("submissions")
+    .select(
+      `
+      id,
+      execution_status,
+      score_percentage,
+      graded_at,
+      problems ( title, slug ),
+      coding_sessions ( started_at )
+    `,
+    )
+    .order("graded_at", { ascending: false })
+    .limit(20);
+
+  if (recentSubsError) {
+    return NextResponse.json(
+      { error: "Could not load recent activity." },
+      { status: 500 },
+    );
+  }
+
+  // Merges the diagnostic completion (if any) with recent practice
+  // submissions into one newest-first feed — this is what the "Recent
+  // Activity" table shows, so a solved (or attempted) practice problem
+  // actually shows up there instead of being silently dropped.
+  function buildRecentActivity() {
+    const items = [];
+    if (attempt) {
+      items.push({
+        kind: "diagnostic",
+        name: "Codely Beginner Diagnostic",
+        slug: null,
+        date: attempt.completed_at,
+        scorePercentage: Number(attempt.score_percentage),
+        passed: Number(attempt.score_percentage) >= 60,
+        durationSeconds: Number.isFinite(attempt.time_spent_seconds)
+          ? attempt.time_spent_seconds
+          : null,
+      });
+    }
+    for (const s of recentSubmissions || []) {
+      if (!s.problems) continue;
+      // A to-one embed (submissions.session_id -> coding_sessions.id) comes
+      // back as a single object, but guard against an array shape too in
+      // case PostgREST can't disambiguate the relationship.
+      const codingSession = Array.isArray(s.coding_sessions)
+        ? s.coding_sessions[0]
+        : s.coding_sessions;
+      let durationSeconds = null;
+      if (codingSession?.started_at && s.graded_at) {
+        const diff =
+          (new Date(s.graded_at) - new Date(codingSession.started_at)) / 1000;
+        // graded_at is always >= started_at in real data (verified directly
+        // against the DB) — a negative value here would mean bad/missing
+        // data, not a reversed order, so it's reported as unknown rather
+        // than masked with Math.abs().
+        durationSeconds = diff >= 0 ? diff : null;
+      }
+      items.push({
+        kind: "problem",
+        name: s.problems.title,
+        slug: s.problems.slug,
+        date: s.graded_at,
+        scorePercentage: Number(s.score_percentage),
+        passed: s.execution_status === "accepted",
+        durationSeconds,
+      });
+    }
+    items.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return items.slice(0, 15);
+  }
+
+  const recentActivity = buildRecentActivity();
+
   if (!attempt) {
     // Student hasn't finished a diagnostic yet — nothing else to fetch.
     return NextResponse.json({
@@ -96,8 +178,11 @@ export async function GET() {
       concepts: [],
       strongest: [],
       weakest: [],
+      allConcepts: [],
+      diagnosticSnapshot: [],
       recommendedProblems: [],
       masteryConcepts: [],
+      recentActivity,
       overallScorePercentage: null,
       overallMasteryPercentage: null,
       tier: "Not Yet Assessed",
@@ -343,11 +428,18 @@ export async function GET() {
     strongest,
     weakest,
     allConcepts,
+    // The untouched, original diagnostic snapshot — unlike `concepts` /
+    // `allConcepts` (which blend in live practice mastery), this never
+    // changes after the diagnostic is scored. Powers the "Diagnostic
+    // Results" tab, which shows what the student got when they first took
+    // it, as opposed to "Concept Breakdown" which shows current standing.
+    diagnosticSnapshot: diagnosticConcepts,
     recommendedProblems,
     masteryConcepts,
     aiReport,
     suggestedFocus,
     overallMasteryPercentage,
+    recentActivity,
     // True when every judged concept is already `strong` — the UI should
     // congratulate rather than invent a weakness.
     allConceptsStrong: judged.length > 0 && needsWork.length === 0,

@@ -70,6 +70,7 @@ export default function Dashboard({ email }) {
   const weakest = summary?.weakest ?? [];
   const allConcepts = summary?.allConcepts ?? [];
   const recommendedProblems = summary?.recommendedProblems ?? [];
+  const recentActivity = summary?.recentActivity ?? [];
   // Server-computed so the card's label always agrees with where clicking it
   // actually goes (see suggestedFocus in /api/dashboard/summary/route.js).
   const suggestedFocus = summary?.suggestedFocus ?? null;
@@ -114,6 +115,19 @@ export default function Dashboard({ email }) {
   let donutCumulative = 0;
 
   const goToProblem = (slug) => router.push(`/practice/${slug}`);
+
+  // durationSeconds is only known when the source data allows computing it
+  // (see recentActivity in /api/dashboard/summary/route.js) — show a dash
+  // rather than a fabricated 0:00 when it isn't available.
+  const formatDuration = (durationSeconds) => {
+    if (!Number.isFinite(durationSeconds) || durationSeconds < 0) return "—";
+    const totalMinutes = Math.round(durationSeconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (totalMinutes > 0) return `${totalMinutes}m`;
+    return "<1m";
+  };
 
   // Calls the LIVE adaptive picker (cold-start rule -> circuit breaker -> RF
   // model -> weakest-topic problem selection; see
@@ -689,108 +703,123 @@ export default function Dashboard({ email }) {
               </article>
               </div>
 
-              {/* Lower Layout Grid: Milestone + Recent Activity */}
+              {/* Lower Layout Grid: Recent Activity */}
               <div className={styles.lowerRow}>
-                {/* Milestone Widget */}
-                <article className={styles.milestoneCard}>
-                  <span className={styles.milestoneLabel}>
-                    {hasResults ? "LATEST RESULT" : "GET STARTED"}
-                  </span>
-
-                  {hasResults ? (
-                    <>
-                      <h4 className={styles.milestoneTitle}>{summary.tier}</h4>
-                      <p className={styles.milestoneDesc}>
-                        Scored {summary.overallScorePercentage}% on the Codely
-                        Beginner Diagnostic.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <h4 className={styles.milestoneTitle}>
-                        No diagnostic yet
-                      </h4>
-                      <p className={styles.milestoneDesc}>
-                        Complete your diagnostic to see your skill breakdown
-                        here.
-                      </p>
-                    </>
-                  )}
-                </article>
-
                 {/* Widget 3: Recent Activity Table — real attempt(s) */}
                 <article className={styles.activityCard}>
                   <h3 className={styles.cardTitle}>Recent Activity</h3>
 
                   <div className={styles.tableWrapper}>
                     <table className={styles.activityTable}>
+                      <colgroup>
+                        <col style={{ width: "24%" }} />
+                        <col style={{ width: "13%" }} />
+                        <col style={{ width: "14%" }} />
+                        <col style={{ width: "12%" }} />
+                        <col style={{ width: "25%" }} />
+                        <col style={{ width: "12%" }} />
+                      </colgroup>
                       <thead>
                         <tr>
                           <th>SIMULATION NAME</th>
                           <th>DATE</th>
+                          <th>TIME</th>
+                          <th>TIME SPENT</th>
                           <th>PERFORMANCE</th>
                           <th>BADGE</th>
                         </tr>
                       </thead>
+                    </table>
+                    <div className={styles.tableScrollBody}>
+                    <table className={styles.activityTable}>
+                      <colgroup>
+                        <col style={{ width: "24%" }} />
+                        <col style={{ width: "13%" }} />
+                        <col style={{ width: "14%" }} />
+                        <col style={{ width: "12%" }} />
+                        <col style={{ width: "25%" }} />
+                        <col style={{ width: "12%" }} />
+                      </colgroup>
                       <tbody>
-                        {hasResults ? (
-                          <tr>
-                            <td className={styles.tableName}>
-                              Codely Beginner Diagnostic
-                            </td>
-                            <td className={styles.tableDate}>
-                              {new Date(
-                                summary.latestAttempt.completedAt,
-                              ).toLocaleDateString()}
-                            </td>
-                            <td>
-                              <div className={styles.perfWrapper}>
-                                <div
-                                  className={`${styles.perfTrack} ${
-                                    summary.overallScorePercentage >= 60
-                                      ? styles.perfGreenFill
-                                      : styles.perfYellowFill
-                                  }`}
-                                  style={{
-                                    width: `${summary.overallScorePercentage}%`,
-                                  }}
-                                />
-                                <span className={styles.perfVal}>
-                                  {summary.overallScorePercentage}%
-                                </span>
-                              </div>
-                            </td>
-                            <td className={styles.tableIconCell}>
-                              <svg
-                                className={
-                                  summary.overallScorePercentage >= 60
-                                    ? styles.tableGreenIcon
-                                    : styles.tableYellowIcon
-                                }
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2.5"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                <polyline points="22 4 12 14.01 9 11.01" />
-                              </svg>
-                            </td>
-                          </tr>
+                        {recentActivity.length ? (
+                          recentActivity.map((a, i) => (
+                            <tr key={`${a.kind}-${a.slug ?? "diagnostic"}-${a.date}-${i}`}>
+                              <td className={styles.tableName}>{a.name}</td>
+                              <td className={styles.tableDate}>
+                                {new Date(a.date).toLocaleDateString()}
+                              </td>
+                              <td className={styles.tableDate}>
+                                {new Date(a.date).toLocaleTimeString([], {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </td>
+                              <td className={styles.tableDate}>
+                                {formatDuration(a.durationSeconds)}
+                              </td>
+                              <td>
+                                <div className={styles.perfWrapper}>
+                                  <div
+                                    className={`${styles.perfTrack} ${
+                                      a.scorePercentage >= 60
+                                        ? styles.perfGreenFill
+                                        : styles.perfYellowFill
+                                    }`}
+                                    style={{
+                                      width: `${a.scorePercentage}%`,
+                                    }}
+                                  />
+                                  <span className={styles.perfVal}>
+                                    {a.scorePercentage}%
+                                  </span>
+                                </div>
+                              </td>
+                              <td className={styles.tableIconCell}>
+                                {a.passed ? (
+                                  <svg
+                                    className={styles.tableGreenIcon}
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                    <polyline points="22 4 12 14.01 9 11.01" />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className={styles.tableYellowIcon}
+                                    width="16"
+                                    height="16"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  >
+                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                  </svg>
+                                )}
+                              </td>
+                            </tr>
+                          ))
                         ) : (
                           <tr>
-                            <td className={styles.tableName} colSpan={4}>
+                            <td className={styles.tableName} colSpan={6}>
                               No activity yet — complete your first diagnostic
-                              to see it here.
+                              or practice problem to see it here.
                             </td>
                           </tr>
                         )}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 </article>
               </div>

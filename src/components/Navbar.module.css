@@ -11,7 +11,12 @@
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
-  background-color: var(--background);
+  /* Solid, same hue as the card tone rather than the flat --background (that
+     cut a hard black bar through the page's corner glow) or the translucent
+     --card-bg (this bar is `position: fixed` over PAGE CONTENT as it
+     scrolls, and even --card-bg-opaque's ~94% alpha still let scrolled text
+     ghost through). No backdrop-filter needed once it's fully solid. */
+  background-color: var(--card-bg-opaque);
   border-bottom: 1px solid var(--card-border);
 }
 

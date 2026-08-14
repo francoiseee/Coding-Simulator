@@ -5,11 +5,12 @@ import styles from "./Progress.module.css";
 
 export default function Progress({ summary, summaryStatus }) {
   const [aiPage, setAiPage] = useState(0);
-  const [activeTab, setActiveTab] = useState("progress"); // "progress" | "diagnostic"
+  const [activeTab, setActiveTab] = useState("progress"); // "progress" | "diagnostic" | "diagnosticOriginal"
 
   const hasResults = summaryStatus === "ready" && summary?.hasCompletedDiagnostic;
   const concepts = summary?.concepts ?? [];
   const allConcepts = summary?.allConcepts ?? [];
+  const diagnosticSnapshot = summary?.diagnosticSnapshot ?? [];
   const tier = summary?.tier ?? "Not Yet Assessed";
   const aiReport = summary?.aiReport ?? null;
   const structured = aiReport?.structured;
@@ -90,6 +91,46 @@ export default function Progress({ summary, summaryStatus }) {
     setAiPage((p) => (p + delta + aiPages.length) % aiPages.length);
   };
 
+  // Shared by the "Concept Breakdown" (live) and "Diagnostic Results"
+  // (frozen snapshot) tabs — same bar-chart rendering, different data source.
+  const renderConceptChart = (list) => (
+    <div className={styles.chartList}>
+      {list.map((c) => {
+        const barColor =
+          c.classification === "strong"
+            ? "var(--accent-teal)"
+            : c.classification === "weak"
+              ? "#ef4444"
+              : c.classification === "needs_practice"
+                ? "#f59e0b"
+                : "var(--accent-cyan)";
+        return (
+          <div
+            key={c.conceptId}
+            className={styles.chartRow}
+            title={`${c.name}: ${c.scorePercentage}%`}
+          >
+            <span className={styles.chartLabel}>{c.name}</span>
+            <div className={styles.chartBarTrack}>
+              <div
+                className={styles.chartBarFill}
+                style={{
+                  width: `${c.scorePercentage}%`,
+                  backgroundColor: barColor,
+                }}
+              />
+            </div>
+            <span
+              className={styles.chartStatusDot}
+              style={{ backgroundColor: barColor }}
+            />
+            <span className={styles.chartPct}>{c.scorePercentage}%</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div className={styles.progressWrapper}>
       {/* Header */}
@@ -110,7 +151,7 @@ export default function Progress({ summary, summaryStatus }) {
         <div className={styles.statDivider} />
         <div className={styles.statColumn}>
           <span className={styles.statNumber}>
-            {hasResults ? `${summary.overallScorePercentage}%` : "—"}
+            {hasResults ? `${summary.overallMasteryPercentage}%` : "—"}
           </span>
           <span className={styles.statLabel}>Overall Score</span>
         </div>
@@ -134,12 +175,19 @@ export default function Progress({ summary, summaryStatus }) {
             className={`${styles.tabButton} ${activeTab === "progress" ? styles.tabButtonActive : ""}`}
             onClick={() => setActiveTab("progress")}
           >
-            My Progress
+            Personalized Report
           </button>
           <button
             type="button"
             className={`${styles.tabButton} ${activeTab === "diagnostic" ? styles.tabButtonActive : ""}`}
             onClick={() => setActiveTab("diagnostic")}
+          >
+            Concept Breakdown
+          </button>
+          <button
+            type="button"
+            className={`${styles.tabButton} ${activeTab === "diagnosticOriginal" ? styles.tabButtonActive : ""}`}
+            onClick={() => setActiveTab("diagnosticOriginal")}
           >
             Diagnostic Results
           </button>
@@ -154,6 +202,9 @@ export default function Progress({ summary, summaryStatus }) {
               <div className={styles.aiHeader}>
                 <span className={styles.aiBadge}>AI-Generated Report</span>
                 <h2 className={styles.cardTitle}>Your Personalized Breakdown</h2>
+                <p className={styles.aiSourceNote}>
+                  Based on your <strong>Diagnostic Results</strong>
+                </p>
               </div>
 
               <div className={styles.aiNav}>
@@ -223,9 +274,32 @@ export default function Progress({ summary, summaryStatus }) {
         <div className={styles.progressRow}>
           <section className={styles.chartCard}>
             <div>
+              <h2 className={styles.cardTitle}>Concept Breakdown</h2>
+              <p className={styles.cardDesc}>
+                Your current per-concept standing — your diagnostic baseline,
+                updated by practice problems you&apos;ve solved since.
+              </p>
+            </div>
+
+            {allConcepts.length === 0 && (
+              <p className={styles.aiEmpty}>
+                Complete your diagnostic to see your results.
+              </p>
+            )}
+
+            {allConcepts.length > 0 && renderConceptChart(allConcepts)}
+          </section>
+        </div>
+      )}
+
+      {hasResults && activeTab === "diagnosticOriginal" && (
+        <div className={styles.progressRow}>
+          <section className={styles.chartCard}>
+            <div>
               <h2 className={styles.cardTitle}>Diagnostic Results</h2>
               <p className={styles.cardDesc}>
-                Your per-concept results from the latest diagnostic.
+                Exactly what you scored per concept when you first took the
+                diagnostic — unaffected by any practice problems since.
               </p>
               {summary?.latestAttempt?.completedAt && (
                 <p className={styles.diagnosticDate}>
@@ -238,51 +312,13 @@ export default function Progress({ summary, summaryStatus }) {
               )}
             </div>
 
-            {allConcepts.length === 0 && (
+            {diagnosticSnapshot.length === 0 && (
               <p className={styles.aiEmpty}>
                 Complete your diagnostic to see your results.
               </p>
             )}
 
-            {allConcepts.length > 0 && (
-              <div className={styles.chartList}>
-                {allConcepts.map((c) => {
-                  const barColor =
-                    c.classification === "strong"
-                      ? "var(--accent-teal)"
-                      : c.classification === "weak"
-                        ? "#ef4444"
-                        : c.classification === "needs_practice"
-                          ? "#f59e0b"
-                          : "var(--accent-cyan)";
-                  return (
-                    <div
-                      key={c.conceptId}
-                      className={styles.chartRow}
-                      title={`${c.name}: ${c.scorePercentage}%`}
-                    >
-                      <span className={styles.chartLabel}>{c.name}</span>
-                      <div className={styles.chartBarTrack}>
-                        <div
-                          className={styles.chartBarFill}
-                          style={{
-                            width: `${c.scorePercentage}%`,
-                            backgroundColor: barColor,
-                          }}
-                        />
-                      </div>
-                      <span
-                        className={styles.chartStatusDot}
-                        style={{ backgroundColor: barColor }}
-                      />
-                      <span className={styles.chartPct}>
-                        {c.scorePercentage}%
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {diagnosticSnapshot.length > 0 && renderConceptChart(diagnosticSnapshot)}
           </section>
         </div>
       )}

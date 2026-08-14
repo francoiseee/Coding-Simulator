@@ -447,7 +447,7 @@
 
 .donutLegendLabel {
   font-family: var(--font-inter), sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.92rem;
   color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -457,7 +457,7 @@
 
 .donutLegendCount {
   font-family: var(--font-outfit), sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--text-primary);
   text-align: left;
@@ -476,67 +476,10 @@
   padding: 40px;
 }
 
-.milestoneCard {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(157, 78, 221, 0.08) 0%,
-    transparent 70%
-  );
-  background-color: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 28px;
-  box-shadow: var(--glass-shadow);
-  backdrop-filter: blur(16px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.milestoneLabel {
-  font-family: var(--font-outfit), monospace;
-  font-size: 0.58rem;
-  font-weight: 700;
-  color: var(--accent-magenta);
-  letter-spacing: 1px;
-  align-self: flex-start;
-}
-
-.milestoneBadgeWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 8px 0;
-}
-
-.milestoneBadgeImage {
-  width: 80px;
-  height: 80px;
-  filter: drop-shadow(0 0 15px rgba(157, 78, 221, 0.35))
-    drop-shadow(0 0 8px rgba(0, 240, 255, 0.15));
-}
-
-.milestoneTitle {
-  font-family: var(--font-outfit), sans-serif;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-}
-
-.milestoneDesc {
-  font-family: var(--font-inter), sans-serif;
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  line-height: 1.45;
-  text-align: center;
-}
-
-/* Lower Rows: Learning Path + Recent Activity */
+/* Lower Row: Recent Activity, full width */
 .lowerRow {
   display: grid;
-  grid-template-columns: 1.2fr 1.8fr;
-  gap: 30px;
+  grid-template-columns: 1fr;
 }
 
 .nodeDesc {
@@ -859,12 +802,20 @@
 
 .tableWrapper {
   width: 100%;
-  overflow-x: auto;
   margin-top: 20px;
+}
+
+/* Only this inner region scrolls — the header table above it is in normal
+   flow, so the scrollbar tracks against the rows, not the card title. */
+.tableScrollBody {
+  width: 100%;
+  overflow-y: auto;
+  max-height: 165px;
 }
 
 .activityTable {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
 }
@@ -895,6 +846,7 @@
 .tableDate {
   color: var(--text-secondary);
   font-size: 0.7rem;
+  white-space: nowrap;
 }
 
 .perfWrapper {
@@ -954,9 +906,6 @@
     position: relative;
     top: 0;
     height: auto;
-  }
-  .lowerRow {
-    grid-template-columns: 1fr;
   }
 }
 
