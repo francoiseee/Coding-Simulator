@@ -68,9 +68,13 @@ def fetch_raw(verbose: bool = True) -> pd.DataFrame:
           problem. Mean would penalise exploration; last would penalise a
           student who found the answer then experimented further.
 
-      attempts         : COUNT of submissions.
-          Feature 3 directly. Note this counts SUBMISSIONS, not Run Code calls —
-          runs are ungraded and deliberately excluded.
+      attempts         : COUNT of submissions + SUM of coding_sessions.run_count.
+          Feature 3. Definition changed per
+          Codely_Decision_AttemptsFeatureDefinition_Aug2026.docx: attempts must
+          now include ungraded Run Code calls, not just graded submissions.
+          run_count is summed across every coding_sessions row for the
+          (student, problem) pair, since a student can accumulate more than
+          one session on the same problem over time.
 
       runtime_ms       : runtime of the BEST-SCORING submission.
           Must correspond to the same code as correctness_rate, or the two
@@ -143,6 +147,27 @@ def fetch_raw(verbose: bool = True) -> pd.DataFrame:
         )
         .reset_index()
     )
+
+    # Attempts, per Codely_Decision_AttemptsFeatureDefinition_Aug2026.docx:
+    # graded submissions PLUS ungraded Run Code calls. run_count is summed
+    # across every coding_sessions row for the (student, problem) pair —
+    # a student can hold more than one session on the same problem over time.
+    # Same cutoff as submissions above, so both halves of `attempts` are drawn
+    # from the same comparable time window.
+    sessions = _fetch_all(
+        client, "coding_sessions", "user_id,problem_id,run_count,started_at"
+    )
+    sdf = pd.DataFrame(sessions, columns=["user_id", "problem_id", "run_count", "started_at"])
+    sdf["started_at"] = pd.to_datetime(sdf["started_at"], utc=True)
+    sdf = sdf[sdf["started_at"] >= pd.Timestamp(DATA_CUTOFF_ISO)]
+    sdf["run_count"] = pd.to_numeric(sdf["run_count"], errors="coerce").fillna(0)
+    run_counts = (
+        sdf.groupby(["user_id", "problem_id"])["run_count"].sum().reset_index()
+    )
+
+    agg = agg.merge(run_counts, on=["user_id", "problem_id"], how="left")
+    agg["attempts"] = agg["attempts"] + agg["run_count"].fillna(0)
+    agg = agg.drop(columns=["run_count"])
 
     out = agg.merge(best, on=["user_id", "problem_id"], how="left")
     out = out.rename(columns={"user_id": "student_id"})

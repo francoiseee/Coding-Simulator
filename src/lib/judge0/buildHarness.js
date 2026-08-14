@@ -385,6 +385,28 @@ export function compareResult(stdout, expectedOutput, mode) {
  * (except stdout mode, which uses raw string comparison via compareResult).
  */
 /**
+ * Recursively sort object keys so two structurally-identical values compare
+ * equal regardless of construction/iteration order (e.g. a dict built by
+ * iterating a Python set can emit keys in any order). Arrays are left as-is
+ * — order is often semantically meaningful there (e.g. sorted output lists,
+ * linked-list traversals), so it must never be touched.
+ */
+function canonicalize(value) {
+  if (Array.isArray(value)) {
+    return value.map(canonicalize);
+  }
+  if (value !== null && typeof value === "object") {
+    return Object.keys(value)
+      .sort()
+      .reduce((acc, key) => {
+        acc[key] = canonicalize(value[key]);
+        return acc;
+      }, {});
+  }
+  return value;
+}
+
+/**
  * Canonicalize a value to a comparable JSON form.
  *
  * The two sides of a comparison arrive in DIFFERENT shapes, so they must be
@@ -407,11 +429,11 @@ export function compareResult(stdout, expectedOutput, mode) {
  */
 export function canonicalizeForCompare(value, fromStdout) {
   if (fromStdout) {
-    if (typeof value !== "string") return JSON.stringify(value);
+    if (typeof value !== "string") return JSON.stringify(canonicalize(value));
     const trimmed = value.trim();
     try {
       // Normal path: harness stdout is valid JSON text.
-      return JSON.stringify(JSON.parse(trimmed));
+      return JSON.stringify(canonicalize(JSON.parse(trimmed)));
     } catch {
       // Defensive: stdout wasn't JSON (e.g. a raw print in a return-mode
       // problem). Treat it as the literal string it is.
@@ -421,7 +443,7 @@ export function canonicalizeForCompare(value, fromStdout) {
   // Expected side: already a native JS value from jsonb. Stringify directly.
   // Do NOT JSON.parse strings here — that would turn the STRING "42" into the
   // NUMBER 42 and reintroduce the type mismatch.
-  return JSON.stringify(value);
+  return JSON.stringify(canonicalize(value));
 }
 
 /**
@@ -430,7 +452,12 @@ export function canonicalizeForCompare(value, fromStdout) {
  * expected-style native value.
  */
 export function normalizeForCompare(value) {
-  return canonicalizeForCompare(value, false);
+  try {
+    const parsed = typeof value === "string" ? JSON.parse(value) : value;
+    return JSON.stringify(canonicalize(parsed));
+  } catch {
+    return String(value).trim();
+  }
 }
 
 /**
