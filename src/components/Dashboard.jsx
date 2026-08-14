@@ -833,6 +833,7 @@ export default function Dashboard({ email }) {
             <Recommendation
               recommendedProblems={recommendedProblems}
               onSelectProblem={goToProblem}
+              hasDiagnostic={hasResults}
             />
           )}
           {activeTab === "support" && <Support embedded />}

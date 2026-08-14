@@ -5,6 +5,7 @@ import styles from "./Recommendation.module.css";
 export default function Recommendation({
   recommendedProblems = [],
   onSelectProblem,
+  hasDiagnostic = false,
 }) {
   const hasProblems = recommendedProblems.length > 0;
 
@@ -21,8 +22,9 @@ export default function Recommendation({
       {!hasProblems && (
         <div className={styles.emptyState}>
           <p>
-            Complete your diagnostic to get problems recommended for your
-            weakest concepts.
+            {hasDiagnostic
+              ? "You've completed all your recommended practice! Check My Progress to see your growth, or explore more concepts from Simulations."
+              : "Complete your diagnostic to get problems recommended for your weakest concepts."}
           </p>
         </div>
       )}
