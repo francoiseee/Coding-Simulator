@@ -464,11 +464,11 @@ export default function PracticeProblemPage() {
     );
   if (status === "error") {
     return (
-      <div className={styles.stateWrapper}>
+      <div className={styles.errorStateWrapper}>
         <p>Something went wrong: {errorMessage}</p>
         <button
           type="button"
-          className={styles.backBtn}
+          className={styles.errorBackBtn}
           onClick={() => router.push("/")}
         >
           Back to dashboard

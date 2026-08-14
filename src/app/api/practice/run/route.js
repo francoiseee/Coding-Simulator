@@ -120,6 +120,42 @@ export async function POST(request) {
     console.error("Run: first_run_at stamp threw:", err.message);
   }
 
+  // 2b. Increment coding_sessions.run_count on EVERY call — unlike
+  // first_run_at above, this is intentionally NOT idempotent.
+  //
+  // Fetch-then-write, matching the counter-increment pattern used for
+  // evidence_count in updateConceptMastery.js. Service-role client, same as
+  // the first_run_at write above: RLS forbids the cookie client from
+  // touching this column.
+  //
+  // Wrapped in the same non-fatal try/catch as the first_run_at stamp: a
+  // failed increment must never block the student from running their code.
+  try {
+    const { data: countRow, error: countFetchError } = await admin
+      .from("coding_sessions")
+      .select("run_count")
+      .eq("id", session.id)
+      .single();
+
+    if (countFetchError) {
+      console.error("Run: run_count fetch failed:", countFetchError.message);
+    } else {
+      const { error: countUpdateError } = await admin
+        .from("coding_sessions")
+        .update({ run_count: (countRow?.run_count ?? 0) + 1 })
+        .eq("id", session.id);
+
+      if (countUpdateError) {
+        console.error(
+          "Run: run_count increment failed:",
+          countUpdateError.message,
+        );
+      }
+    }
+  } catch (err) {
+    console.error("Run: run_count increment threw:", err.message);
+  }
+
   // 3. Load the problem's execution_mode — same resolution submit uses, so
   // Run and Submit build the exact same kind of harness for a given problem.
   const { data: problem, error: problemError } = await admin
