@@ -19,6 +19,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import MonacoEditor from "@monaco-editor/react";
+import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/lib/theme";
 import styles from "./PracticeProblem.module.css";
@@ -685,7 +686,45 @@ export default function PracticeProblemPage() {
               )}
             </div>
 
-            <p className={styles.statement}>{problem.statement}</p>
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => (
+                  <p style={{ marginBottom: "0.75rem", lineHeight: "1.6" }}>
+                    {children}
+                  </p>
+                ),
+                ul: ({ children }) => (
+                  <ul style={{ paddingLeft: "1.25rem", marginBottom: "0.75rem" }}>
+                    {children}
+                  </ul>
+                ),
+                li: ({ children }) => (
+                  <li style={{ marginBottom: "0.3rem", lineHeight: "1.6" }}>
+                    {children}
+                  </li>
+                ),
+                code: ({ children }) => (
+                  <code
+                    style={{
+                      background: "rgba(255,255,255,0.08)",
+                      padding: "1px 5px",
+                      borderRadius: "3px",
+                      fontSize: "0.85em",
+                      fontFamily: "monospace",
+                    }}
+                  >
+                    {children}
+                  </code>
+                ),
+                strong: ({ children }) => (
+                  <strong style={{ color: "var(--accent-teal)", fontWeight: 600 }}>
+                    {children}
+                  </strong>
+                ),
+              }}
+            >
+              {problem.statement}
+            </ReactMarkdown>
 
             {exampleRaw && (
               <div className={styles.examplesBlock}>
