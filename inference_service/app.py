@@ -50,7 +50,7 @@ from typing import Optional
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel, Field
 
 # The ml/ package lives one level up (repo root), alongside train_model.py.
@@ -167,6 +167,27 @@ app = FastAPI(
 )
 
 
+# ─── Shared-secret auth ──────────────────────────────────────────────────────
+# The inference service is publicly reachable on Render Starter. A shared
+# secret in a request header is the standard lightweight mitigation for an
+# internal-only service that can't live behind a VPN. RF_INTERNAL_SECRET must
+# be set on both sides (Render env + Vercel env). If it's absent from the
+# environment, the service refuses all protected requests rather than running
+# open — missing config fails loud, not silent.
+_INTERNAL_SECRET = os.environ.get("RF_INTERNAL_SECRET", "")
+
+
+def _require_auth(x_internal_secret: str = Header(default="")) -> None:
+    """FastAPI dependency — raises 401 if the shared secret doesn't match."""
+    if not _INTERNAL_SECRET:
+        raise HTTPException(
+            status_code=500,
+            detail="RF_INTERNAL_SECRET is not configured on this service.",
+        )
+    if x_internal_secret != _INTERNAL_SECRET:
+        raise HTTPException(status_code=401, detail="Unauthorized.")
+
+
 # ─── Request / response schemas ─────────────────────────────────────────────
 
 class PredictRequest(BaseModel):
@@ -253,7 +274,7 @@ def health():
     )
 
 
-@app.post("/complexity", response_model=ComplexityResponse)
+@app.post("/complexity", response_model=ComplexityResponse, dependencies=[Depends(_require_auth)])
 def complexity(req: ComplexityRequest):
     """
     Wraps ml.complexity.estimate_complexity() directly — same function,
@@ -282,7 +303,7 @@ def complexity(req: ComplexityRequest):
     return ComplexityResponse(complexity_score=score, parsed_ok=True)
 
 
-@app.post("/predict", response_model=PredictResponse)
+@app.post("/predict", response_model=PredictResponse, dependencies=[Depends(_require_auth)])
 def predict(req: PredictRequest):
     model = state.get("model")
     if model is None:

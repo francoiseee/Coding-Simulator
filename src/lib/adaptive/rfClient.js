@@ -7,6 +7,7 @@
 // something to expose client-side.
 
 const BASE_URL = process.env.RF_SERVICE_URL || "http://127.0.0.1:8000";
+const RF_INTERNAL_SECRET = process.env.RF_INTERNAL_SECRET || "";
 
 // Both calls share a timeout: the RF service is a local dependency this app
 // controls, not a third-party API with unpredictable latency, so a short
@@ -40,7 +41,10 @@ async function fetchWithTimeout(url, options) {
 export async function getComplexityScore(sourceCode) {
   const res = await fetchWithTimeout(`${BASE_URL}/complexity`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": RF_INTERNAL_SECRET,
+    },
     body: JSON.stringify({ source_code: sourceCode }),
   });
 
@@ -84,7 +88,10 @@ export async function predictDifficulty({
 }) {
   const res = await fetchWithTimeout(`${BASE_URL}/predict`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": RF_INTERNAL_SECRET,
+    },
     body: JSON.stringify({
       correctness_rate: correctnessRate,
       runtime_ms: runtimeMs,
