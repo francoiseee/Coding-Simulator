@@ -95,10 +95,12 @@ export default function Home() {
 
   return (
     <>
-      <Navbar
-        isAuthenticated={view !== "auth"}
-        onLogOut={handleLogOut}
-      />
+      {view !== "auth" && (
+        <Navbar
+          isAuthenticated={view !== "auth"}
+          onLogOut={handleLogOut}
+        />
+      )}
       {view === "auth" && (
         <SignUpContainer>
           <HeroPane />
