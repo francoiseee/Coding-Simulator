@@ -389,9 +389,11 @@ export default function Dashboard({ email }) {
                   <p className={styles.welcomeDesc}>
                     {hasResults
                       ? `You scored ${summary.overallScorePercentage}% on your diagnostic. ${
-                          suggestedFocus
-                            ? `${suggestedFocus.title} is your biggest opportunity to improve right now.`
-                            : ""
+                          adaptiveSuggestion
+                            ? `${adaptiveSuggestion.title} is your biggest opportunity to improve right now.`
+                            : suggestedFocus
+                              ? `${suggestedFocus.title} is your biggest opportunity to improve right now.`
+                              : ""
                         }`
                       : "You haven't completed your diagnostic yet. Take it to see your personalized skill breakdown."}
                   </p>
