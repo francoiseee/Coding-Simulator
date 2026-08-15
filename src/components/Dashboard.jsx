@@ -432,12 +432,12 @@ export default function Dashboard({ email }) {
                           : "Take the Diagnostic"}
                     </h5>
                     {adaptiveSuggestion?.conceptName && !adaptiveLoading && !adaptiveSuggestionLoading && (
-                      <p className={styles.adaptiveConceptName}>
+                      <p className={styles.adaptiveConceptTopic}>
                         {adaptiveSuggestion.conceptName.toUpperCase()}
                       </p>
                     )}
                     {adaptiveSuggestion && !adaptiveLoading && !adaptiveSuggestionLoading && (
-                      <p className={styles.adaptiveConceptName}>
+                      <div className={styles.adaptiveConceptPill}>
                         {adaptiveSuggestion.difficulty && (
                           <>
                             <span className={styles.adaptiveConceptLabel}>Concept:</span>
@@ -457,7 +457,7 @@ export default function Dashboard({ email }) {
                             </span>
                           </>
                         )}
-                      </p>
+                      </div>
                     )}
                   </div>
                   <div className={styles.adaptiveArrow}>

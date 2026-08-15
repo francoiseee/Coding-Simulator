@@ -246,50 +246,51 @@
   color: #06070a;
 }
 
-.adaptiveConceptName {
+.adaptiveConceptTopic {
   font-family: var(--font-outfit), monospace;
   font-size: 0.58rem;
   font-weight: 700;
   letter-spacing: 1px;
+  color: #06070a;
   margin: 3px 0 0 0;
-  display: flex;
+}
+
+.adaptiveConceptPill {
+  display: inline-flex;
   align-items: center;
   gap: 4px;
-  opacity: 0.85;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #06070a;
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  width: fit-content;
 }
 
 .adaptiveConceptLabel {
-  color: #06070a;
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.45);
 }
 
 .adaptiveConceptSep {
-  color: #06070a;
-  opacity: 0.4;
+  color: rgba(255, 255, 255, 0.3);
 }
 
-.adaptiveConceptEasy {
-  color: #0a5c2e;
-}
-
-.adaptiveConceptMedium {
-  color: #7a4500;
-}
-
-.adaptiveConceptHard {
-  color: #8b1a1a;
-}
-
+.adaptiveConceptEasy,
 .adaptiveConceptIntroductory {
-  color: #0a5c2e;
+  color: #34d399;
 }
 
+.adaptiveConceptMedium,
 .adaptiveConceptStandard {
-  color: #7a4500;
+  color: #fbbf24;
 }
 
+.adaptiveConceptHard,
 .adaptiveConceptAdvanced {
-  color: #8b1a1a;
+  color: #f87171;
 }
 
 .adaptiveArrow {
