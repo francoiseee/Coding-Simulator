@@ -429,6 +429,11 @@ export default function Dashboard({ email }) {
                             : "Continue Practicing"
                           : "Take the Diagnostic"}
                     </h5>
+                    {adaptiveSuggestion?.conceptName && !adaptiveLoading && !adaptiveSuggestionLoading && (
+                      <p className={styles.adaptiveConceptName}>
+                        {adaptiveSuggestion.conceptName}
+                      </p>
+                    )}
                   </div>
                   <div className={styles.adaptiveArrow}>
                     <svg

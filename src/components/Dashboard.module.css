@@ -246,6 +246,17 @@
   color: #06070a;
 }
 
+.adaptiveConceptName {
+  font-family: var(--font-outfit), monospace;
+  font-size: 0.7rem;
+  color: #06070a;
+  opacity: 0.65;
+  margin: 2px 0 0 0;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
 .adaptiveArrow {
   color: #06070a;
   display: flex;
