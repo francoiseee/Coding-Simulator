@@ -64,7 +64,7 @@ from ml.config import (
 from ml.export import fetch_raw
 from ml.labeling import generate_labels
 
-OUT = Path(__file__).parent / "out"
+OUT = Path(__file__).parent / "ml_out"
 OUT.mkdir(exist_ok=True)
 
 

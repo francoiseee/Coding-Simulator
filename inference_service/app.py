@@ -30,11 +30,11 @@ service does not and should not silently patch that gap.
 RUNNING
 -------
     pip install -r requirements.txt
-    MODEL_DIR=../out uvicorn app:app --reload --port 8000
+    MODEL_DIR=../ml_out uvicorn app:app --reload --port 8000
 
 Env vars:
     MODEL_DIR   Directory containing model_*.joblib / metadata_*.json pairs.
-                Defaults to "../out" (relative to this file), matching
+                Defaults to "../ml_out" (relative to this file), matching
                 train_model.py's OUT constant one level up in the repo.
 """
 
@@ -63,7 +63,7 @@ from ml.complexity import estimate_complexity, NOT_IMPLEMENTED_SENTINEL  # noqa:
 
 # ─── Model loading ──────────────────────────────────────────────────────────
 
-MODEL_DIR = Path(os.environ.get("MODEL_DIR", Path(__file__).parent / ".." / "out")).resolve()
+MODEL_DIR = Path(os.environ.get("MODEL_DIR", Path(__file__).parent / ".." / "ml_out")).resolve()
 
 # Populated at startup by load_latest_model(). Left as module-level state
 # (not a class) to match FastAPI's simplest recommended pattern for a

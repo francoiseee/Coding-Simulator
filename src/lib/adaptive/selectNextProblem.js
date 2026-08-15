@@ -295,14 +295,35 @@ async function selectStructured({ admin, userId, difficulty }) {
   // (e.g. stuck at introductory with nowhere lower to fall to), but the
   // concept overall still has unsolved problems elsewhere. Repeat within
   // the SAME band rather than drifting to a different band or concept.
+  // This fallback exists for a struggling student with nowhere lower to
+  // fall to, not as a reward for finishing a band — so without excluding
+  // the problem just solved, solving the last unsolved problem in a band
+  // out of ascending order could hand that same problem right back as the
+  // very next one.
   if (bandPool.length > 0) {
+    const { data: mostRecentAccepted } = await admin
+      .from("submissions")
+      .select("problem_id")
+      .eq("user_id", userId)
+      .eq("execution_status", "accepted")
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const justSolvedId = mostRecentAccepted?.problem_id ?? null;
+    const repeatCandidates = bandPool.filter((p) => p.id !== justSolvedId);
+    const repeatPick = (repeatCandidates.length > 0 ? repeatCandidates : bandPool)[0];
+
     return buildResult({
-      chosenProblem: bandPool[0],
+      chosenProblem: repeatPick,
       chosenConcept,
       source: "band_repeat_fallback",
       reason:
         `${conceptNote}. The ${band} band is fully solved in this concept — ` +
-        `repeating its lowest-position problem rather than leaving the band.`,
+        `repeating a problem from it rather than leaving the band` +
+        (repeatPick.id === justSolvedId
+          ? ` (only one problem exists in this band, so repeating it is unavoidable).`
+          : `, excluding the one just solved.`),
     });
   }
 

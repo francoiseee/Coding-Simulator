@@ -33,6 +33,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { resolveSuggestedConcept } from "@/lib/adaptive/resolveSuggestedConcept";
 
 // Human-readable label per classification. The UI should render these rather
 // than inferring a label from a concept's position in a sorted list.
@@ -380,21 +381,37 @@ export async function GET() {
   // The headline "suggested focus" must agree with what the recommendation
   // engine actually produced. Prefer the top-priority recommendation; fall
   // back to the weakest judged concept only if no recommendations exist.
-  const suggestedFocus = recommendedProblems.length
-    ? {
-        kind: "problem",
-        problemSlug: recommendedProblems[0].slug,
-        title: recommendedProblems[0].title,
-        reason: recommendedProblems[0].reason,
-      }
-    : weakest.length
-      ? {
-          kind: "concept",
-          conceptSlug: weakest[0].slug,
-          title: weakest[0].name,
-          reason: `Scored ${weakest[0].scorePercentage}% on this concept.`,
-        }
-      : null;
+  let suggestedFocus = null;
+  if (recommendedProblems.length) {
+    suggestedFocus = {
+      kind: "problem",
+      problemSlug: recommendedProblems[0].slug,
+      title: recommendedProblems[0].title,
+      reason: recommendedProblems[0].reason,
+    };
+  } else {
+    const resolved = await resolveSuggestedConcept({ client: supabase, userId: user.id });
+    if (resolved) {
+      suggestedFocus = {
+        kind: "concept",
+        conceptSlug: resolved.slug,
+        title: resolved.name,
+        reason: resolved.stayedInCurrent
+          ? "Continuing your current concept — you still have unsolved problems here."
+          : `${resolved.masteryScore}% mastery — your next practice focus.`,
+      };
+    } else if (weakest.length) {
+      // Resolver found nothing (every concept fully solved). Fall back to
+      // the diagnostic-derived weakest concept as a best-effort label, even
+      // though nothing new can actually be served there right now.
+      suggestedFocus = {
+        kind: "concept",
+        conceptSlug: weakest[0].slug,
+        title: weakest[0].name,
+        reason: `Scored ${weakest[0].scorePercentage}% on this concept.`,
+      };
+    }
+  }
 
   // Fetch latest AI report for this attempt
   let aiReport = null;

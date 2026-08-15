@@ -6,12 +6,12 @@ so the Next.js app can call it without a Python runtime in-process.
 ## Setup
 
 Place this folder (`inference_service/`) as a sibling of `train_model.py` and
-`out/` in your repo, e.g.:
+`ml_out/` in your repo, e.g.:
 
 ```
 coding-simulator/
 ├── train_model.py
-├── out/
+├── ml_out/
 │   ├── model_20260813_114430.joblib
 │   └── metadata_20260813_114430.json
 ├── ml/
@@ -28,7 +28,7 @@ uvicorn app:app --reload --port 8000
 ```
 
 By default it looks for the latest `model_*.joblib` / `metadata_*.json` pair
-in `../out` (one level up). Override with `MODEL_DIR=/path/to/out` if your
+in `../ml_out` (one level up). Override with `MODEL_DIR=/path/to/ml_out` if your
 layout differs.
 
 ## The expert-review gate
