@@ -16,6 +16,8 @@ export default function Dashboard({ email }) {
   const [summaryStatus, setSummaryStatus] = useState("loading"); // loading | ready | error
   const [showAllConcepts, setShowAllConcepts] = useState(false);
   const [adaptiveLoading, setAdaptiveLoading] = useState(false);
+  const [adaptiveSuggestion, setAdaptiveSuggestion] = useState(null);
+  const [adaptiveSuggestionLoading, setAdaptiveSuggestionLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,6 +32,27 @@ export default function Dashboard({ email }) {
         if (cancelled) return;
         setSummary(data);
         setSummaryStatus("ready");
+        // Fetch the live RF suggestion immediately after summary loads —
+        // this is what the Suggested Focus card label and click destination
+        // will show, so it must reflect the live adaptive engine, not the
+        // stale diagnostic-time recommendation list.
+        if (data.hasCompletedDiagnostic) {
+          setAdaptiveSuggestionLoading(true);
+          try {
+            const adaptiveRes = await fetch("/api/practice/next-problem");
+            const adaptiveData = await adaptiveRes.json();
+            if (!cancelled && adaptiveRes.ok && adaptiveData?.problem?.slug) {
+              setAdaptiveSuggestion({
+                title: adaptiveData.problem.title,
+                slug: adaptiveData.problem.slug,
+              });
+            }
+          } catch {
+            // Silently fall back — card will use suggestedFocus from summary
+          } finally {
+            if (!cancelled) setAdaptiveSuggestionLoading(false);
+          }
+        }
       } catch {
         if (cancelled) return;
         setSummaryStatus("error");
@@ -168,6 +191,10 @@ export default function Dashboard({ email }) {
   const startSuggestedFocus = () => {
     if (!hasResults) {
       goToDiagnostic();
+      return;
+    }
+    if (adaptiveSuggestion?.slug) {
+      goToProblem(adaptiveSuggestion.slug);
       return;
     }
     if (suggestedFocus?.kind === "problem") {
@@ -387,13 +414,15 @@ export default function Dashboard({ email }) {
                       {hasResults ? "SUGGESTED FOCUS" : "GET STARTED"}
                     </span>
                     <h5 className={styles.adaptiveTitle}>
-                      {adaptiveLoading
+                      {adaptiveLoading || adaptiveSuggestionLoading
                         ? "Finding your next problem…"
                         : hasResults
                           ? suggestedFocus
-                            ? suggestedFocus.kind === "problem"
-                              ? suggestedFocus.title
-                              : `${suggestedFocus.title} Practice`
+                            ? adaptiveSuggestion
+                              ? adaptiveSuggestion.title
+                              : suggestedFocus.kind === "problem"
+                                ? suggestedFocus.title
+                                : `${suggestedFocus.title} Practice`
                             : "Continue Practicing"
                           : "Take the Diagnostic"}
                     </h5>
