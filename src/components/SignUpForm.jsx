@@ -37,23 +37,23 @@ export default function SignUpForm({ onAuthSuccess }) {
     setIsLoading(true);
 
     if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: "http://localhost:3000",
-        },
-      });
+      const { error: signUpError } = await supabase.auth.signUp({ email, password });
+      if (signUpError) {
+        setIsLoading(false);
+        setStatus({ type: "error", message: signUpError.message });
+        return;
+      }
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       setIsLoading(false);
-      if (error) {
-        setStatus({ type: "error", message: error.message });
+      if (signInError) {
+        setStatus({ type: "error", message: signInError.message });
         return;
       }
       setStatus({
         type: "success",
-        message: "Confirmation sent. Check your email, then log in below.",
+        message: "Account created. Welcome, Node operator!",
       });
-      setTimeout(() => handleTabChange("login"), 1500);
+      setTimeout(() => onAuthSuccess?.(email, "signup"), 1000);
     } else {
       const { error } = await supabase.auth.signInWithPassword({
         email,
