@@ -677,16 +677,24 @@
   color: #f87171;
 }
 
-.progressionPill {
-  font-size: 0.7rem;
+.difficultyMeta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+}
+
+.difficultyMetaLabel {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+.difficultyMetaValue {
   font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
-  padding: 2px 8px;
+}
+
+.difficultyMetaSep {
+  color: rgba(255, 255, 255, 0.2);
 }
 
 .estimate {

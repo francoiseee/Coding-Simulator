@@ -674,16 +674,21 @@ export default function PracticeProblemPage() {
             <p className={styles.problemBlockLabel}>PROBLEM</p>
             <h2 className={styles.problemTitle}>{problem.title}</h2>
             <div className={styles.instructionsMeta}>
-              <span
-                className={`${styles.difficultyPill} ${styles["difficulty_" + problem.difficulty]}`}
-              >
-                {problem.difficulty}
-              </span>
-              {problem.progression && (
-                <span className={styles.progressionPill}>
-                  {problem.progression}
+              <span className={styles.difficultyMeta}>
+                <span className={styles.difficultyMetaLabel}>Concept:</span>
+                <span className={`${styles.difficultyMetaValue} ${styles["difficulty_" + problem.difficulty]}`}>
+                  {problem.difficulty.charAt(0).toUpperCase() + problem.difficulty.slice(1)}
                 </span>
-              )}
+                {problem.progression && (
+                  <>
+                    <span className={styles.difficultyMetaSep}>·</span>
+                    <span className={styles.difficultyMetaLabel}>Problem:</span>
+                    <span className={styles.difficultyMetaValue}>
+                      {problem.progression.charAt(0).toUpperCase() + problem.progression.slice(1)}
+                    </span>
+                  </>
+                )}
+              </span>
               {problem.estimatedMinutes && (
                 <span className={styles.estimate}>
                   ~{problem.estimatedMinutes} min
