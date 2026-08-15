@@ -431,7 +431,8 @@ export default function Dashboard({ email }) {
                     </h5>
                     {adaptiveSuggestion?.conceptName && !adaptiveLoading && !adaptiveSuggestionLoading && (
                       <p className={styles.adaptiveConceptName}>
-                        {adaptiveSuggestion.conceptName}
+                        <span className={styles.adaptiveConceptLabel}>Concept:</span>
+                        {" "}{adaptiveSuggestion.conceptName}
                       </p>
                     )}
                   </div>
