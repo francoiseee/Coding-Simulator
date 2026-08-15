@@ -46,6 +46,8 @@ export default function Dashboard({ email }) {
                 title: adaptiveData.problem.title,
                 slug: adaptiveData.problem.slug,
                 conceptName: adaptiveData.topic?.name ?? null,
+                difficulty: adaptiveData.difficulty ?? null,
+                progression: adaptiveData.problem.progression ?? null,
               });
             }
           } catch {
@@ -429,10 +431,23 @@ export default function Dashboard({ email }) {
                             : "Continue Practicing"
                           : "Take the Diagnostic"}
                     </h5>
-                    {adaptiveSuggestion?.conceptName && !adaptiveLoading && !adaptiveSuggestionLoading && (
+                    {adaptiveSuggestion && !adaptiveLoading && !adaptiveSuggestionLoading && (
                       <p className={styles.adaptiveConceptName}>
-                        <span className={styles.adaptiveConceptLabel}>Concept:</span>
-                        {" "}{adaptiveSuggestion.conceptName}
+                        {adaptiveSuggestion.difficulty && (
+                          <>
+                            <span className={styles.adaptiveConceptLabel}>Concept:</span>
+                            {" "}{adaptiveSuggestion.difficulty.charAt(0).toUpperCase() + adaptiveSuggestion.difficulty.slice(1)}
+                          </>
+                        )}
+                        {adaptiveSuggestion.difficulty && adaptiveSuggestion.progression && (
+                          <span className={styles.adaptiveConceptSep}> · </span>
+                        )}
+                        {adaptiveSuggestion.progression && (
+                          <>
+                            <span className={styles.adaptiveConceptLabel}>Problem:</span>
+                            {" "}{adaptiveSuggestion.progression.charAt(0).toUpperCase() + adaptiveSuggestion.progression.slice(1)}
+                          </>
+                        )}
                       </p>
                     )}
                   </div>

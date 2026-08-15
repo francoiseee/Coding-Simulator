@@ -262,6 +262,10 @@
   opacity: 0.7;
 }
 
+.adaptiveConceptSep {
+  opacity: 0.5;
+}
+
 .adaptiveArrow {
   color: #06070a;
   display: flex;
