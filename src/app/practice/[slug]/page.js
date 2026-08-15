@@ -679,6 +679,11 @@ export default function PracticeProblemPage() {
               >
                 {problem.difficulty}
               </span>
+              {problem.progression && (
+                <span className={styles.progressionPill}>
+                  {problem.progression}
+                </span>
+              )}
               {problem.estimatedMinutes && (
                 <span className={styles.estimate}>
                   ~{problem.estimatedMinutes} min

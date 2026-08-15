@@ -29,7 +29,7 @@ export async function GET(request, { params }) {
   // selected here and is column-revoked anyway — double protection.
   const { data: problem, error: problemError } = await supabase
     .from('problems')
-    .select('id, slug, title, statement, difficulty, examples, constraints, hints, estimated_minutes')
+    .select('id, slug, title, statement, difficulty, progression, examples, constraints, hints, estimated_minutes')
     .eq('slug', slug)
     .single();
 
@@ -69,6 +69,7 @@ export async function GET(request, { params }) {
       title: problem.title,
       statement: problem.statement,
       difficulty: problem.difficulty,
+      progression: problem.progression,
       examples: problem.examples,
       constraints: problem.constraints,
       hints: problem.hints,
