@@ -45,6 +45,7 @@ export default function Dashboard({ email }) {
               setAdaptiveSuggestion({
                 title: adaptiveData.problem.title,
                 slug: adaptiveData.problem.slug,
+                conceptName: adaptiveData.topic?.name ?? null,
               });
             }
           } catch {
@@ -390,7 +391,7 @@ export default function Dashboard({ email }) {
                     {hasResults
                       ? `You scored ${summary.overallScorePercentage}% on your diagnostic. ${
                           adaptiveSuggestion
-                            ? `${adaptiveSuggestion.title} is your biggest opportunity to improve right now.`
+                            ? `${adaptiveSuggestion.conceptName ?? adaptiveSuggestion.title} is your biggest opportunity to improve right now.`
                             : suggestedFocus
                               ? `${suggestedFocus.title} is your biggest opportunity to improve right now.`
                               : ""
