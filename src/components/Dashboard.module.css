@@ -248,21 +248,48 @@
 
 .adaptiveConceptName {
   font-family: var(--font-outfit), monospace;
-  font-size: 0.7rem;
-  color: rgba(0, 0, 0, 0.65);
-  margin: 2px 0 0 0;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin: 3px 0 0 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.85;
 }
 
 .adaptiveConceptLabel {
-  font-weight: 700;
-  opacity: 0.7;
+  color: #06070a;
+  opacity: 0.6;
 }
 
 .adaptiveConceptSep {
-  opacity: 0.5;
+  color: #06070a;
+  opacity: 0.4;
+}
+
+.adaptiveConceptEasy {
+  color: #16a34a;
+}
+
+.adaptiveConceptMedium {
+  color: #d97706;
+}
+
+.adaptiveConceptHard {
+  color: #dc2626;
+}
+
+.adaptiveConceptIntroductory {
+  color: #16a34a;
+}
+
+.adaptiveConceptStandard {
+  color: #d97706;
+}
+
+.adaptiveConceptAdvanced {
+  color: #dc2626;
 }
 
 .adaptiveArrow {

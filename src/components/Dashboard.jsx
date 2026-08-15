@@ -441,7 +441,9 @@ export default function Dashboard({ email }) {
                         {adaptiveSuggestion.difficulty && (
                           <>
                             <span className={styles.adaptiveConceptLabel}>Concept:</span>
-                            {" "}{adaptiveSuggestion.difficulty.charAt(0).toUpperCase() + adaptiveSuggestion.difficulty.slice(1)}
+                            {" "}<span className={styles[`adaptiveConcept${adaptiveSuggestion.difficulty.charAt(0).toUpperCase() + adaptiveSuggestion.difficulty.slice(1)}`]}>
+                              {adaptiveSuggestion.difficulty.charAt(0).toUpperCase() + adaptiveSuggestion.difficulty.slice(1)}
+                            </span>
                           </>
                         )}
                         {adaptiveSuggestion.difficulty && adaptiveSuggestion.progression && (
@@ -450,7 +452,9 @@ export default function Dashboard({ email }) {
                         {adaptiveSuggestion.progression && (
                           <>
                             <span className={styles.adaptiveConceptLabel}>Problem:</span>
-                            {" "}{adaptiveSuggestion.progression.charAt(0).toUpperCase() + adaptiveSuggestion.progression.slice(1)}
+                            {" "}<span className={styles[`adaptiveConcept${adaptiveSuggestion.progression.charAt(0).toUpperCase() + adaptiveSuggestion.progression.slice(1)}`]}>
+                              {adaptiveSuggestion.progression.charAt(0).toUpperCase() + adaptiveSuggestion.progression.slice(1)}
+                            </span>
                           </>
                         )}
                       </p>
