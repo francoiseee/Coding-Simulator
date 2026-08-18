@@ -1,0 +1,100 @@
+{
+  "trained_at": "2026-08-18T03:31:18.483612+00:00",
+  "reviewed_by_expert": true,
+  "expert_review_date": "2026-08-12",
+  "expert_review_note": "Reviewed by Mr. Arnaz De Jesus (Shore360 Agency). Complexity Estimator (F4) approved as-is 08 Aug 2026 (renamed 'Procedural Complexity Estimator' per his note). M0 two-class architecture, and F4's 0.093 contribution to it, approved as-is 12 Aug 2026. Two items were CONDITIONALLY approved and remain open as separate action items, not blockers on this flag: (1) labeling rule thresholds (WELL/STRUGGLED) \u2014 bounce rates must be actively monitored during Group 1; (2) M0 metrics as baseline \u2014 the Easy-to-Medium bias must be explicitly documented in Ch. 4/5 before reporting. See Codely_Decision_ExpertSignOff_Aug2026.docx for full record and action items.",
+  "rule_version": "v1.1-proposed",
+  "random_state": 42,
+  "test_size_students": 0.2,
+  "features": [
+    "correctness_rate",
+    "runtime_ms",
+    "attempts",
+    "complexity_score",
+    "prev_difficulty_ord"
+  ],
+  "rf_params": {
+    "n_estimators": 200,
+    "max_depth": null,
+    "min_samples_split": 2,
+    "min_samples_leaf": 1,
+    "class_weight": "balanced",
+    "random_state": 42
+  },
+  "n_rows_total": 81,
+  "n_rows_train": 60,
+  "n_rows_test": 21,
+  "n_students": 18,
+  "label_distribution": {
+    "hard": 52,
+    "medium": 23,
+    "easy": 6
+  },
+  "metrics": {
+    "accuracy": 0.6190476190476191,
+    "f1_macro": 0.2549019607843137,
+    "labels": [
+      "easy",
+      "medium",
+      "hard"
+    ],
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        0,
+        3
+      ],
+      [
+        0,
+        2,
+        13
+      ]
+    ],
+    "per_class": {
+      "easy": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 3.0
+      },
+      "medium": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1-score": 0.0,
+        "support": 3.0
+      },
+      "hard": {
+        "precision": 0.6842105263157895,
+        "recall": 0.8666666666666667,
+        "f1-score": 0.7647058823529411,
+        "support": 15.0
+      },
+      "accuracy": 0.6190476190476191,
+      "macro avg": {
+        "precision": 0.2280701754385965,
+        "recall": 0.2888888888888889,
+        "f1-score": 0.2549019607843137,
+        "support": 21.0
+      },
+      "weighted avg": {
+        "precision": 0.4887218045112782,
+        "recall": 0.6190476190476191,
+        "f1-score": 0.5462184873949579,
+        "support": 21.0
+      }
+    },
+    "feature_importance": {
+      "correctness_rate": 0.01031057898528325,
+      "runtime_ms": 0.43283698806670284,
+      "attempts": 0.2524408160448699,
+      "complexity_score": 0.1495472779656663,
+      "prev_difficulty_ord": 0.15486433893747778
+    }
+  },
+  "dataset_csv": "dataset_20260818_033118.csv"
+}

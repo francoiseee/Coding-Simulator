@@ -1,0 +1,2143 @@
+student_id,problem_id,correctness_rate,attempts,attempted_at,difficulty,runtime_ms,source_code,complexity_score,prev_difficulty,label,prev_difficulty_ord
+1cbaaf59-3ac4-4b95-b573-6d09e3605af4,37,100.0,5,2026-08-16 16:14:57.120922+00:00,easy,5896,"def count_occurrences(text, sub):
+    """"""
+    Return the number of non-overlapping, case-insensitive occurrences of sub in text.
+    """"""
+    return text.lower().count(sub.lower())
+    pass
+",0,,easy,-1
+1cbaaf59-3ac4-4b95-b573-6d09e3605af4,38,100.0,9,2026-08-16 18:54:53.395622+00:00,easy,4895,"def is_palindrome_str(s):
+    """"""
+    Return True if s is a palindrome, ignoring spaces and casing.
+    """"""
+    pal = s.lower().replace("" "", """")
+    if (pal[::-1] == pal):
+        return True
+    return False",0,easy,hard,0
+1cbaaf59-3ac4-4b95-b573-6d09e3605af4,137,100.0,2,2026-08-16 19:02:12.710213+00:00,hard,5815,"def is_palindrome(s):
+    """"""
+    Recursively check if s is a palindrome (no loops or string reversal).
+    """"""
+    if len(s) <= 1:
+        return True
+
+    if s[0] != s[-1]:
+        return False
+
+    return is_palindrome(s[1:-1])",2,easy,hard,0
+1cbaaf59-3ac4-4b95-b573-6d09e3605af4,136,100.0,2,2026-08-16 19:09:40.929717+00:00,hard,5837,"def flatten(nested):
+    """"""
+    Recursively flatten an arbitrarily nested list into a single flat list of integers.
+    """"""
+    result = []
+
+    for item in nested:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+
+    return result",2,hard,hard,2
+1cbaaf59-3ac4-4b95-b573-6d09e3605af4,138,100.0,2,2026-08-16 19:13:27.810646+00:00,hard,5833,"def count_paths(rows, cols):
+    """"""
+    Recursively count the unique top-left to bottom-right paths in a rows x cols grid (right/down moves only).
+    """"""
+    if rows == 1 or cols == 1:
+        return 1
+
+    return count_paths(rows - 1, cols) + count_paths(rows, cols - 1)
+
+def count_paths_memo(rows, cols, memo=None):
+    """"""
+    Same as count_paths, with memoization to avoid recomputation.
+    """"""
+    if memo is None:
+        memo = {}
+
+    if rows == 1 or cols == 1:
+        return 1
+
+    if (rows, cols) in memo:
+        return memo[(rows, cols)]
+
+    memo[(rows, cols)] = (
+        count_paths_memo(rows - 1, cols, memo)
+        + count_paths_memo(rows, cols - 1, memo)
+    )
+
+    return memo[(rows, cols)]
+",3,hard,hard,2
+2d4b222f-55ea-4a47-9537-c46795d9e1b7,76,100.0,2,2026-08-16 17:33:22.134684+00:00,medium,5824,"class Doctor:
+    def __init__(self, doctor_id, name, specialty):
+        self.doctor_id = doctor_id
+        self.name = name
+        self.specialty = specialty
+
+
+class HospitalSystem:
+    def __init__(self):
+        self.doctors = {}
+        self.appointments = []
+
+    def add_doctor(self, doctor_id, name, specialty):
+        if doctor_id in self.doctors:
+            raise ValueError(""Doctor ID already exists"")
+
+        self.doctors[doctor_id] = Doctor(doctor_id, name, specialty)
+
+    def book_appointment(self, patient_name, doctor_id, date):
+        if doctor_id not in self.doctors:
+            raise ValueError(""Doctor not found"")
+
+        for appointment in self.appointments:
+            if (
+                appointment[""doctor_id""] == doctor_id
+                and appointment[""date""] == date
+            ):
+                raise ValueError(""Doctor already has an appointment on this date"")
+
+        self.appointments.append({
+            ""patient_name"": patient_name,
+            ""doctor_id"": doctor_id,
+            ""date"": date
+        })
+
+    def cancel_appointment(self, patient_name, doctor_id, date):
+        for appointment in self.appointments:
+            if (
+                appointment[""patient_name""] == patient_name
+                and appointment[""doctor_id""] == doctor_id
+                and appointment[""date""] == date
+            ):
+                self.appointments.remove(appointment)
+                return
+
+        raise ValueError(""Appointment not found"")
+
+    def get_appointments(self, doctor_id):
+        if doctor_id not in self.doctors:
+            raise ValueError(""Doctor not found"")
+
+        result = []
+
+        for appointment in self.appointments:
+            if appointment[""doctor_id""] == doctor_id:
+                result.append(
+                    f'{appointment[""date""]}: {appointment[""patient_name""]}'
+                )
+
+        return sorted(result)
+
+    def get_patient_doctors(self, patient_name):
+        doctor_names = set()
+
+        for appointment in self.appointments:
+            if appointment[""patient_name""] == patient_name:
+                doctor = self.doctors[appointment[""doctor_id""]]
+                doctor_names.add(doctor.name)
+
+        return sorted(doctor_names)",1,,hard,-1
+2d4b222f-55ea-4a47-9537-c46795d9e1b7,75,100.0,2,2026-08-16 17:51:38.841950+00:00,medium,5987,"class StudentManager:
+    def __init__(self):
+        self.students = {}
+
+    def enroll(self, student_name, course_name):
+        if student_name not in self.students:
+            self.students[student_name] = set()
+
+        if course_name in self.students[student_name]:
+            raise ValueError(""Student already enrolled"")
+
+        self.students[student_name].add(course_name)
+
+    def drop(self, student_name, course_name):
+        if (
+            student_name not in self.students
+            or course_name not in self.students[student_name]
+        ):
+            raise ValueError(""Student not enrolled"")
+
+        self.students[student_name].remove(course_name)
+
+        if not self.students[student_name]:
+            del self.students[student_name]
+
+    def get_courses(self, student_name):
+        if student_name not in self.students:
+            return []
+
+        return sorted(self.students[student_name])
+
+    def get_students(self, course_name):
+        result = []
+
+        for student_name, courses in self.students.items():
+            if course_name in courses:
+                result.append(student_name)
+
+        return sorted(result)
+
+    def top_student(self):
+        if not self.students:
+            return None
+
+        max_courses = max(
+            len(courses) for courses in self.students.values()
+        )
+
+        top_students = [
+            student_name
+            for student_name, courses in self.students.items()
+            if len(courses) == max_courses
+        ]
+
+        return sorted(top_students)[0]",1,medium,easy,1
+2d4b222f-55ea-4a47-9537-c46795d9e1b7,77,83.33,17,2026-08-16 17:59:49.945753+00:00,medium,5872,"class MenuItem:
+    def __init__(self, item_id, name, price, category):
+        self.item_id = item_id
+        self.name = name
+        self.price = price
+        self.category = category
+
+
+class Restaurant:
+    def __init__(self):
+        self.menu = {}
+        self.orders = {}
+
+    def add_menu_item(self, item_id, name, price, category):
+        if item_id in self.menu:
+            raise ValueError(""Item ID already exists"")
+
+        if price <= 0:
+            raise ValueError(""Invalid price"")
+
+        self.menu[item_id] = MenuItem(
+            item_id, name, price, category
+        )
+
+    def place_order(self, table_number, item_id, quantity=1):
+        if item_id not in self.menu:
+            raise ValueError(""Item not found"")
+
+        if quantity <= 0:
+            raise ValueError(""Invalid quantity"")
+
+        if table_number not in self.orders:
+            self.orders[table_number] = {}
+
+        if item_id not in self.orders[table_number]:
+            self.orders[table_number][item_id] = 0
+
+        self.orders[table_number][item_id] += quantity
+
+    def remove_from_order(self, table_number, item_id, quantity=1):
+        if quantity <= 0:
+            raise ValueError(""Invalid quantity"")
+
+        if table_number not in self.orders:
+            raise ValueError(""Order not found"")
+
+        if item_id not in self.orders[table_number]:
+            raise ValueError(""Item not found in order"")
+
+        if quantity > self.orders[table_number][item_id]:
+            raise ValueError(""Quantity exceeds order"")
+
+        self.orders[table_number][item_id] -= quantity
+
+        if self.orders[table_number][item_id] == 0:
+            del self.orders[table_number][item_id]
+
+    def get_bill(self, table_number):
+        if table_number not in self.orders:
+            return ""No orders for table""
+
+        if not self.orders[table_number]:
+            return ""No orders for table""
+
+        lines = []
+        total = 0
+
+        ordered_items = []
+
+        for item_id, quantity in self.orders[table_number].items():
+            item = self.menu[item_id]
+            ordered_items.append((item.name, item, quantity))
+
+        ordered_items.sort()
+
+        for name, item, quantity in ordered_items:
+            subtotal = item.price * quantity
+            total += subtotal
+
+            lines.append(
+                f""{name} x{quantity} = PHP {round(float(subtotal), 2)}""
+            )
+
+        lines.append(
+            f""Total: PHP {round(float(total), 2)}""
+        )
+
+        return ""\n"".join(lines)
+
+    def get_menu_by_category(self, category):
+        result = []
+
+        for item in self.menu.values():
+            if item.category == category:
+                result.append(item.name)
+
+        return sorted(result)",1,medium,medium,1
+2d4b222f-55ea-4a47-9537-c46795d9e1b7,74,100.0,4,2026-08-16 18:01:28.619563+00:00,medium,5866,"class Product:
+    def __init__(self, name, price, stock):
+        self.name = name
+        self.price = price
+        self.stock = stock
+
+
+class Store:
+    def __init__(self):
+        self.products = {}
+
+    def add_product(self, name, price, stock):
+        self.products[name] = Product(name, price, stock)
+
+    def buy(self, name, quantity):
+        if name not in self.products:
+            raise ValueError(""Product not found"")
+
+        if quantity <= 0:
+            raise ValueError(""Invalid quantity"")
+
+        product = self.products[name]
+
+        if product.stock < quantity:
+            raise ValueError(""Insufficient stock"")
+
+        product.stock -= quantity
+
+    def restock(self, name, quantity):
+        if name not in self.products:
+            raise ValueError(""Product not found"")
+
+        if quantity <= 0:
+            raise ValueError(""Invalid quantity"")
+
+        self.products[name].stock += quantity
+
+    def total_value(self):
+        return round(
+            sum(
+                product.price * product.stock
+                for product in self.products.values()
+            ),
+            2
+        )
+
+    def available_products(self):
+        return sorted(
+            product.name
+            for product in self.products.values()
+            if product.stock > 0
+        )",1,medium,easy,1
+2d4b222f-55ea-4a47-9537-c46795d9e1b7,73,100.0,6,2026-08-16 18:02:32.167464+00:00,medium,5889,"class Book:
+    def __init__(self, title, author, available=True):
+        self.title = title
+        self.author = author
+        self.available = available
+
+
+class Library:
+    def __init__(self):
+        self.books = []
+
+    def add_book(self, title, author):
+        book = Book(title, author)
+        self.books.append(book)
+
+    def borrow_book(self, title):
+        for book in self.books:
+            if book.title == title:
+                if not book.available:
+                    raise ValueError(""Book is already borrowed"")
+
+                book.available = False
+                return
+
+        raise ValueError(""Book not found"")
+
+    def return_book(self, title):
+        for book in self.books:
+            if book.title == title:
+                if book.available:
+                    raise ValueError(""Book is not borrowed"")
+
+                book.available = True
+                return
+
+        raise ValueError(""Book not found"")
+
+    def available_books(self):
+        titles = []
+
+        for book in self.books:
+            if book.available:
+                titles.append(book.title)
+
+        return sorted(titles)
+
+    def search_by_author(self, author):
+        titles = []
+
+        for book in self.books:
+            if book.author == author:
+                titles.append(book.title)
+
+        return sorted(titles)",1,medium,hard,1
+32d149bc-9513-4766-a08f-da4790bf1a33,37,100.0,8,2026-08-16 16:07:52.968997+00:00,easy,6633,"def count_occurrences(text, sub):
+    if not sub:
+        return 0
+
+    text = text.lower()
+    sub = sub.lower()
+
+    count = 0
+    start = 0
+
+    while True:
+        place = text.find(sub, start)
+        if (place == -1):
+            break
+        count += 1
+        start = place + len(sub)
+    
+    return count
+",1,,easy,-1
+32d46d06-61c4-4bad-958b-6e95a885e2f9,109,100.0,2,2026-08-16 16:07:08.302501+00:00,hard,6773,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def ll_sum(head):
+    """"""
+    Return the sum of all node values in the linked list. Return 0 for an empty list.
+    """"""
+    total = 0
+    current = head
+    while current is not None:
+        total += current.val
+        current = current.next
+    return total
+
+def ll_to_list(head):
+    """"""
+    Convert a linked list to a Python list of values.
+    """"""
+    result = []
+    current = head
+    while current is not None:
+        result.append(current.val)
+        current = current.next
+    return result
+
+def list_to_ll(values):
+    """"""
+    Convert a Python list to a linked list and return the head node (or None if empty).
+    """"""
+    dummy = ListNode(0)
+    current = dummy
+    for val in values:
+        current.next = ListNode(val)
+        current = current.next
+    return dummy.next",1,,hard,-1
+32d46d06-61c4-4bad-958b-6e95a885e2f9,110,100.0,2,2026-08-16 16:10:08.287374+00:00,hard,3875,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def reverse_list(head):
+    """"""
+    Reverse the linked list in place (three-pointer technique) and return the new head.
+    """"""
+    prev = None
+    current = head
+    
+    while current is not None:
+        next_node = current.next 
+        current.next = prev 
+        
+        prev = current
+        current = next_node
+        
+    return prev",1,hard,hard,2
+32d46d06-61c4-4bad-958b-6e95a885e2f9,112,100.0,3,2026-08-16 16:13:52.622135+00:00,hard,6008,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def find_middle(head):
+    
+    if head is None:
+        return None
+        
+    slow = head
+    fast = head
+    
+    while fast is not None and fast.next is not None:
+        slow = slow.next
+        fast = fast.next.next
+        
+    return slow.val",1,hard,hard,2
+32d46d06-61c4-4bad-958b-6e95a885e2f9,111,100.0,2,2026-08-16 16:16:06.256847+00:00,hard,4840,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def delete_node(head, val):
+
+    if head is None:
+        return None
+        
+    if head.val == val:
+        return head.next
+        
+    current = head
+    while current.next is not None:
+        if current.next.val == val:
+            current.next = current.next.next
+            break
+        current = current.next
+        
+    return head",1,hard,hard,2
+32d46d06-61c4-4bad-958b-6e95a885e2f9,113,100.0,4,2026-08-16 16:21:10.066921+00:00,hard,5854,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+def merge_sorted(l1, l2):
+
+    dummy = ListNode(0)
+    current = dummy
+
+    while l1 is not None and l2 is not None:
+        if l1.val <= l2.val:
+            current.next = l1  
+            l1 = l1.next       
+        else:
+            current.next = l2  
+            l2 = l2.next       
+            
+        current = current.next 
+        
+    if l1 is not None:
+        current.next = l1
+    elif l2 is not None:
+        current.next = l2
+        
+    return dummy.next",1,hard,hard,2
+382ec71a-d196-4cbe-ab46-b11e217da8f7,1,100.0,4,2026-08-17 02:42:58.626117+00:00,easy,5841,"def odd_or_even(n):
+    """"""
+    Print ""Even"" if n is even, or ""Odd"" if n is odd.
+    """"""
+    print(""Even"" if n % 2 == 0 else ""Odd"")",0,,hard,-1
+41be5bed-ce39-4623-9b6b-94f8571450c2,73,100.0,2,2026-08-16 15:14:00.317172+00:00,medium,5818,"class Book:
+    def __init__(self, title, author, available=True):
+        self.title = title
+        self.author = author
+        self.available = available
+
+
+class Library:
+    def __init__(self):
+        self.books = []
+
+    def add_book(self, title, author):
+        book = Book(title, author)
+        self.books.append(book)
+
+    def borrow_book(self, title):
+        for book in self.books:
+            if book.title == title:
+                if not book.available:
+                    raise ValueError(""Book is already borrowed"")
+                book.available = False
+                return
+
+        raise ValueError(""Book not found"")
+
+    def return_book(self, title):
+        for book in self.books:
+            if book.title == title:
+                if book.available:
+                    raise ValueError(""Book is not borrowed"")
+                book.available = True
+                return
+
+        raise ValueError(""Book not found"")
+
+    def available_books(self):
+        return sorted(
+            book.title for book in self.books
+            if book.available
+        )
+
+    def search_by_author(self, author):
+        return sorted(
+            book.title for book in self.books
+            if book.author == author
+        )",1,,hard,-1
+41be5bed-ce39-4623-9b6b-94f8571450c2,74,100.0,2,2026-08-16 15:39:25.210463+00:00,medium,6536,"class Product:
+    def __init__(self, name, price, stock):
+        self.name = name
+        self.price = price
+        self.stock = stock
+
+
+class Store:
+    def __init__(self):
+        self.products = []
+
+    def add_product(self, name, price, stock):
+        product = Product(name, price, stock)
+        self.products.append(product)
+
+    def buy(self, name, quantity):
+        if quantity <= 0:
+            raise ValueError(""Quantity must be greater than 0"")
+
+        for product in self.products:
+            if product.name == name:
+                if product.stock < quantity:
+                    raise ValueError(""Insufficient stock"")
+                product.stock -= quantity
+                return
+
+        raise ValueError(""Product not found"")
+
+    def restock(self, name, quantity):
+        if quantity <= 0:
+            raise ValueError(""Quantity must be greater than 0"")
+
+        for product in self.products:
+            if product.name == name:
+                product.stock += quantity
+                return
+
+        raise ValueError(""Product not found"")
+
+    def total_value(self):
+        total = 0
+
+        for product in self.products:
+            total += product.price * product.stock
+
+        return round(total, 2)
+
+    def available_products(self):
+        return sorted(
+            product.name for product in self.products
+            if product.stock > 0
+        )",1,medium,hard,1
+41be5bed-ce39-4623-9b6b-94f8571450c2,76,100.0,2,2026-08-16 16:21:34.357470+00:00,medium,5955,"class Doctor:
+    def __init__(self, doctor_id, name, specialty):
+        self.doctor_id = doctor_id
+        self.name = name
+        self.specialty = specialty
+
+
+class HospitalSystem:
+    def __init__(self):
+        self.doctors = {}
+        self.appointments = []
+
+    def add_doctor(self, doctor_id, name, specialty):
+        if doctor_id in self.doctors:
+            raise ValueError(""Doctor ID already exists"")
+
+        self.doctors[doctor_id] = Doctor(doctor_id, name, specialty)
+
+    def book_appointment(self, patient_name, doctor_id, date):
+        if doctor_id not in self.doctors:
+            raise ValueError(""Doctor not found"")
+
+        for appointment in self.appointments:
+            if appointment[1] == doctor_id and appointment[2] == date:
+                raise ValueError(""Doctor already has an appointment"")
+
+        self.appointments.append((patient_name, doctor_id, date))
+
+    def cancel_appointment(self, patient_name, doctor_id, date):
+        for appointment in self.appointments:
+            if appointment == (patient_name, doctor_id, date):
+                self.appointments.remove(appointment)
+                return
+
+        raise ValueError(""Appointment not found"")
+
+    def get_appointments(self, doctor_id):
+        if doctor_id not in self.doctors:
+            raise ValueError(""Doctor not found"")
+
+        result = []
+
+        for patient_name, doc_id, date in self.appointments:
+            if doc_id == doctor_id:
+                result.append(f""{date}: {patient_name}"")
+
+        return sorted(result)
+
+    def get_patient_doctors(self, patient_name):
+        doctors = []
+
+        for patient, doctor_id, date in self.appointments:
+            if patient == patient_name:
+                doctors.append(self.doctors[doctor_id].name)
+
+        return sorted(set(doctors))
+",1,medium,hard,1
+41be5bed-ce39-4623-9b6b-94f8571450c2,137,100.0,2,2026-08-16 16:34:42.422873+00:00,hard,5878,"def is_palindrome(s):
+    if len(s) <= 1:
+        return True
+
+    if s[0] != s[-1]:
+        return False
+
+    return is_palindrome(s[1:-1])",2,medium,hard,1
+41be5bed-ce39-4623-9b6b-94f8571450c2,136,100.0,2,2026-08-16 16:46:28.508328+00:00,hard,5815,"def flatten(nested):
+    result = []
+
+    for item in nested:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+
+    return result",2,hard,medium,2
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,55,100.0,4,2026-08-16 11:57:15.207090+00:00,medium,7744,"class Shape:
+    def area(self):
+        return 0
+        
+    def describe(self):
+        return f""I am a {self.__class__.__name__} with area {self.area()}""
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+        
+    def area(self):
+        return round(3.14159 * (self.radius ** 2), 2)
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        
+    def area(self):
+        return round(float(self.width * self.height), 2)
+
+class Triangle(Shape):
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+        
+    def area(self):
+        return round(0.5 * self.base * self.height, 2)",0,,hard,-1
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,56,100.0,1,2026-08-16 12:02:28.094228+00:00,medium,6849,"class Vehicle:
+    def __init__(self, brand, speed):
+        self.brand = brand
+        self.speed = speed
+
+    def describe(self):
+        return f""Vehicle: {self.brand}, Speed: {self.speed} km/h""
+
+    def is_fast(self):
+        return self.speed > 120
+
+class Car(Vehicle):
+    def __init__(self, brand, speed, doors):
+        super().__init__(brand, speed)
+        self.doors = doors
+
+    def describe(self):
+        return f""Car: {self.brand}, Speed: {self.speed} km/h, Doors: {self.doors}""
+
+class Motorcycle(Vehicle):
+    def __init__(self, brand, speed):
+        super().__init__(brand, speed)
+
+    def describe(self):
+        return f""Motorcycle: {self.brand}, Speed: {self.speed} km/h""
+
+class Truck(Vehicle):
+    def __init__(self, brand, speed, payload):
+        super().__init__(brand, speed)
+        self.payload = payload
+
+    def describe(self):
+        return f""Truck: {self.brand}, Speed: {self.speed} km/h, Payload: {self.payload}t""",3,medium,hard,1
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,129,100.0,2,2026-08-16 13:06:36.883111+00:00,hard,5842,"def insertion_sort(arr):
+    """"""
+    Sort arr ascending using insertion sort.
+    Return the sorted list.
+    """"""
+    # Traverse through 1 to len(arr)
+    for i in range(1, len(arr)):
+        key = arr[i]
+        
+        # Move elements of arr[0..i-1], that are greater than key,
+        # to one position ahead of their current position
+        j = i - 1
+        while j >= 0 and key < arr[j]:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+        
+    return arr",2,medium,hard,1
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,127,100.0,2,2026-08-16 13:08:59.893401+00:00,hard,6813,"def bubble_sort(arr):
+    """"""
+    Sort arr ascending using bubble sort with early termination.
+    Return the sorted list.
+    """"""
+    n = len(arr)
+    
+    for i in range(n):
+        # Flag to check if any swaps happen in this pass
+        swapped = False
+        
+        # Last i elements are already in place, so we don't need to check them
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j + 1]:
+                # Swap the elements
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+                
+        # If no two elements were swapped by inner loop, then break
+        if not swapped:
+            break
+            
+    return arr",2,hard,hard,2
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,130,100.0,2,2026-08-16 13:11:13.288768+00:00,hard,6748,"def merge(left, right):
+    """"""
+    Merge two sorted lists into one sorted list.
+    """"""
+    result = []
+    i = j = 0
+    
+    # Compare elements from both lists and add the smaller one to result
+    while i < len(left) and j < len(right):
+        if left[i] <= right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+            
+    # If there are any remaining elements in the left list, add them
+    while i < len(left):
+        result.append(left[i])
+        i += 1
+        
+    # If there are any remaining elements in the right list, add them
+    while j < len(right):
+        result.append(right[j])
+        j += 1
+        
+    return result
+
+def merge_sort(arr):
+    """"""
+    Sort arr ascending using recursive merge sort.
+    Return the sorted list.
+    """"""
+    # Base case: a list of zero or one elements is already sorted
+    if len(arr) <= 1:
+        return arr
+        
+    # Find the middle to split the list in two
+    mid = len(arr) // 2
+    
+    # Recursively sort both halves
+    left_half = merge_sort(arr[:mid])
+    right_half = merge_sort(arr[mid:])
+    
+    # Merge the sorted halves back together
+    return merge(left_half, right_half)",3,hard,hard,2
+483a1cd9-90fc-48f1-9868-f7c79dcd4bfd,131,100.0,2,2026-08-16 13:36:41.204864+00:00,hard,6773,"def partition(arr, low, high):
+    """"""
+    Partition arr[low:high+1] around the last element as pivot; return the pivot's
+    final index.
+    """"""
+    # Use the last element as the pivot
+    pivot = arr[high]
+    
+    # Pointer for the greater element
+    i = low - 1
+    
+    # Traverse through elements and compare with the pivot
+    for j in range(low, high):
+        if arr[j] <= pivot:
+            # Swap if the element is smaller than or equal to the pivot
+            i += 1
+            arr[i], arr[j] = arr[j], arr[i]
+            
+    # Swap the pivot element with the greater element specified by i
+    arr[i + 1], arr[high] = arr[high], arr[i + 1]
+    
+    # Return the final pivot position
+    return i + 1
+
+def quicksort(arr):
+    """"""
+    Sort arr ascending using quicksort (last element as pivot). Return the sorted
+    list.
+    """"""
+    # Helper function to track our low and high pointers
+    def _quicksort_helper(arr, low, high):
+        if low < high:
+            # Find the pivot index where the list is partitioned
+            pi = partition(arr, low, high)
+            
+            # Recursively sort elements before and after partition
+            _quicksort_helper(arr, low, pi - 1)
+            _quicksort_helper(arr, pi + 1, high)
+            
+    # Handle empty or single-element lists by only running if arr has items
+    if arr:
+        _quicksort_helper(arr, 0, len(arr) - 1)
+        
+    return arr",3,hard,hard,2
+4a34d175-df10-4075-8c4b-3ff7a5531917,55,75.0,17,2026-08-17 03:13:35.440151+00:00,medium,7838,"class Shape:
+    def area(self):
+        return 0
+
+    def describe(self):
+        return f""I am a {self.__class__.__name__} with area {self.area():.2f}""
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+
+    def area(self):
+        return round(3.14159 * (self.radius ** 2),2)
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return (self.width * self.height)
+
+class Triangle(Shape):
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+
+    def area(self):
+        return 0.5 * (self.base * self.height)
+",0,,hard,-1
+6b7e0514-aac3-4592-80db-c17ccee421e7,40,100.0,2,2026-08-17 00:26:37.740897+00:00,easy,4818,"def filter_transform(nums):
+    """"""
+    Return a list of the even numbers in nums, each multiplied by 2 (use a list comprehension).
+    """"""
+    return [num * 2 for num in nums if num % 2 == 0]",1,,hard,-1
+6b7e0514-aac3-4592-80db-c17ccee421e7,95,100.0,2,2026-08-17 00:28:33.277054+00:00,medium,5764,"def transpose(matrix):
+    """"""
+    Return the transpose of matrix (rows become columns). Do not modify the original.
+    """"""
+    if not matrix:
+        return []
+
+    return [list(column) for column in zip(*matrix)]
+
+
+def multiply(A, B):
+    """"""
+    Return the matrix product of A and B. Raise ValueError if dimensions are incompatible.
+    """"""
+    if not A or not B:
+        return []
+
+    if len(A[0]) != len(B):
+        raise ValueError(""Incompatible matrix dimensions"")
+
+    return [
+        [sum(A[i][k] * B[k][j] for k in range(len(B)))
+         for j in range(len(B[0]))]
+        for i in range(len(A))
+    ]",3,easy,hard,0
+6b7e0514-aac3-4592-80db-c17ccee421e7,94,100.0,2,2026-08-17 00:31:47.974555+00:00,medium,5899,"def main_diagonal(matrix):
+    """"""
+    Return the elements on the main diagonal (top-left to bottom-right).
+    """"""
+    return [matrix[i][i] for i in range(len(matrix))]
+
+
+def anti_diagonal(matrix):
+    """"""
+    Return the elements on the anti-diagonal (top-right to bottom-left).
+    """"""
+    n = len(matrix)
+    return [matrix[i][n - 1 - i] for i in range(n)]
+
+
+def is_symmetric(matrix):
+    """"""
+    Return True if matrix equals its transpose.
+    """"""
+    n = len(matrix)
+
+    for i in range(n):
+        for j in range(n):
+            if matrix[i][j] != matrix[j][i]:
+                return False
+
+    return True
+
+
+def trace(matrix):
+    """"""
+    Return the sum of the main diagonal elements.
+    """"""
+    return sum(matrix[i][i] for i in range(len(matrix)))",2,medium,medium,1
+6b7e0514-aac3-4592-80db-c17ccee421e7,105,0.0,2,2026-08-17 00:33:46.130659+00:00,hard,5780,"def round_robin(tasks, cooldown):
+    """"""
+    Simulate round-robin scheduling and return the total intervals elapsed until all tasks finish.
+    """"""
+    queue = list(tasks)
+    elapsed = 0
+
+    while queue:
+        name, duration = queue.pop(0)
+
+        work = min(duration, cooldown)
+        elapsed += work
+        duration -= work
+
+        if duration > 0:
+            queue.append((name, duration))
+        else:
+            # small mistake: adds an extra interval when a task finishes
+            elapsed += 1
+
+    return elapsed",1,medium,hard,1
+6b7e0514-aac3-4592-80db-c17ccee421e7,112,100.0,2,2026-08-17 00:35:41.873979+00:00,hard,5802,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def find_middle(head):
+    """"""
+    Return the value of the middle node using slow/fast pointers (second middle if even length).
+    """"""
+    if head is None:
+        return None
+
+    slow = head
+    fast = head
+
+    while fast is not None and fast.next is not None:
+        slow = slow.next
+        fast = fast.next.next
+
+    return slow.val",1,hard,hard,2
+6b7e0514-aac3-4592-80db-c17ccee421e7,137,100.0,2,2026-08-17 00:37:12.850496+00:00,hard,5745,"def is_palindrome(s):
+    """"""
+    Recursively check if s is a palindrome (no loops or string reversal).
+    """"""
+    if len(s) <= 1:
+        return True
+
+    if s[0] != s[-1]:
+        return False
+
+    # Small mistake: skips two characters from each side
+    return is_palindrome(s[2:-2])",2,hard,hard,2
+6bc9ba12-19ee-48a1-b7ac-ff09decae009,102,100.0,2,2026-08-16 18:32:54.908290+00:00,hard,5803,"class UndoSystem:
+
+    def __init__(self):
+        self.doc = """"
+        self.history = []
+
+    def type(self, text):
+        self.history.append(self.doc)
+        self.doc += text
+
+    def undo(self):
+        if self.history:
+            self.doc = self.history.pop()
+
+    def get_document(self):
+        return self.doc",0,,hard,-1
+6bc9ba12-19ee-48a1-b7ac-ff09decae009,101,100.0,4,2026-08-16 18:38:11.766374+00:00,hard,5862,"class Queue:
+
+    def __init__(self):
+        self.items = []
+
+    def enqueue(self, item):
+        self.items.append(item)
+
+    def dequeue(self):
+        if self.is_empty():
+            raise IndexError(""Queue is empty"")
+        return self.items.pop(0)
+
+    def peek(self):
+        if self.is_empty():
+            raise IndexError(""Queue is empty"")
+        return self.items[0]
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+    def size(self):
+        return len(self.items)
+",0,hard,medium,2
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,129,100.0,3,2026-08-16 07:50:04.876041+00:00,hard,5895,"def insertion_sort(arr):
+    """"""
+    Sort arr ascending using insertion sort. Return the sorted list.
+    """"""
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+        arr[j + 1] = key
+    return arr",2,,hard,-1
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,128,100.0,2,2026-08-16 07:54:19.505840+00:00,hard,5825,"def selection_sort(arr):
+    """"""
+    Sort arr ascending using selection sort. Return the sorted list.
+    """"""
+    n = len(arr)
+    for i in range(n - 1):
+        min_index = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_index]:
+                min_index = j
+        arr[i], arr[min_index] = arr[min_index], arr[i]
+    return arr",2,hard,hard,2
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,127,100.0,1,2026-08-16 07:58:27.388990+00:00,hard,7200,"def bubble_sort(arr):
+    """"""
+    Sort arr ascending using bubble sort with early termination. Return the sorted list.
+    """"""
+    n = len(arr)
+    for i in range(n - 1):
+        swapped = False
+        for j in range(n - 1 - i):
+            if arr[j] > arr[j + 1]:
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        if not swapped:
+            break
+    return arr",2,hard,medium,2
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,16,100.0,1,2026-08-16 08:02:15.590113+00:00,easy,6777,"def check_loan(age, income, credit_score, existing_loans):
+    """"""
+    Evaluate a loan application against a sequence of eligibility rules and return the result string.
+    """"""
+    if age < 18:
+        return ""Rejected: Underage""
+    if income < 15000:
+        return ""Rejected: Insufficient income""
+    if credit_score < 600:
+        return ""Rejected: Poor credit score""
+    if existing_loans >= 3:
+        return ""Rejected: Too many existing loans""
+    if credit_score >= 750 and income >= 50000:
+        return ""Approved: Premium""
+    if credit_score >= 700:
+        return ""Approved: Standard""
+    return ""Approved: Basic""",0,hard,medium,2
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,43,100.0,1,2026-08-16 08:05:26.194469+00:00,easy,4834,"def transform_string(text, operations):
+    """"""
+    Apply each operation in operations to text in order, and return the result. Unrecognized ops are skipped.
+    """"""
+    for op in operations:
+        if op == ""upper"":
+            text = text.upper()
+        elif op == ""lower"":
+            text = text.lower()
+        elif op == ""title"":
+            text = text.title()
+        elif op == ""reverse"":
+            text = text[::-1]
+        elif op == ""strip"":
+            text = text.strip()
+        elif op == ""remove_spaces"":
+            text = text.replace("" "", """")
+        elif op == ""replace_vowels"":
+            text = """".join(""*"" if ch in ""aeiouAEIOU"" else ch for ch in text)
+    return text",2,easy,medium,0
+6c0c8e2d-e112-4750-8792-0d4a4a8d07e3,25,100.0,1,2026-08-16 08:07:55.843066+00:00,easy,4794,"def collatz(n):
+    """"""
+    Return the Collatz sequence starting at n and ending at 1, inclusive of both endpoints.
+    """"""
+    sequence = [n]
+    while n != 1:
+        if n % 2 == 0:
+            n = n // 2
+        else:
+            n = 3 * n + 1
+        sequence.append(n)
+    return sequence",1,easy,medium,0
+85df0684-fa3d-46ac-a545-1b504a226f4a,58,100.0,7,2026-08-16 06:06:15.857916+00:00,medium,5814,"class Account:
+    def __init__(self, owner, balance=0):
+        self.owner = owner
+        self.balance = balance
+
+    def deposit(self, amount):
+        self.balance += amount
+
+    def withdraw(self, amount):
+        if amount > self.balance:
+            raise ValueError(""error"")
+        self.balance -= amount
+
+    def get_balance(self):
+        return self.balance
+
+    def __str__(self):
+        return f""{self.owner}: {self.balance}""
+
+class SavingsAccount(Account):
+    def __init__(self, owner, balance, interest_rate):
+        super().__init__(owner, balance)
+        self.interest_rate = interest_rate
+
+    def apply_interest(self):
+        self.balance = round(
+            self.balance * (1+self.interest_rate/100), 2
+        )
+
+    def withdraw(self, amount):
+        if self.balance - amount < 500:
+            raise ValueError(""error"")
+        self.balance -= amount
+
+class CreditAccount(Account):
+    def __init__(self, owner, credit_limit):
+        super().__init__(owner, 0)
+        self.credit_limit = credit_limit
+
+    def withdraw(self, amount):
+        if self.balance - amount < -self.credit_limit:
+            raise ValueError(""error"")
+        self.balance -= amount
+
+    def available_credit(self):
+        return self.credit_limit+self.balance
+",3,,easy,-1
+85df0684-fa3d-46ac-a545-1b504a226f4a,55,87.5,14,2026-08-16 06:25:39.596985+00:00,medium,9128,"class Shape:
+    def area(self):
+        return 0
+
+    def describe(self):
+        return f""I am a {self.__class__.__name__} with area {round(self.area(), 2)}""
+
+class Circle(Shape):
+    def __init__(self, radius):
+        self.radius = radius
+
+    def area(self):
+        return round(3.14159 * self.radius**2, 2)
+
+class Rectangle(Shape):
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return self.width * self.height
+
+class Triangle(Shape):
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+
+    def area(self):
+        return 0.5 * self.base * self.height
+",0,medium,medium,1
+85df0684-fa3d-46ac-a545-1b504a226f4a,43,100.0,2,2026-08-16 06:47:28.776571+00:00,easy,4827,"def transform_string(text, operations):
+    """"""
+    Apply each operation in operations to text in order, and return the result. Unrecognized ops are skipped.
+    """"""
+    for operation in operations:
+        match operation:
+            case ""upper"":
+                text = text.upper()
+            case ""lower"":
+                text = text.lower()
+            case ""title"":
+                text = text.title()
+            case ""reverse"":
+                text = """".join(reversed(text))
+            case ""strip"":
+                text = text.strip()
+            case ""remove_spaces"":
+                text = text.replace("" "", """")
+            case ""replace_vowels"":
+                text = """".join(""*"" if char in ""aeiouAEIOU"" else char for char in text)
+            case _:
+                pass
+    return text
+",2,medium,medium,1
+85df0684-fa3d-46ac-a545-1b504a226f4a,37,100.0,2,2026-08-16 06:52:43.572573+00:00,easy,5827,"def count_occurrences(text, sub):
+    """"""
+    Return the number of non-overlapping, case-insensitive occurrences of sub in text.
+    """"""
+    return text.lower().count(sub.lower())
+",0,easy,medium,0
+85df0684-fa3d-46ac-a545-1b504a226f4a,40,100.0,2,2026-08-16 07:01:25.426967+00:00,easy,4868,"def filter_transform(nums):
+    """"""
+    Return a list of the even numbers in nums, each multiplied by 2 (use a list comprehension).
+    """"""
+    return [num * 2 for num in nums if num % 2 == 0]
+",1,easy,medium,0
+85df0684-fa3d-46ac-a545-1b504a226f4a,38,100.0,2,2026-08-16 07:08:27.960177+00:00,easy,4876,"def is_palindrome_str(s):
+    """"""
+    Return True if s is a palindrome, ignoring spaces and casing.
+    """"""
+    cleaned = s.replace("" "", """").lower()
+    return cleaned == cleaned[::-1]
+",0,easy,medium,0
+983e1147-71fc-4e44-9c9d-e0be00ca82c6,55,100.0,17,2026-08-17 10:42:33.624837+00:00,medium,8005,"class Shape:
+
+    def area(self):
+        return 0.0
+
+    def describe(self):
+        area_val = round(self.area(), 2)
+        if area_val == int(area_val):
+            area_str = f""{area_val:.1f}""
+        else:
+            area_str = f""{area_val:.2f}""
+        return f""I am a {self.__class__.__name__} with area {area_str}""
+
+
+class Circle(Shape):
+
+    def __init__(self, radius):
+        self.radius = radius
+
+    def area(self):
+        return round(3.14159 * (self.radius**2), 2)
+
+
+class Rectangle(Shape):
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+
+    def area(self):
+        return float(self.width * self.height)
+
+
+class Triangle(Shape):
+
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+
+    def area(self):
+        return float(0.5 * self.base * self.height)",0,,hard,-1
+983e1147-71fc-4e44-9c9d-e0be00ca82c6,56,100.0,1,2026-08-17 10:45:29.252768+00:00,medium,6972,"class Vehicle:
+
+    def __init__(self, brand, speed):
+        self.brand = brand
+        self.speed = speed
+
+    def describe(self):
+        return f""Vehicle: {self.brand}, Speed: {self.speed} km/h""
+
+    def is_fast(self):
+        return self.speed > 120
+
+
+class Car(Vehicle):
+
+    def __init__(self, brand, speed, doors):
+        super().__init__(brand, speed)
+        self.doors = doors
+
+    def describe(self):
+        return f""Car: {self.brand}, Speed: {self.speed} km/h, Doors: {self.doors}""
+
+
+class Motorcycle(Vehicle):
+
+    def __init__(self, brand, speed):
+        super().__init__(brand, speed)
+
+    def describe(self):
+        return f""Motorcycle: {self.brand}, Speed: {self.speed} km/h""
+
+
+class Truck(Vehicle):
+
+    def __init__(self, brand, speed, payload):
+        super().__init__(brand, speed)
+        self.payload = payload
+
+    def describe(self):
+        return f""Truck: {self.brand}, Speed: {self.speed} km/h, Payload: {self.payload}t""",3,medium,hard,1
+983e1147-71fc-4e44-9c9d-e0be00ca82c6,59,100.0,1,2026-08-17 10:49:50.293102+00:00,medium,8131,"class Media:
+
+    def __init__(self, title, creator, year):
+        self.title = title
+        self.creator = creator
+        self.year = year
+
+    def info(self):
+        return f""{self.title} by {self.creator} ({self.year})""
+
+    def is_classic(self):
+        return self.year < 2000
+
+
+class Book(Media):
+
+    def __init__(self, title, creator, year, pages):
+        super().__init__(title, creator, year)
+        self.pages = pages
+
+    def info(self):
+        return f""{self.title} by {self.creator} ({self.year}) — {self.pages} pages""
+
+    def reading_time(self, wpm=250):
+        return round((self.pages * 250) / wpm)
+
+
+class Movie(Media):
+
+    def __init__(self, title, creator, year, duration_min):
+        super().__init__(title, creator, year)
+        self.duration_min = duration_min
+
+    def info(self):
+        return f""{self.title} directed by {self.creator} ({self.year}) — {self.duration_min} min""
+
+    def is_feature(self):
+        return self.duration_min >= 60
+
+
+class Song(Media):
+
+    def __init__(self, title, creator, year, duration_sec):
+        super().__init__(title, creator, year)
+        self.duration_sec = duration_sec
+
+    def info(self):
+        return f""{self.title} by {self.creator} ({self.year}) — {self.duration_sec}s""
+
+    def formatted_duration(self):
+        minutes = self.duration_sec // 60
+        seconds = self.duration_sec % 60
+        return f""{minutes}:{seconds:02d}""",3,medium,hard,1
+983e1147-71fc-4e44-9c9d-e0be00ca82c6,60,100.0,1,2026-08-17 10:52:42.031480+00:00,medium,6923,"class Pet:
+
+    def __init__(self, name, age, owner):
+        self.name = name
+        self.age = age
+        self.owner = owner
+
+    def info(self):
+        return f""{self.name} (age {self.age}), owned by {self.owner}""
+
+    def sound(self):
+        return f""{self.name} makes a sound""
+
+    def human_age(self):
+        return self.age * 7
+
+
+class Dog(Pet):
+
+    def __init__(self, name, age, owner, breed):
+        super().__init__(name, age, owner)
+        self.breed = breed
+
+    def sound(self):
+        return f""{self.name} barks""
+
+    def info(self):
+        return f""{super().info()}, Breed: {self.breed}""
+
+    def human_age(self):
+        return self.age * 7
+
+
+class Cat(Pet):
+
+    def __init__(self, name, age, owner, indoor):
+        super().__init__(name, age, owner)
+        self.indoor = indoor
+
+    def sound(self):
+        return f""{self.name} meows""
+
+    def info(self):
+        return f""{super().info()}, Indoor: {self.indoor}""
+
+    def human_age(self):
+        return self.age * 5
+
+
+class Parrot(Pet):
+
+    def __init__(self, name, age, owner, phrase):
+        super().__init__(name, age, owner)
+        self.phrase = phrase
+
+    def sound(self):
+        return f""{self.name} says: {self.phrase}""
+
+    def info(self):
+        return f""{super().info()}, Phrase: {self.phrase}""
+
+    def human_age(self):
+        return self.age * 4",3,medium,medium,1
+a92e1598-3b6c-41a3-bba2-671d2c899681,73,100.0,1,2026-08-16 14:51:49.783911+00:00,medium,5985,"class Book:
+    def __init__(self, title: str, author: str, available: bool = True):
+        self.title = title
+        self.author = author
+        self.available = available
+
+
+class Library:
+    def __init__(self):
+        self.books = {}
+
+    def add_book(self, title: str, author: str):
+        self.books[title] = Book(title, author)
+
+    def borrow_book(self, title: str):
+        if title not in self.books:
+            raise ValueError(f""Book '{title}' not found in library."")
+        if not self.books[title].available:
+            raise ValueError(f""Book '{title}' is already borrowed."")
+        self.books[title].available = False
+
+    def return_book(self, title: str):
+        if title not in self.books:
+            raise ValueError(f""Book '{title}' not found in library."")
+        if self.books[title].available:
+            raise ValueError(f""Book '{title}' is not currently borrowed."")
+        self.books[title].available = True
+
+    def available_books(self) -> list:
+        return sorted([
+            book.title for book in self.books.values() if book.available
+        ])
+
+    def search_by_author(self, author: str) -> list:
+        return sorted([
+            book.title for book in self.books.values() if book.author == author
+        ])",1,,hard,-1
+a92e1598-3b6c-41a3-bba2-671d2c899681,74,100.0,1,2026-08-16 14:54:41.539516+00:00,medium,5803,"class Product:
+    def __init__(self, name, price, stock):
+        self.name = name
+        self.price = float(price)
+        self.stock = int(stock)
+
+class Store:
+    def __init__(self):
+        self.products = {}
+
+    def add_product(self, name, price, stock):
+        self.products[name] = Product(name, price, stock)
+
+    def buy(self, name, quantity):
+        if name not in self.products:
+            raise ValueError(""Product not found"")
+        if quantity <= 0:
+            raise ValueError(""Quantity must be greater than 0"")
+        if self.products[name].stock < quantity:
+            raise ValueError(""Insufficient stock"")
+        
+        self.products[name].stock -= quantity
+
+    def restock(self, name, quantity):
+        if name not in self.products:
+            raise ValueError(""Product not found"")
+        if quantity <= 0:
+            raise ValueError(""Quantity must be greater than 0"")
+            
+        self.products[name].stock += quantity
+
+    def total_value(self):
+        total = sum(product.price * product.stock for product in self.products.values())
+        return round(total, 2)
+
+    def available_products(self):
+        available = [name for name, product in self.products.items() if product.stock > 0]
+        return sorted(available)",1,medium,hard,1
+a92e1598-3b6c-41a3-bba2-671d2c899681,75,100.0,1,2026-08-16 14:57:19.521853+00:00,medium,5834,"class StudentManager:
+    def __init__(self):
+        self.student_courses = {}
+        self.course_students = {}
+
+    def enroll(self, student_name, course_name):
+        if student_name not in self.student_courses:
+            self.student_courses[student_name] = set()
+        if course_name not in self.course_students:
+            self.course_students[course_name] = set()
+            
+
+        if course_name in self.student_courses[student_name]:
+            raise ValueError(""Student is already enrolled in this course."")
+            
+  
+        self.student_courses[student_name].add(course_name)
+        self.course_students[course_name].add(student_name)
+
+    def drop(self, student_name, course_name):
+     
+        if student_name not in self.student_courses or course_name not in self.student_courses[student_name]:
+            raise ValueError(""Student is not enrolled in this course."")
+            
+     
+        self.student_courses[student_name].remove(course_name)
+        self.course_students[course_name].remove(student_name)
+        
+        
+        if not self.student_courses[student_name]:
+            del self.student_courses[student_name]
+        if not self.course_students[course_name]:
+            del self.course_students[course_name]
+
+    def get_courses(self, student_name):
+  
+        return sorted(list(self.student_courses.get(student_name, [])))
+
+    def get_students(self, course_name):
+
+        return sorted(list(self.course_students.get(course_name, [])))
+
+    def top_student(self):
+        if not self.student_courses:
+            return None
+        
+        best_student = None
+        max_courses = 0
+        
+        for student, courses in self.student_courses.items():
+            num_courses = len(courses)
+       
+            if num_courses > max_courses:
+                best_student = student
+                max_courses = num_courses
+            elif num_courses == max_courses:
+                if best_student is None or student < best_student:
+                    best_student = student
+                    
+        return best_student",1,medium,medium,1
+a92e1598-3b6c-41a3-bba2-671d2c899681,13,100.0,1,2026-08-16 15:01:10.950869+00:00,easy,6790,"def season_classifier(month):
+    """"""
+    Print the Northern Hemisphere season for a given month number (1-12), or ""Invalid month"".
+    """"""
+    if month in [12, 1, 2]:
+        print(""Winter"")
+    elif month in [3, 4, 5]:
+        print(""Spring"")
+    elif month in [6, 7, 8]:
+        print(""Summer"")
+    elif month in [9, 10, 11]:
+        print(""Autumn"")
+    else:
+        print(""Invalid month"")",0,medium,medium,1
+a92e1598-3b6c-41a3-bba2-671d2c899681,14,100.0,1,2026-08-16 15:03:10.785423+00:00,easy,5837,"def bmi_classifier(weight, height):
+    """"""
+    Compute BMI from weight (kg) and height (m) and print ""BMI: {bmi} — {category}"", 
+    or ""Invalid input"".
+    """"""
+    if weight <= 0 or height <= 0:
+        print(""Invalid input"")
+        return
+
+
+    bmi = round(weight / (height ** 2), 2)
+
+
+    if bmi < 18.5:
+        category = ""Underweight""
+    elif bmi < 25.0:
+        category = ""Normal weight""
+    elif bmi < 30.0:
+        category = ""Overweight""
+    else:
+        category = ""Obese""
+
+   
+    print(f""BMI: {bmi} — {category}"")",0,easy,hard,0
+a92e1598-3b6c-41a3-bba2-671d2c899681,105,100.0,1,2026-08-16 15:05:37.926347+00:00,hard,5801,"from collections import deque
+
+def round_robin(tasks, cooldown):
+    """"""
+    Simulate round-robin scheduling and return the total intervals elapsed until all tasks finish.
+    """"""
+  
+    queue = deque([[name, duration] for name, duration in tasks])
+    elapsed = 0
+    
+    while queue:
+
+        current_task = queue.popleft()
+        
+    
+        remaining_duration = current_task[1]
+        worked_time = min(remaining_duration, cooldown)
+        
+    
+        elapsed += worked_time
+        current_task[1] -= worked_time
+       
+        if current_task[1] > 0:
+            queue.append(current_task)
+            
+    return elapsed",1,easy,hard,0
+b02626a9-7180-430d-815d-e8688eddf567,37,100.0,3,2026-08-16 12:29:46.899508+00:00,easy,5801,"def count_occurrences(text, sub):
+    return text.lower().count(sub.lower())
+    pass
+",0,,medium,-1
+b02626a9-7180-430d-815d-e8688eddf567,38,100.0,2,2026-08-16 13:35:09.880591+00:00,easy,4874,"def is_palindrome_str(s):
+    cleaned = s.replace("" "", """").lower()
+    return cleaned == cleaned[::-1]
+    pass
+",0,easy,hard,0
+b02626a9-7180-430d-815d-e8688eddf567,136,100.0,2,2026-08-16 13:52:57.213616+00:00,hard,5763,"def flatten(nested):
+    result = []
+    for item in nested:
+        if isinstance(item, list):
+            result.extend(flatten(item))
+        else:
+            result.append(item)
+    return result
+    pass
+",2,easy,hard,0
+b02626a9-7180-430d-815d-e8688eddf567,140,100.0,2,2026-08-16 14:53:05.992254+00:00,hard,5837,"def binary_search_recursive(arr, target, low=0, high=None):
+    if high is None:
+        high = len(arr) - 1
+        
+    if low > high:
+        return -1
+        
+    mid = (low + high) // 2
+    
+    if arr[mid] == target:
+        return mid
+
+    elif arr[mid] < target:
+        return binary_search_recursive(arr, target, mid + 1, high)
+
+    else:
+        return binary_search_recursive(arr, target, low, mid - 1)
+    pass
+
+def binary_search_count(arr, target):
+   
+    def find_boundary(arr, target, is_first):
+        low, high = 0, len(arr) - 1
+        result = -1
+        
+        while low <= high:
+            mid = (low + high) // 2
+            
+            if arr[mid] == target:
+                result = mid
+                if is_first:
+                    high = mid - 1 
+                else:
+                    low = mid + 1  
+            elif arr[mid] < target:
+                low = mid + 1
+            else:
+                high = mid - 1
+                
+        return result
+
+    left_idx = find_boundary(arr, target, True)
+    
+    if left_idx == -1:
+        return 0
+        
+    right_idx = find_boundary(arr, target, False)
+    
+    return right_idx - left_idx + 1
+    pass
+",3,hard,hard,2
+b02626a9-7180-430d-815d-e8688eddf567,141,100.0,2,2026-08-16 14:57:26.896605+00:00,hard,3900,"def power_set(s):
+    
+    if not s:
+        return [[]]
+    first = s[0]
+    rest_subsets = power_set(s[1:])
+    with_first = [[first] + subset for subset in rest_subsets]
+    return rest_subsets + with_first
+    pass
+",2,hard,medium,2
+b02626a9-7180-430d-815d-e8688eddf567,139,100.0,7,2026-08-16 15:00:07.538791+00:00,hard,2932,"def hanoi(n, source, target, auxiliary):
+    if n == 0:
+        return []
+        
+    moves = []
+    moves.extend(hanoi(n - 1, source, auxiliary, target))
+    moves.append(f""Move disk {n} from {source} to {target}"")
+    moves.extend(hanoi(n - 1, auxiliary, target, source))
+    
+    return moves
+    pass
+",3,hard,hard,2
+c946494b-5179-461d-9b58-908e4cebb1ea,109,100.0,4,2026-08-16 16:32:26.985935+00:00,hard,6992,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def ll_sum(head):
+    total = 0
+    curr = head
+
+    while curr:
+        total += curr.val
+        curr = curr.next
+
+    return total
+
+
+def ll_to_list(head):
+    result = []
+    curr = head
+
+    while curr:
+        result.append(curr.val)
+        curr = curr.next
+
+    return result
+
+
+def list_to_ll(values):
+    if not values:
+        return None
+
+    head = ListNode(values[0])
+    curr = head
+
+    for val in values[1:]:
+        curr.next = ListNode(val)
+        curr = curr.next
+
+    return head",1,,hard,-1
+c946494b-5179-461d-9b58-908e4cebb1ea,113,100.0,2,2026-08-16 16:47:00.696902+00:00,hard,5816,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def merge_sorted(l1, l2):
+    """"""
+    Merge two sorted linked lists into one sorted linked list
+    (relink nodes, don't create new ones) and return the head.
+    """"""
+    dummy = ListNode()
+    curr = dummy
+
+    while l1 is not None and l2 is not None:
+        if l1.val <= l2.val:
+            curr.next = l1
+            l1 = l1.next
+        else:
+            curr.next = l2
+            l2 = l2.next
+
+        curr = curr.next
+
+    if l1 is not None:
+        curr.next = l1
+    else:
+        curr.next = l2
+
+    return dummy.next",1,hard,hard,2
+c946494b-5179-461d-9b58-908e4cebb1ea,114,100.0,2,2026-08-16 16:50:40.400259+00:00,hard,5819,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def has_cycle(head):
+    """"""
+    Return True if the linked list contains a cycle,
+    using Floyd's slow/fast pointer algorithm.
+    """"""
+    slow = head
+    fast = head
+
+    while fast is not None and fast.next is not None:
+        slow = slow.next
+        fast = fast.next.next
+
+        if slow is fast:
+            return True
+
+    return False
+
+
+def find_cycle_start(head):
+    """"""
+    Return the value of the node where the cycle begins,
+    or None if there is no cycle.
+    """"""
+    slow = head
+    fast = head
+
+    # First, detect whether a cycle exists.
+    while fast is not None and fast.next is not None:
+        slow = slow.next
+        fast = fast.next.next
+
+        if slow is fast:
+            break
+    else:
+        return None
+
+    # Find the start of the cycle.
+    slow = head
+
+    while slow is not fast:
+        slow = slow.next
+        fast = fast.next
+
+    return slow.val",1,hard,hard,2
+c946494b-5179-461d-9b58-908e4cebb1ea,112,100.0,4,2026-08-16 16:52:35.745291+00:00,hard,5795,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def find_middle(head):
+    """"""
+    Return the value of the middle node using slow/fast pointers
+    (second middle if even length).
+    """"""
+    if head is None:
+        return None
+
+    slow = head
+    fast = head
+
+    while fast is not None and fast.next is not None:
+        slow = slow.next
+        fast = fast.next.next
+
+    return slow.val",1,hard,hard,2
+cc624091-97ec-45ae-b593-822ea65543ab,109,100.0,3,2026-08-16 12:27:25.860680+00:00,hard,6734,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def ll_sum(head):
+    """"""
+    Return the sum of all node values in the linked list. Return 0 for an empty list.
+    """"""
+    total = 0
+    current = head
+    while current:
+        total += current.val
+        current = current.next
+    return total
+
+
+def ll_to_list(head):
+    """"""
+    Convert a linked list to a Python list of values.
+    """"""
+    result = []
+    current = head
+    while current:
+        result.append(current.val)
+        current = current.next
+    return result
+
+
+def list_to_ll(values):
+    """"""
+    Convert a Python list to a linked list and return the head node (or None if empty).
+    """"""
+    if not values:
+        return None
+    head = ListNode(values[0])
+    current = head
+    for val in values[1:]:
+        current.next = ListNode(val)
+        current = current.next
+    return head",1,,hard,-1
+cc624091-97ec-45ae-b593-822ea65543ab,111,100.0,2,2026-08-16 12:30:44.919440+00:00,hard,4815,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def delete_node(head, val):
+    """"""
+    Delete the first node whose value equals val and return the head. Unchanged if not found.
+    """"""
+    if head is not None and head.val == val:
+        return head.next
+
+    current = head
+    while current is not None and current.next is not None:
+        if current.next.val == val:
+            current.next = current.next.next
+            return head
+        current = current.next
+
+    return head",1,hard,medium,2
+cc624091-97ec-45ae-b593-822ea65543ab,41,100.0,2,2026-08-16 12:33:58.385103+00:00,easy,4813,"def word_lengths(sentence):
+    """"""
+    Return a list of (word, length) tuples for each word in sentence, preserving order (use a list comprehension).
+    """"""
+    return [(word, len(word)) for word in sentence.split()]
+",1,hard,hard,2
+cc624091-97ec-45ae-b593-822ea65543ab,141,100.0,2,2026-08-16 12:36:18.488542+00:00,hard,3889,"def power_set(s):
+    """"""
+    Recursively return all subsets of s (the power set), including the empty subset.
+    """"""
+    if not s:
+        return [[]]
+
+    first = s[0]
+    rest_subsets = power_set(s[1:])
+
+    return rest_subsets + [[first] + subset for subset in rest_subsets]",2,easy,hard,0
+cc624091-97ec-45ae-b593-822ea65543ab,110,100.0,2,2026-08-16 12:39:59.834632+00:00,hard,3864,"class ListNode:
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
+
+
+def reverse_list(head):
+    """"""
+    Reverse the linked list in place (three-pointer technique) and return the new head.
+    """"""
+    prev = None
+    curr = head
+
+    while curr is not None:
+        next_node = curr.next
+        curr.next = prev
+        prev = curr
+        curr = next_node
+
+    return prev",1,hard,medium,2
+cc624091-97ec-45ae-b593-822ea65543ab,40,100.0,2,2026-08-16 12:42:29.785432+00:00,easy,4859,"def filter_transform(nums):
+    """"""
+    Return a list of the even numbers in nums, each multiplied by 2 (use a list comprehension).
+    """"""
+    return [n * 2 for n in nums if n % 2 == 0]
+",1,hard,medium,2
+f3def67e-3e24-4be2-95eb-f444a4440188,128,100.0,2,2026-08-16 13:48:13.184266+00:00,hard,5865,"def selection_sort(arr):
+    """"""
+    Sort arr ascending using selection sort. Return the sorted list.
+    """"""
+    n = len(arr)
+    for i in range(n):
+        # Find the index of the minimum element in the unsorted portion
+        min_idx = i
+        for j in range(i + 1, n):
+            if arr[j] < arr[min_idx]:
+                min_idx = j
+        
+        # Swap the found minimum element with the first element of the unsorted portion
+        arr[i], arr[min_idx] = arr[min_idx], arr[i]
+        
+    return arr
+",2,,hard,-1
+f3def67e-3e24-4be2-95eb-f444a4440188,127,100.0,1,2026-08-16 13:51:51.289259+00:00,hard,6758,"def bubble_sort(arr):
+    """"""
+    Sort arr ascending using bubble sort with early termination. Return the sorted list.
+    """"""
+    n = len(arr)
+    for i in range(n):
+        swapped = False
+        # Last i elements are already in place
+        for j in range(0, n - i - 1):
+            if arr[j] > arr[j + 1]:
+                # Swap adjacent elements
+                arr[j], arr[j + 1] = arr[j + 1], arr[j]
+                swapped = True
+        
+        # If no elements were swapped, the array is already sorted
+        if not swapped:
+            break
+            
+    return arr",2,hard,medium,2
+f3def67e-3e24-4be2-95eb-f444a4440188,28,100.0,2,2026-08-16 13:54:19.879001+00:00,easy,3867,"def list_stats(nums):
+    """"""
+    Return ""Total: {total}, Max: {max}, Min: {min}, Count: {count}"" for a non-empty list of numbers.
+    """"""
+    total = sum(nums)
+    maximum = max(nums)
+    minimum = min(nums)
+    count = len(nums)
+    
+    return f""Total: {total}, Max: {maximum}, Min: {minimum}, Count: {count}""",0,hard,easy,2
+f3def67e-3e24-4be2-95eb-f444a4440188,29,100.0,4,2026-08-16 13:58:52.917162+00:00,easy,2910,"def summarize(text):
+    """"""
+    Return ""Words: {word_count}, Chars: {char_count}, Unique: {unique_words}, Longest: {longest_word}"" for text.
+    """"""
+    words = text.split()
+    word_count = len(words)
+    
+    # Count characters excluding whitespace
+    char_count = sum(len(w) for w in words)
+    
+    # Unique word count
+    unique_words = len(set(words))
+    
+    # Find longest word (ties broken by last occurrence)
+    longest_word = """"
+    for w in words:
+        if len(w) >= len(longest_word):
+            longest_word = w
+            
+    return f""Words: {word_count}, Chars: {char_count}, Unique: {unique_words}, Longest: {longest_word}""",1,easy,medium,0
+f3def67e-3e24-4be2-95eb-f444a4440188,30,100.0,2,2026-08-16 14:04:03.362501+00:00,easy,5832,"def safe_convert(value, target_type):
+    """"""
+    Convert value (a string) to target_type (""int""/""float""/""bool""), or return None if conversion fails.
+    """"""
+    try:
+        if target_type == ""int"":
+            return int(value)
+        elif target_type == ""float"":
+            return float(value)
+        elif target_type == ""bool"":
+            val_lower = value.strip().lower()
+            if val_lower in (""true"", ""1""):
+                return True
+            elif val_lower in (""false"", ""0""):
+                return False
+            return None
+    except (ValueError, TypeError):
+        return None
+        
+    return None",0,easy,hard,0
+f3def67e-3e24-4be2-95eb-f444a4440188,129,100.0,2,2026-08-16 14:05:31.276626+00:00,hard,6775,"def insertion_sort(arr):
+    """"""
+    Sort arr ascending using insertion sort. Return the sorted list.
+    """"""
+    for i in range(1, len(arr)):
+        key = arr[i]
+        j = i - 1
+        
+        # Move elements of arr[0..i-1] that are greater than key
+        # to one position ahead of their current position
+        while j >= 0 and arr[j] > key:
+            arr[j + 1] = arr[j]
+            j -= 1
+            
+        arr[j + 1] = key
+        
+    return arr",2,easy,hard,0
