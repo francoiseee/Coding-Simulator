@@ -46,7 +46,7 @@ export default function Dashboard({ email }) {
                 title: adaptiveData.problem.title,
                 slug: adaptiveData.problem.slug,
                 conceptName: adaptiveData.topic?.name ?? null,
-                difficulty: adaptiveData.difficulty ?? null,
+                difficulty: adaptiveData.problem.difficulty ?? null,
                 progression: adaptiveData.problem.progression ?? null,
               });
             }

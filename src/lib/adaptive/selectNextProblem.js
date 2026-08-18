@@ -97,7 +97,7 @@ const DIFFICULTY_TO_BAND = {
  *   progression band within the chosen concept (see DIFFICULTY_TO_BAND),
  *   NOT to which concept gets chosen.
  * @returns {Promise<{
- *   problem: {id: number, slug: string, title: string, progression: string, topicPosition: number},
+ *   problem: {id: number, slug: string, title: string, difficulty: string, progression: string, topicPosition: number},
  *   topic: {id: number, slug: string, name: string} | null,
  *   source: 'band_lowest_unsolved'|'band_repeat_fallback'|'band_missing_any_unsolved'
  *         | 'concept_repeat_fallback_all_solved'|'fallback_any_published',
@@ -179,7 +179,7 @@ async function selectStructured({ admin, userId, difficulty }) {
   const { data: rows, error: rowsError } = await admin
     .from("problem_concepts")
     .select(
-      "problem_id, concept_id, problems!inner(id, slug, title, topic_position, progression, status)",
+      "problem_id, concept_id, problems!inner(id, slug, title, difficulty, topic_position, progression, status)",
     )
     .in("concept_id", allConceptIds)
     .eq("is_primary", true)
@@ -351,6 +351,7 @@ function buildResult({ chosenProblem, chosenConcept, source, reason }) {
       id: chosenProblem.id,
       slug: chosenProblem.slug,
       title: chosenProblem.title,
+      difficulty: chosenProblem.difficulty,
       progression: chosenProblem.progression,
       topicPosition: chosenProblem.topic_position,
     },
@@ -367,7 +368,7 @@ function buildResult({ chosenProblem, chosenConcept, source, reason }) {
 async function selectAnyFallback({ admin, difficulty }) {
   const { data, error } = await admin
     .from("problems")
-    .select("id, slug, title, progression, topic_position")
+    .select("id, slug, title, difficulty, progression, topic_position")
     .eq("difficulty", difficulty)
     .eq("status", "published")
     .order("id", { ascending: true })
@@ -381,6 +382,7 @@ async function selectAnyFallback({ admin, difficulty }) {
       id: data.id,
       slug: data.slug,
       title: data.title,
+      difficulty: data.difficulty,
       progression: data.progression,
       topicPosition: data.topic_position,
     },
