@@ -22,7 +22,7 @@ review — do not treat these as final until that review lands).
 # ─── Versioning ───────────────────────────────────────────────────────────────
 # Stamped into every artefact so a saved model can always be traced back to the
 # rule that produced its labels.
-RULE_VERSION = "v1.0-proposed"
+RULE_VERSION = "v1.1-proposed"
 
 # ─── Difficulty vocabulary ────────────────────────────────────────────────────
 # These are PROBLEM difficulties (problems.difficulty), NOT student skill levels
@@ -40,9 +40,17 @@ DIFFICULTY_ORDER = ["easy", "medium", "hard"]
 #                           already used for skill-level assignment.
 #   WELL_ATTEMPTS_MAX 2     A working approach existed before submitting. Three
 #                           or more suggests convergence by trial and error.
+#                           Measured against submission_count, not the RF's
+#                           attempts feature — the Aug 14 attempts redefinition
+#                           (Codely_Decision_AttemptsFeatureDefinition_Aug2026.docx)
+#                           folded in ungraded Run Code presses, decoupling the
+#                           two. See Codely_ExpertReview_M1Results_Aug2026.docx
+#                           Section 7.
 #   STRUGGLE_SCORE_MAX 50.0 Below half the tests passing indicates the approach
 #                           itself was wrong, not that it had an edge-case bug.
 #   STRUGGLE_ATTEMPTS_MIN 5 Sustained difficulty regardless of final score.
+#                           Measured against submission_count, not the RF's
+#                           attempts feature — same Aug 14 decoupling as above.
 #
 # Note the asymmetry, which is deliberate:
 #   WELL     requires BOTH conditions (AND) — excludes high-score/many-attempts
@@ -97,6 +105,34 @@ GROUP_COLUMN = "student_id"
 #
 # This also excludes the 14 development test submissions (July 14 - Aug 1).
 DATA_CUTOFF_ISO = "2026-08-06T00:00:00+00:00"
+
+# ─── Pilot roster exclusions ───────────────────────────────────────────────
+# Accounts that are NOT Group 1 pilot participants but have activity inside
+# the DATA_CUTOFF_ISO window regardless — dev/test accounts, groupmate
+# accounts used for QA, and confirmed duplicate sign-ups. DATA_CUTOFF_ISO
+# alone cannot exclude these: it is a methodological boundary (when
+# /api/practice/run went live), not a contamination filter, and every one of
+# these accounts was active well after that date. Verified against the live
+# roster 16 Aug 2026.
+#
+# Update this list before every export (D1, D2, D3...), not just once — new
+# dev/test activity or duplicate sign-ups can appear in any future batch.
+EXCLUDED_USER_IDS = [
+    "6e63eb41-04be-41ed-b797-53091cd0dd93",  # lance.apostol.019@gmail.com — dev/test
+    "5038dc04-772d-492d-a033-8f4513fd6064",  # lanceapostol04@gmail.com — dev/test
+    "731cbe00-4dae-43ff-8fd9-28298222644f",  # lanceapostol0991@gmail.com — dev/test
+    "949dc8dc-949b-4bfe-8730-e9f2d365c63f",  # lancejezreel04@gmail.com — dev/test
+    "59223a8e-9f3c-40bc-8692-1db77c2b3353",  # lancejx19@gmail.com — dev/test
+    "e53f97a2-fe28-4beb-8bd8-17045d66b286",  # lancepogi@gmail.com — dev/test
+    "bf192b34-b2d6-4c28-9116-a53bf47c13e0",  # thecodelyteam@gmail.com — dev/test
+    "27ee8ec9-d01a-476f-b8f4-9fe16506d3e2",  # allein325dane@gmail.com — groupmate (Christine)
+    "f26594fb-1055-4f86-8723-31440c7fd2b9",  # maninangadg@gmail.com — groupmate (Dane)
+    "a42be419-4ece-42b6-bfc5-9f1f1db0b43c",  # adgmaninang.cscsoc@gmail.com — groupmate (Dane, 2nd account)
+    "e3734153-794c-4453-8f47-554063ef5ff6",  # nikkosgameprojects@gmail.com — groupmate (Nikko)
+    "4bc26b37-c2c2-4ada-8a0c-fcf46427c9f7",  # reshleygonzales11@gmail.com — excluded this batch (Lance's call, 16 Aug 2026)
+    "fb4e1d22-e1e5-4aa6-9635-391a774c1be5",  # gonzalesreshley@gmail.com — excluded this batch (Lance's call, 16 Aug 2026)
+    "128fbb1b-0ee9-4d12-973b-57112199346a",  # grant@gmail.com — placeholder account; real participant is quilantanggrant@gmail.com
+]
 
 # ─── Expert sign-off gate ──────────────────────────────────────────────────────
 # IS_IMPLEMENTED in complexity.py means "the code runs and returns real

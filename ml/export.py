@@ -19,7 +19,7 @@ import sys
 import pandas as pd
 
 from .complexity import complexity_column
-from .config import DATA_CUTOFF_ISO, DIFFICULTY_ORDER
+from .config import DATA_CUTOFF_ISO, DIFFICULTY_ORDER, EXCLUDED_USER_IDS
 
 try:
     from supabase import create_client
@@ -56,10 +56,18 @@ def _fetch_all(client, table: str, columns: str, page: int = 1000) -> list[dict]
         offset += page
 
 
-def fetch_raw(verbose: bool = True) -> pd.DataFrame:
+def fetch_raw(cohort: str, verbose: bool = True) -> pd.DataFrame:
     """
     Fetch submissions joined to problem difficulty, collapsed to one row per
     (student, problem) attempt.
+
+    cohort is required, not optional, because profiles.cohort is now the
+    authoritative source of pilot-group membership
+    (Codely_UpdatedTrainingPlan_2Round.pdf) — inferring membership from
+    activity patterns or an exclusion list alone previously caused a real
+    participant (test@test.com) to be wrongly dropped from D1.
+    EXCLUDED_USER_IDS is kept as a secondary safety net, not the primary
+    mechanism.
 
     Collapsing rules, and why each is what it is:
 
@@ -110,6 +118,33 @@ def fetch_raw(verbose: bool = True) -> pd.DataFrame:
     df = df[df["submitted_at"] >= pd.Timestamp(DATA_CUTOFF_ISO)]
     if verbose:
         print(f"  {before} submissions -> {len(df)} after cutoff")
+
+    # Exclude known non-participant accounts — see EXCLUDED_USER_IDS in
+    # ml/config.py. The date cutoff above cannot catch these on its own, since
+    # all of them were active well after DATA_CUTOFF_ISO. Filtering here, before
+    # the coding_sessions merge later in this function, means the exclusion
+    # propagates automatically — no separate filter needed on the sessions fetch.
+    before_excl = len(df)
+    df = df[~df["user_id"].isin(EXCLUDED_USER_IDS)]
+    if verbose:
+        print(f"  {before_excl} submissions -> {len(df)} after excluding "
+              f"{len(EXCLUDED_USER_IDS)} known non-participant accounts")
+
+    # Cohort filter — the authoritative mechanism for pilot-group membership.
+    # See Codely_UpdatedTrainingPlan_2Round.pdf. This must run in addition to,
+    # not instead of, the EXCLUDED_USER_IDS filter above — that list is a
+    # defensive safety net for accounts that should never carry ANY cohort
+    # value at all (dev/test, groupmates), while this filter selects which
+    # cohort's real participants belong in THIS specific export.
+    profiles = _fetch_all(client, "profiles", "id,cohort")
+    pdf_cohort = pd.DataFrame(profiles).rename(columns={"id": "user_id"})
+    cohort_ids = set(pdf_cohort[pdf_cohort["cohort"] == cohort]["user_id"])
+
+    before_cohort = len(df)
+    df = df[df["user_id"].isin(cohort_ids)]
+    if verbose:
+        print(f"  {before_cohort} submissions -> {len(df)} after filtering to "
+              f"cohort={cohort} ({len(cohort_ids)} participants tagged)")
 
     if df.empty:
         print("ERROR: no submissions after the cutoff. Nothing to train on.")
@@ -164,6 +199,13 @@ def fetch_raw(verbose: bool = True) -> pd.DataFrame:
     run_counts = (
         sdf.groupby(["user_id", "problem_id"])["run_count"].sum().reset_index()
     )
+
+    # Preserve the submission-only count under its own name BEFORE folding in
+    # run_count. The RF feature `attempts` (submissions + run_count) and the
+    # labeling rule's struggle/mastery thresholds measure conceptually different
+    # things and must not share one column — see
+    # Codely_ExpertReview_M1Results_Aug2026.docx Section 7.
+    agg["submission_count"] = agg["attempts"]
 
     agg = agg.merge(run_counts, on=["user_id", "problem_id"], how="left")
     agg["attempts"] = agg["attempts"] + agg["run_count"].fillna(0)

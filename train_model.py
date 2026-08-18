@@ -174,7 +174,16 @@ def main():
         help="Path to a held-out test CSV. If omitted when using --csv, "
              "a GroupShuffleSplit is applied to the --csv file instead.",
     )
+    ap.add_argument(
+        "--cohort",
+        choices=["G1", "G2", "GF"],
+        help="Which pilot cohort to export from Supabase (required unless --csv is used).",
+    )
     args = ap.parse_args()
+
+    if not args.csv and not args.cohort:
+        print("ERROR: --cohort is required when not using --csv — specify which pilot group's data to export.")
+        sys.exit(1)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
 
@@ -218,7 +227,7 @@ def main():
 
     else:
         # M1/M2/M3 path: pull from Supabase and generate labels live.
-        raw = fetch_raw()
+        raw = fetch_raw(cohort=args.cohort)
         df = generate_labels(raw)
 
     if df.empty:

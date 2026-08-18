@@ -51,12 +51,12 @@ ORD_TO_DIFF = {i: d for d, i in DIFF_TO_ORD.items()}
 _MAX_ORD = len(DIFFICULTY_ORDER) - 1
 
 
-def classify_outcome(score: float | None, attempts: int | None) -> str:
+def classify_outcome(score: float | None, submission_count: int | None) -> str:
     """
     Classify a single problem outcome as WELL / STRUGGLED / APPROPRIATE.
 
-    WELL      score >= 80  AND  attempts <= 2
-    STRUGGLED score <  50  OR   attempts >= 5
+    WELL      score >= 80  AND  submission_count <= 2
+    STRUGGLED score <  50  OR   submission_count >= 5
     APPROPRIATE  everything else
 
     The AND/OR asymmetry is deliberate. WELL requires both because a high score
@@ -66,14 +66,23 @@ def classify_outcome(score: float | None, attempts: int | None) -> str:
     demonstrated persistence, not readiness.
 
     WELL is evaluated first. A row satisfying neither is APPROPRIATE.
+
+    Deliberately takes submission_count, not attempts — the RF feature and this
+    rule's thresholds are deliberately decoupled; see
+    Codely_ExpertReview_M1Results_Aug2026.docx Section 7.
     """
-    if score is None or attempts is None or pd.isna(score) or pd.isna(attempts):
+    if (
+        score is None
+        or submission_count is None
+        or pd.isna(score)
+        or pd.isna(submission_count)
+    ):
         return "APPROPRIATE"
 
-    if score >= WELL_SCORE_MIN and attempts <= WELL_ATTEMPTS_MAX:
+    if score >= WELL_SCORE_MIN and submission_count <= WELL_ATTEMPTS_MAX:
         return "WELL"
 
-    if score < STRUGGLE_SCORE_MAX or attempts >= STRUGGLE_ATTEMPTS_MIN:
+    if score < STRUGGLE_SCORE_MAX or submission_count >= STRUGGLE_ATTEMPTS_MIN:
         return "STRUGGLED"
 
     return "APPROPRIATE"
@@ -94,9 +103,9 @@ def step_difficulty(difficulty: str, direction: int) -> str:
     return ORD_TO_DIFF[stepped]
 
 
-def label_from_next(next_difficulty: str, next_score, next_attempts) -> str:
+def label_from_next(next_difficulty: str, next_score, next_submission_count) -> str:
     """Derive one row's label from the outcome of the problem that followed it."""
-    outcome = classify_outcome(next_score, next_attempts)
+    outcome = classify_outcome(next_score, next_submission_count)
 
     if outcome == "WELL":
         return step_difficulty(next_difficulty, +1)
@@ -111,7 +120,7 @@ def generate_labels(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
 
     Expects one row per problem attempt with at least:
         student_id, problem_id, difficulty, correctness_rate, attempts,
-        attempted_at
+        submission_count, attempted_at
 
     Returns only labelled rows, with `label`, `prev_difficulty`, and
     `prev_difficulty_ord` added.
@@ -155,7 +164,7 @@ def generate_labels(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
     g = df.groupby("student_id")
     df["next_difficulty"] = g["difficulty"].shift(-1)
     df["next_score"] = g["correctness_rate"].shift(-1)
-    df["next_attempts"] = g["attempts"].shift(-1)
+    df["next_submission_count"] = g["submission_count"].shift(-1)
     df["next_at"] = g["attempted_at"].shift(-1)
 
     # Previous difficulty is feature 5. NaN on a student's first problem.
@@ -178,7 +187,7 @@ def generate_labels(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
 
     df["label"] = df.apply(
         lambda r: label_from_next(
-            r["next_difficulty"], r["next_score"], r["next_attempts"]
+            r["next_difficulty"], r["next_score"], r["next_submission_count"]
         ),
         axis=1,
     )
@@ -190,7 +199,9 @@ def generate_labels(df: pd.DataFrame, verbose: bool = True) -> pd.DataFrame:
         df["prev_difficulty"].map(DIFF_TO_ORD).fillna(-1).astype(int)
     )
 
-    df = df.drop(columns=["next_difficulty", "next_score", "next_attempts", "next_at"])
+    df = df.drop(
+        columns=["next_difficulty", "next_score", "next_submission_count", "next_at"]
+    )
 
     _report(stats, len(df), verbose)
     return df.reset_index(drop=True)
