@@ -175,14 +175,19 @@ def main():
              "a GroupShuffleSplit is applied to the --csv file instead.",
     )
     ap.add_argument(
-        "--cohort",
-        choices=["G1", "G2", "GF"],
-        help="Which pilot cohort to export from Supabase (required unless --csv is used).",
+        "--cohorts", type=str, default=None,
+        help="Comma-separated profiles.cohort values to include, e.g. 'G1' for M1 "
+             "or 'G1,G2' for M2 (cumulative, per Codely_UpdatedTrainingPlan_2Round.pdf). "
+             "Required unless --csv is given. Each cohort is fetched fresh from Supabase "
+             "and labelled under the CURRENT rule in ml/labeling.py — this means D1, if "
+             "included, gets relabelled under today's rule rather than reusing an older "
+             "pre-built CSV whose labels may predate a labeling-rule change.",
     )
     args = ap.parse_args()
 
-    if not args.csv and not args.cohort:
-        print("ERROR: --cohort is required when not using --csv — specify which pilot group's data to export.")
+    if not args.csv and not args.cohorts:
+        print("ERROR: --cohorts is required when not using --csv — e.g. --cohorts G1 or --cohorts G1,G2.")
+        print("  See Codely_UpdatedTrainingPlan_2Round.pdf for which cohorts feed which model.")
         sys.exit(1)
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -226,8 +231,26 @@ def main():
             df["prev_difficulty"] = df["prev_difficulty_ord"].map(ORD_TO_DIFF)
 
     else:
-        # M1/M2/M3 path: pull from Supabase and generate labels live.
-        raw = fetch_raw(cohort=args.cohort)
+        # M1/M2 path: pull from Supabase and generate labels live.
+        cohort_list = [c.strip() for c in args.cohorts.split(",") if c.strip()]
+        print(f"\nCohorts included: {cohort_list}")
+
+        raw_parts = []
+        for cohort in cohort_list:
+            part = fetch_raw(cohort=cohort)
+            part["source_cohort"] = cohort
+            raw_parts.append(part)
+
+        raw = pd.concat(raw_parts, ignore_index=True)
+        print(f"\n--- Combined raw attempts across {len(cohort_list)} cohort(s) ---")
+        print(f"  total: {len(raw)} rows / {raw['student_id'].nunique()} students")
+        for cohort, group in raw.groupby("source_cohort"):
+            print(f"  {cohort:<6} {len(group):>4} rows / {group['student_id'].nunique()} students")
+
+        # Labelling groups by student_id, and cohorts are disjoint by the
+        # contamination rule (a student can only belong to one cohort), so
+        # labelling the combined raw attempts in one pass here is equivalent
+        # to labelling each cohort separately and concatenating afterward.
         df = generate_labels(raw)
 
     if df.empty:
@@ -367,6 +390,7 @@ def main():
 
     meta = {
         "trained_at": datetime.now(timezone.utc).isoformat(),
+        "cohorts": cohort_list if not args.csv else None,
         "reviewed_by_expert": REVIEWED_BY_EXPERT,
         "expert_review_date": EXPERT_REVIEW_DATE,
         "expert_review_note": EXPERT_REVIEW_NOTE,
