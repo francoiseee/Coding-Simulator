@@ -15,14 +15,14 @@ Read this before changing anything here:
     training run, recorded with a reason, and reflected in Chapter 3. Bump
     RULE_VERSION when that happens so old and new runs are distinguishable.
 
-Reference: Codely_Decision_LabelingRule.md (status: PROPOSED, pending AI expert
-review — do not treat these as final until that review lands).
+Reference: Codely_Decision_LabelingRule.md (status: CONFIRMED — reviewed and
+approved by Mr. Arnaz De Jesus, AI Engineer, Shore360 Agency, 24 Aug 2026).
 """
 
 # ─── Versioning ───────────────────────────────────────────────────────────────
 # Stamped into every artefact so a saved model can always be traced back to the
 # rule that produced its labels.
-RULE_VERSION = "v1.1-proposed"
+RULE_VERSION = "v1.1"
 
 # ─── Difficulty vocabulary ────────────────────────────────────────────────────
 # These are PROBLEM difficulties (problems.difficulty), NOT student skill levels
@@ -32,6 +32,11 @@ RULE_VERSION = "v1.1-proposed"
 DIFFICULTY_ORDER = ["easy", "medium", "hard"]
 
 # ─── Labelling thresholds ─────────────────────────────────────────────────────
+# Confirmed by Mr. Arnaz De Jesus (Shore360 Agency), 24 Aug 2026: "consider the
+# PROPOSED status closed... confirmed using heuristic thresholds based on
+# pedagogical interpretability is a standard, convergent practice in
+# Educational Data Mining (EDM), supported by precedent in systems like
+# ASSISTments." See Codely_Decision_LabelingRule.md for the full record.
 # Justification for each number lives in Codely_Decision_LabelingRule.md and
 # must be reproduced in Chapter 3. Summarised:
 #
