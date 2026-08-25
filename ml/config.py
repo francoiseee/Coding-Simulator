@@ -165,6 +165,11 @@ EXPERT_REVIEW_NOTE = (
     "Codely_Decision_ExpertSignOff_Aug2026.docx for full record and action items."
 )
 
+# Addendum, 24 Aug 2026: both conditional items above are now resolved.
+# (1) Labeling rule thresholds — confirmed by Mr. De Jesus; see the Labelling
+# thresholds section below and Codely_Decision_LabelingRule.md. (2) M0 metrics
+# as baseline — the Easy-to-Medium bias documentation is complete in Chapter 4/5.
+
 # ─── Random Forest hyperparameters ────────────────────────────────────────────
 # These ARE tunable — they are model configuration, not methodology. Tuning
 # them is normal practice and does not create circularity, because they do not
