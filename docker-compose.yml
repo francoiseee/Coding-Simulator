@@ -1,0 +1,40 @@
+# Runs the whole Codely stack locally:  docker compose up --build
+# Supabase, Judge0 (RapidAPI) and the Anthropic API stay as cloud services;
+# their keys come from the .env file next to this one.
+
+services:
+  inference:
+    build:
+      context: .
+      dockerfile: inference_service/Dockerfile
+    container_name: codely-inference
+    environment:
+      RF_INTERNAL_SECRET: ${RF_INTERNAL_SECRET}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    container_name: codely-web
+    env_file: .env
+    environment:
+      # Containers reach each other by service name, not 127.0.0.1.
+      RF_SERVICE_URL: http://inference:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      inference:
+        condition: service_healthy
+    restart: unless-stopped
