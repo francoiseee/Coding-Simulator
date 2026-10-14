@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+.git
+.vercel
+.DS_Store
+**/__pycache__
+*.pyc
+.env*
+!.env.example
+coverage
+*.code-workspace
+# Student training data never goes into an image
+ml_out/dataset_*.csv
+ml/data
