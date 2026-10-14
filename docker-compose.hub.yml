@@ -1,0 +1,31 @@
+services:
+  inference:
+    image: jezrlll19/codely-inference:latest
+    container_name: codely-inference
+    environment:
+      RF_INTERNAL_SECRET: ${RF_INTERNAL_SECRET}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    image: jezrlll19/codely-web:latest
+    container_name: codely-web
+    env_file: .env
+    environment:
+      RF_SERVICE_URL: http://inference:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      inference:
+        condition: service_healthy
