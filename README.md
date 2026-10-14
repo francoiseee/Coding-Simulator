@@ -105,6 +105,7 @@ Rebuild with `docker compose up --build` after code changes, or after changing a
 - Student `dataset_*.csv` files are excluded from the images via `.dockerignore`.
 - `output: "standalone"` in `next.config.mjs` exists for the Docker image; Vercel ignores it.
 - The `GET /health` lines every 15 seconds in the logs are the health check. This is normal.
+- Images are published automatically by GitHub Actions to both Docker Hub and GHCR whenever changes are merged to `main`.
 
 ### Troubleshooting
 
