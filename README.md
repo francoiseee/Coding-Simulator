@@ -2,6 +2,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Running with Docker
 
+[![Docker](https://github.com/francoiseee/Coding-Simulator/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/francoiseee/Coding-Simulator/actions/workflows/docker-publish.yml)
+[![codely-web](https://img.shields.io/badge/ghcr.io-codely--web-blue?logo=docker)](https://github.com/francoiseee/Coding-Simulator/pkgs/container/codely-web)
+[![codely-inference](https://img.shields.io/badge/ghcr.io-codely--inference-blue?logo=docker)](https://github.com/francoiseee/Coding-Simulator/pkgs/container/codely-inference)
+
+Prebuilt images (no build needed):
+
+```bash
+docker pull ghcr.io/francoiseee/codely-web:latest
+docker pull ghcr.io/francoiseee/codely-inference:latest
+```
+
 The whole stack runs locally as two containers:
 
 | Container   | What it is                                | Port |
