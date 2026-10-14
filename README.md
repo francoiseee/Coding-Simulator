@@ -13,6 +13,16 @@ docker pull ghcr.io/francoiseee/codely-web:latest
 docker pull ghcr.io/francoiseee/codely-inference:latest
 ```
 
+Also on Docker Hub:
+
+[![Docker Hub: codely-web](https://img.shields.io/badge/docker%20hub-codely--web-blue?logo=docker)](https://hub.docker.com/r/jezrlll19/codely-web)
+[![Docker Hub: codely-inference](https://img.shields.io/badge/docker%20hub-codely--inference-blue?logo=docker)](https://hub.docker.com/r/jezrlll19/codely-inference)
+
+```bash
+docker pull jezrlll19/codely-web:latest
+docker pull jezrlll19/codely-inference:latest
+```
+
 The whole stack runs locally as two containers:
 
 | Container   | What it is                                | Port |
