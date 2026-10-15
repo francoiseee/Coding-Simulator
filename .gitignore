@@ -42,3 +42,4 @@ next-env.d.ts
 
 # allow the template, keep real .env files ignored
 !.env.example
+backups/
